@@ -1,11 +1,12 @@
 import { useState, useRef } from 'react';
-import { AlertTriangle, Camera, MapPin, Send, Upload, X, CheckCircle2 } from 'lucide-react';
+import { AlertTriangle, Camera, MapPin, Send, Upload, X, CheckCircle2, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 interface ReportFormData {
   productName: string;
