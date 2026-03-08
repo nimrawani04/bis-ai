@@ -590,6 +590,47 @@ export function ProductVerification() {
                 <Clock className="h-5 w-5 text-primary" />
                 <h3 className="text-xl font-bold text-foreground">Recent Scans</h3>
                 <Badge variant="outline" className="rounded-full ml-2">{scanHistory.length}</Badge>
+                <div className="ml-auto">
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button variant="outline" size="sm" className="text-destructive border-destructive/30 hover:bg-destructive/10 hover:text-destructive">
+                        <Trash2 className="h-4 w-4" />
+                        Clear All
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Clear all scan history?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          This will permanently delete all {scanHistory.length} scan records. This action cannot be undone.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                          className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                          onClick={async () => {
+                            try {
+                              const { error } = await supabase
+                                .from('scan_history')
+                                .delete()
+                                .neq('id', '00000000-0000-0000-0000-000000000000');
+                              if (error) throw error;
+                              setScanHistory([]);
+                              setExpandedScanId(null);
+                              toast.success('Scan history cleared');
+                            } catch (err) {
+                              console.error('Failed to clear history:', err);
+                              toast.error('Failed to clear history');
+                            }
+                          }}
+                        >
+                          Delete All
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                </div>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {scanHistory.map((item) => {
