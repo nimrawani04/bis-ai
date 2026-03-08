@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Search, QrCode, CheckCircle2, AlertTriangle, XCircle, Shield, Calendar, Building2, FileText } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Search, QrCode, CheckCircle2, AlertTriangle, XCircle, Shield, Calendar, Building2, FileText, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -7,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { searchProducts, getProductByNumber, type Product } from '@/data/products';
 
 export function ProductVerification() {
+  const navigate = useNavigate();
   const [query, setQuery] = useState('');
   const [searchResults, setSearchResults] = useState<Product[]>([]);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
@@ -286,15 +288,23 @@ export function ProductVerification() {
                 </Card>
               </div>
 
-              {/* Report Button for fake products */}
-              {selectedProduct.status === 'not-found' && (
-                <div className="mt-6 text-center">
+              {/* Action Buttons */}
+              <div className="mt-6 flex flex-wrap gap-4 justify-center">
+                <Button 
+                  variant="hero" 
+                  size="lg" 
+                  onClick={() => navigate(`/passport/${selectedProduct.id}`)}
+                >
+                  <ExternalLink className="h-5 w-5" />
+                  View Digital Passport
+                </Button>
+                {selectedProduct.status === 'not-found' && (
                   <Button variant="accent" size="lg">
                     <AlertTriangle className="h-5 w-5" />
                     Report This Product to BIS
                   </Button>
-                </div>
-              )}
+                )}
+              </div>
             </div>
           )}
         </div>
