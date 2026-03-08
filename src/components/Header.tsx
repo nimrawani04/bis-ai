@@ -58,11 +58,11 @@ export function Header() {
       {mobileMenuOpen && (
         <div className="md:hidden border-t border-border bg-background p-4 animate-fade-in">
           <nav className="flex flex-col gap-4">
+            <a href="#alerts" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+              Safety Alerts
+            </a>
             <a href="#verify" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
               Verify Product
-            </a>
-            <a href="#search" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
-              Search Standards
             </a>
             <a href="#scanner" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
               Safety Scanner
