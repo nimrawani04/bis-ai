@@ -21,6 +21,10 @@ interface ScanHistoryItem {
   category: string | null;
   risk_level: string;
   summary: string | null;
+  certification_marks: string[] | null;
+  safety_observations: string[] | null;
+  recommendation: string | null;
+  analysis_json: any;
   created_at: string;
 }
 type ScanMode = 'barcode' | 'certificate' | 'image';
