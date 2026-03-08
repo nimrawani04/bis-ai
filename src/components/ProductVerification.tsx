@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { searchProducts, getProductByNumber, type Product } from '@/data/products';
 
 export function ProductVerification() {
+  const navigate = useNavigate();
   const [query, setQuery] = useState('');
   const [searchResults, setSearchResults] = useState<Product[]>([]);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
