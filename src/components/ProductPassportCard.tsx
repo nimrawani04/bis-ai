@@ -5,7 +5,7 @@ import { Separator } from '@/components/ui/separator';
 import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { QRCodeSVG } from 'qrcode.react';
+
 import { toast } from '@/components/ui/sonner';
 import { 
   Shield, 
