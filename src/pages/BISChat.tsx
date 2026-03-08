@@ -815,7 +815,7 @@ export default function BISChat() {
                 <div key={i} className="flex justify-start animate-fade-in group">
                   <div className="bg-card border border-border rounded-2xl rounded-bl-sm px-4 py-3 max-w-[95%] sm:max-w-[85%] md:max-w-[75%] space-y-3">
                     <div className="prose prose-sm max-w-none dark:prose-invert prose-headings:text-foreground prose-p:text-muted-foreground prose-strong:text-foreground prose-li:text-muted-foreground prose-table:text-muted-foreground prose-th:text-foreground prose-th:bg-secondary/50 prose-td:border-border prose-th:border-border prose-th:px-3 prose-th:py-1.5 prose-td:px-3 prose-td:py-1.5">
-                      <ReactMarkdown>{body}</ReactMarkdown>
+                      <ReactMarkdown remarkPlugins={[remarkGfm]}>{body}</ReactMarkdown>
                     </div>
 
                     {body && (
