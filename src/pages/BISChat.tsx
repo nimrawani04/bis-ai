@@ -571,12 +571,12 @@ export default function BISChat() {
       <BISHeader />
 
       {/* Topic Filters */}
-      <div className="border-b border-border bg-card/50 backdrop-blur px-4 py-2">
-        <div className="max-w-7xl mx-auto flex items-center gap-2 overflow-x-auto scrollbar-none">
+      <div className="border-b border-border bg-card/50 backdrop-blur px-2 sm:px-4 py-2">
+        <div className="max-w-7xl mx-auto flex items-center gap-1.5 sm:gap-2 overflow-x-auto scrollbar-none">
           <Filter className="h-4 w-4 text-muted-foreground shrink-0" />
           {topicFilters.map(f => (
             <Badge key={f.id} variant={activeFilter === f.id ? 'default' : 'outline'}
-              className={`cursor-pointer shrink-0 text-xs transition-all ${activeFilter === f.id ? 'bg-primary text-primary-foreground hover:bg-primary/90' : 'hover:bg-secondary'}`}
+              className={`cursor-pointer shrink-0 text-[10px] sm:text-xs transition-all ${activeFilter === f.id ? 'bg-primary text-primary-foreground hover:bg-primary/90' : 'hover:bg-secondary'}`}
               onClick={() => setActiveFilter(f.id)}>
               {f.label}
             </Badge>
