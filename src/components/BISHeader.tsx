@@ -38,6 +38,7 @@ export function BISHeader() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { theme, toggleTheme } = useTheme();
   const location = useLocation();
+  const { user, signOut } = useAuth();
 
   return (
     <header className="sticky top-0 z-50 w-full">
