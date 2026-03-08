@@ -1,11 +1,12 @@
 import { useState, useRef } from 'react';
-import { AlertTriangle, Camera, MapPin, Send, Upload, X, CheckCircle2 } from 'lucide-react';
+import { AlertTriangle, Camera, MapPin, Send, Upload, X, CheckCircle2, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 interface ReportFormData {
   productName: string;
@@ -74,7 +75,9 @@ export function ReportProduct() {
     });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!form.productName.trim() || !form.category || !form.issueType || !form.description.trim()) {
@@ -86,12 +89,53 @@ export function ReportProduct() {
       return;
     }
 
-    // Simulate submission
-    setSubmitted(true);
-    toast({
-      title: 'Report Submitted',
-      description: 'Thank you for helping keep consumers safe. Your report has been recorded.',
-    });
+    setIsSubmitting(true);
+
+    try {
+      // Upload photos to storage
+      const photoUrls: string[] = [];
+      for (const photo of photos) {
+        const fileExt = photo.file.name.split('.').pop();
+        const filePath = `${crypto.randomUUID()}.${fileExt}`;
+        const { error: uploadError } = await supabase.storage
+          .from('report-photos')
+          .upload(filePath, photo.file);
+
+        if (!uploadError) {
+          const { data: urlData } = supabase.storage
+            .from('report-photos')
+            .getPublicUrl(filePath);
+          photoUrls.push(urlData.publicUrl);
+        }
+      }
+
+      // Insert report into database
+      const { error } = await supabase.from('product_reports').insert({
+        product_name: form.productName.trim(),
+        category: form.category,
+        issue_type: form.issueType,
+        description: form.description.trim(),
+        location: form.location.trim() || null,
+        purchase_place: form.purchasePlace.trim() || null,
+        photo_urls: photoUrls.length > 0 ? photoUrls : null,
+      });
+
+      if (error) throw error;
+
+      setSubmitted(true);
+      toast({
+        title: 'Report Submitted',
+        description: 'Thank you for helping keep consumers safe. Your report has been recorded.',
+      });
+    } catch (err) {
+      toast({
+        title: 'Submission Failed',
+        description: 'Something went wrong. Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleReset = () => {
@@ -298,9 +342,9 @@ export function ReportProduct() {
             </Card>
 
             <div className="text-center">
-              <Button type="submit" variant="accent" size="lg" className="px-10">
-                <Send className="h-5 w-5" />
-                Submit Report
+              <Button type="submit" variant="accent" size="lg" className="px-10" disabled={isSubmitting}>
+                {isSubmitting ? <Loader2 className="h-5 w-5 animate-spin" /> : <Send className="h-5 w-5" />}
+                {isSubmitting ? 'Submitting...' : 'Submit Report'}
               </Button>
               <p className="text-xs text-muted-foreground mt-3">
                 Your identity will remain anonymous. Reports are shared with BIS and consumer protection authorities.
