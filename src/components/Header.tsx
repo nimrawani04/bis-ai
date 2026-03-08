@@ -18,21 +18,21 @@ export function Header() {
         </a>
 
         {/* Desktop Navigation */}
-        <nav className="hidden md:flex items-center gap-6">
-          <a href="#verify" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
-            Verify Product
+        <nav className="hidden md:flex items-center gap-5">
+          <a href="#alerts" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+            Alerts
           </a>
-          <a href="#search" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
-            Search Standards
+          <a href="#verify" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+            Verify
           </a>
           <a href="#scanner" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
-            Safety Scanner
+            Scanner
           </a>
           <a href="#community" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
             Community
           </a>
           <a href="#knowledge" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
-            Knowledge Hub
+            Knowledge
           </a>
           <a href="#report">
             <Button variant="accent" size="sm">
@@ -58,11 +58,11 @@ export function Header() {
       {mobileMenuOpen && (
         <div className="md:hidden border-t border-border bg-background p-4 animate-fade-in">
           <nav className="flex flex-col gap-4">
+            <a href="#alerts" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+              Safety Alerts
+            </a>
             <a href="#verify" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
               Verify Product
-            </a>
-            <a href="#search" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
-              Search Standards
             </a>
             <a href="#scanner" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
               Safety Scanner

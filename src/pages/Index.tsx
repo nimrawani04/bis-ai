@@ -4,6 +4,7 @@ import { ProductVerification } from '@/components/ProductVerification';
 import { ProductSearch } from '@/components/ProductSearch';
 import { HouseholdScanner } from '@/components/HouseholdScanner';
 import { CommunityTrustScore } from '@/components/CommunityTrustScore';
+import { SafetyAlerts } from '@/components/SafetyAlerts';
 import { KnowledgeHub } from '@/components/KnowledgeHub';
 import { ReportProduct } from '@/components/ReportProduct';
 import { Footer } from '@/components/Footer';
@@ -14,6 +15,7 @@ const Index = () => {
       <Header />
       <main>
         <Hero />
+        <SafetyAlerts />
         <ProductVerification />
         <ProductSearch />
         <HouseholdScanner />
