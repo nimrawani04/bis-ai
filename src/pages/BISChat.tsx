@@ -232,22 +232,8 @@ export default function BISChat() {
     localStorage.setItem('bis-question-history', JSON.stringify(questionHistory));
   }, [questionHistory]);
 
-  // Handle query from Standards Explorer - run once on mount
-  const sendMessageRef = useRef(sendMessage);
-  sendMessageRef.current = sendMessage;
-  
-  useEffect(() => {
-    const q = searchParams.get('q');
-    if (q && !initialQueryHandled.current) {
-      initialQueryHandled.current = true;
-      setInput(q);
-      const timer = setTimeout(() => {
-        sendMessageRef.current(q);
-      }, 300);
-      return () => clearTimeout(timer);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+
+
 
   const clearConversation = () => { setMessages([]); setInput(''); };
 
