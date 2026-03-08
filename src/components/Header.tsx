@@ -35,6 +35,13 @@ export function Header() {
           <a href="#knowledge" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
             Knowledge
           </a>
+          <button
+            onClick={toggleTheme}
+            className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
+            aria-label="Toggle theme"
+          >
+            {theme === 'light' ? <Moon className="h-5 w-5" /> : <Sun className="h-5 w-5" />}
+          </button>
           <a href="#report">
             <Button variant="accent" size="sm">
               Report Unsafe Product
