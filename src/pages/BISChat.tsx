@@ -396,7 +396,7 @@ export default function BISChat() {
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-
+  const handleStreamResponse = async (resp: Response) => {
     if (!resp.ok) {
       const err = await resp.json().catch(() => ({ error: 'Request failed' }));
       if (resp.status === 429) toast.error('Rate limit reached. Please wait and try again.');
