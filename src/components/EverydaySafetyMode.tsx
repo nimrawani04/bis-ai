@@ -37,17 +37,22 @@ export function EverydaySafetyMode({ onProductClick, disabled }: EverydaySafetyM
         </p>
       </CardHeader>
       <CardContent className="pt-3 grid grid-cols-2 gap-2">
-        {everydayProducts.map((product) => (
-          <button
+        {everydayProducts.map((product, i) => (
+          <motion.button
             key={product.name}
             onClick={() => onProductClick(product.query)}
             disabled={disabled}
             className="flex items-center gap-2 text-left text-xs font-medium text-foreground bg-secondary/50 hover:bg-secondary hover:border-primary/30 border border-border rounded-lg px-3 py-2.5 transition-all group disabled:opacity-50"
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.3, delay: i * 0.06, ease: 'easeOut' }}
+            whileHover={{ scale: 1.03 }}
+            whileTap={{ scale: 0.97 }}
           >
             <span className="text-base">{product.emoji}</span>
             <span className="flex-1">{product.name}</span>
             <ChevronRight className="h-3 w-3 text-muted-foreground group-hover:text-primary transition-colors" />
-          </button>
+          </motion.button>
         ))}
       </CardContent>
     </Card>
