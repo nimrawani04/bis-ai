@@ -728,31 +728,31 @@ export default function BISChat() {
                 </div>
 
                 {/* Quick Help Buttons */}
-                <div className="flex flex-wrap gap-2 justify-center mb-6">
+                <div className="flex flex-wrap gap-1.5 sm:gap-2 justify-center mb-6">
                   <button onClick={() => sendMessage('How to check if ISI mark is genuine?')} disabled={isLoading}
-                    className="flex items-center gap-1.5 text-xs bg-primary/10 text-primary hover:bg-primary/20 px-3 py-2 rounded-full transition-colors font-medium">
+                    className="flex items-center gap-1 sm:gap-1.5 text-[10px] sm:text-xs bg-primary/10 text-primary hover:bg-primary/20 px-2 sm:px-3 py-1.5 sm:py-2 rounded-full transition-colors font-medium">
                     ✅ Check ISI Mark
                   </button>
                   <button onClick={() => sendMessage('How to apply for BIS certification?')} disabled={isLoading}
-                    className="flex items-center gap-1.5 text-xs bg-primary/10 text-primary hover:bg-primary/20 px-3 py-2 rounded-full transition-colors font-medium">
+                    className="flex items-center gap-1 sm:gap-1.5 text-[10px] sm:text-xs bg-primary/10 text-primary hover:bg-primary/20 px-2 sm:px-3 py-1.5 sm:py-2 rounded-full transition-colors font-medium">
                     📋 Apply for Certification
                   </button>
                   <button onClick={() => sendMessage('How to file a consumer complaint about fake products?')} disabled={isLoading}
-                    className="flex items-center gap-1.5 text-xs bg-primary/10 text-primary hover:bg-primary/20 px-3 py-2 rounded-full transition-colors font-medium">
-                    🛡️ File Consumer Complaint
+                    className="flex items-center gap-1 sm:gap-1.5 text-[10px] sm:text-xs bg-primary/10 text-primary hover:bg-primary/20 px-2 sm:px-3 py-1.5 sm:py-2 rounded-full transition-colors font-medium">
+                    🛡️ File Complaint
                   </button>
                   <button onClick={() => sendMessage('What are BIS standards and why are they important?')} disabled={isLoading}
-                    className="flex items-center gap-1.5 text-xs bg-primary/10 text-primary hover:bg-primary/20 px-3 py-2 rounded-full transition-colors font-medium">
-                    📖 Understand Standards
+                    className="flex items-center gap-1 sm:gap-1.5 text-[10px] sm:text-xs bg-primary/10 text-primary hover:bg-primary/20 px-2 sm:px-3 py-1.5 sm:py-2 rounded-full transition-colors font-medium">
+                    📖 Standards
                   </button>
                   <button onClick={() => sendMessage('Compare BIS hallmarking and product certification schemes')} disabled={isLoading}
-                    className="flex items-center gap-1.5 text-xs bg-primary/10 text-primary hover:bg-primary/20 px-3 py-2 rounded-full transition-colors font-medium">
-                    ⚖️ Compare Standards
+                    className="flex items-center gap-1 sm:gap-1.5 text-[10px] sm:text-xs bg-primary/10 text-primary hover:bg-primary/20 px-2 sm:px-3 py-1.5 sm:py-2 rounded-full transition-colors font-medium">
+                    ⚖️ Compare
                   </button>
                 </div>
 
                 {/* Risk Meter & Everyday Safety Mode */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full max-w-lg mb-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 w-full max-w-lg mb-6 px-1">
                   <RiskMeter />
                   <EverydaySafetyMode onProductClick={sendMessage} disabled={isLoading} />
                 </div>
