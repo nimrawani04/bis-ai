@@ -546,7 +546,7 @@ export default function BISChat() {
     // Auto read-aloud if voice query or autoReadAloud enabled
     if (shouldReadAloud && accumulated) {
       const { body } = parseSources(accumulated);
-      speakText(body);
+      speakText(body, selectedLang);
     }
   };
 
