@@ -75,6 +75,11 @@
   }
 
   .dark {
+    --flag-saffron: 24 95% 53%;
+    --flag-white: 0 0% 100%;
+    --flag-green: 140 60% 35%;
+    --flag-navy: 224 73% 12%;
+
     --background: 222 47% 6%;
     --foreground: 210 40% 96%;
 
