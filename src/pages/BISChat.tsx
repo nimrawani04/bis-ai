@@ -779,7 +779,7 @@ export default function BISChat() {
                       <div className="flex items-center gap-2 pt-1 border-t border-border/50 flex-wrap">
                         <CopyButton text={body} />
                         <ShareButton text={body} />
-                        <ReadAloudButton text={body} />
+                        <ReadAloudButton text={body} lang={selectedLang} />
                         <div className="w-px h-4 bg-border" />
                         <FeedbackButtons feedback={msg.feedback} onFeedback={(type) => handleFeedback(i, type)} />
                       </div>
