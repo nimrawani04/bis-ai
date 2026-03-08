@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Search, QrCode, CheckCircle2, AlertTriangle, XCircle, Shield, Calendar, Building2, FileText } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Search, QrCode, CheckCircle2, AlertTriangle, XCircle, Shield, Calendar, Building2, FileText, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
