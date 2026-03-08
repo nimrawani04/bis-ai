@@ -1,16 +1,17 @@
-import { useState } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Search, QrCode, CheckCircle2, AlertTriangle, XCircle, Shield,
   Calendar, Building2, FileText, ExternalLink, Camera, Upload, Star,
-  ScanBarcode,
+  ScanBarcode, Loader2, X, ImageIcon,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { searchProducts, getProductByNumber, type Product } from '@/data/products';
-
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 type ScanMode = 'barcode' | 'certificate' | 'image';
 
 export function ProductVerification() {
