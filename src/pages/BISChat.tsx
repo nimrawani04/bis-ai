@@ -67,6 +67,41 @@ function TypingIndicator() {
   );
 }
 
+function CopyButton({ text }: { text: string }) {
+  const [copied, setCopied] = useState(false);
+  const handleCopy = async () => {
+    await navigator.clipboard.writeText(text);
+    setCopied(true);
+    toast.success('Copied to clipboard');
+    setTimeout(() => setCopied(false), 2000);
+  };
+  return (
+    <Button variant="ghost" size="sm" onClick={handleCopy} className="h-7 px-2 gap-1.5 text-xs text-muted-foreground hover:text-foreground">
+      {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
+      {copied ? 'Copied' : 'Copy'}
+    </Button>
+  );
+}
+
+function ShareButton({ text }: { text: string }) {
+  const handleShare = async () => {
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: 'BIS AI Answer', text });
+      } catch {}
+    } else {
+      await navigator.clipboard.writeText(text);
+      toast.success('Answer copied for sharing');
+    }
+  };
+  return (
+    <Button variant="ghost" size="sm" onClick={handleShare} className="h-7 px-2 gap-1.5 text-xs text-muted-foreground hover:text-foreground">
+      <Share2 className="h-3 w-3" />
+      Share
+    </Button>
+  );
+}
+
 export default function BISChat() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
