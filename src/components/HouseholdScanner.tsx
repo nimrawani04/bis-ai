@@ -475,6 +475,20 @@ export function HouseholdScanner() {
                   )}
                 </CardContent>
               </Card>
+
+              {/* Download PDF */}
+              <div className="text-center pt-2">
+                <Button
+                  variant="outline"
+                  size="lg"
+                  className="gap-2"
+                  disabled={aiLoading}
+                  onClick={() => exportPdf(items, score, config.label, aiReport)}
+                >
+                  <Download className="h-5 w-5" />
+                  Download PDF Report
+                </Button>
+              </div>
             </div>
           )}
         </div>
