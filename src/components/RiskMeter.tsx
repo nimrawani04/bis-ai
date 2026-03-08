@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { AlertTriangle, ShieldAlert, ShieldCheck, Info } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -23,9 +24,9 @@ const riskData: RiskItem[] = [
 ];
 
 const riskConfig = {
-  HIGH: { color: 'bg-destructive text-destructive-foreground', bar: 'bg-destructive', icon: ShieldAlert, width: 'w-full', label: 'HIGH RISK' },
-  MEDIUM: { color: 'bg-accent text-accent-foreground', bar: 'bg-accent', icon: AlertTriangle, width: 'w-2/3', label: 'MEDIUM' },
-  LOW: { color: 'bg-primary/20 text-primary', bar: 'bg-primary', icon: ShieldCheck, width: 'w-1/3', label: 'LOW' },
+  HIGH: { color: 'bg-destructive text-destructive-foreground', bar: 'bg-destructive', icon: ShieldAlert, label: 'HIGH RISK', percent: 100 },
+  MEDIUM: { color: 'bg-accent text-accent-foreground', bar: 'bg-accent', icon: AlertTriangle, label: 'MEDIUM', percent: 66 },
+  LOW: { color: 'bg-primary/20 text-primary', bar: 'bg-primary', icon: ShieldCheck, label: 'LOW', percent: 33 },
 };
 
 export function RiskMeter() {
@@ -54,9 +55,12 @@ export function RiskMeter() {
           const cfg = riskConfig[item.risk];
           const Icon = cfg.icon;
           return (
-            <div
+            <motion.div
               key={item.product}
               className="group cursor-default"
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.35, delay: i * 0.07, ease: 'easeOut' }}
               onMouseEnter={() => setHoveredIdx(i)}
               onMouseLeave={() => setHoveredIdx(null)}
             >
@@ -69,17 +73,27 @@ export function RiskMeter() {
                 </Badge>
               </div>
               <div className="h-2 rounded-full bg-secondary overflow-hidden">
-                <div
-                  className={`h-full rounded-full ${cfg.bar} transition-all duration-500 ease-out`}
-                  style={{ width: item.risk === 'HIGH' ? '100%' : item.risk === 'MEDIUM' ? '66%' : '33%' }}
+                <motion.div
+                  className={`h-full rounded-full ${cfg.bar}`}
+                  initial={{ width: 0 }}
+                  animate={{ width: `${cfg.percent}%` }}
+                  transition={{ duration: 0.6, delay: 0.2 + i * 0.07, ease: [0.25, 0.46, 0.45, 0.94] }}
                 />
               </div>
-              {hoveredIdx === i && (
-                <p className="text-[10px] text-muted-foreground mt-1 animate-fade-in leading-tight">
-                  {item.reason}
-                </p>
-              )}
-            </div>
+              <AnimatePresence>
+                {hoveredIdx === i && (
+                  <motion.p
+                    className="text-[10px] text-muted-foreground mt-1 leading-tight"
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    {item.reason}
+                  </motion.p>
+                )}
+              </AnimatePresence>
+            </motion.div>
           );
         })}
       </CardContent>
