@@ -283,7 +283,10 @@ export default function BISChat() {
       const transcript = event.results[0][0].transcript;
       setInput(transcript);
       setIsRecording(false);
-      toast.success('Voice captured!');
+      lastQueryWasVoice.current = true;
+      toast.success('Voice captured! Sending...');
+      // Auto-send voice query
+      setTimeout(() => sendMessage(transcript), 200);
     };
     recognition.onerror = () => {
       setIsRecording(false);
