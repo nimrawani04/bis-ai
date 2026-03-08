@@ -97,17 +97,36 @@ function AnimatedStat({ value, label, icon: Icon, color }: { value: number; labe
 }
 
 export function Hero() {
-  return (
-    <section className="relative overflow-hidden">
-      {/* Hero Top - Dark gradient */}
-      <div className="gradient-hero py-20 lg:py-28">
-        {/* Subtle pattern overlay */}
-        <div className="absolute inset-0 opacity-[0.03]" style={{
-          backgroundImage: 'radial-gradient(circle at 1px 1px, white 1px, transparent 0)',
-          backgroundSize: '40px 40px',
-        }} />
+  const heroRef = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({
+    target: heroRef,
+    offset: ["start start", "end start"],
+  });
+  const bgY = useTransform(scrollYProgress, [0, 1], ["0%", "30%"]);
+  const textY = useTransform(scrollYProgress, [0, 1], ["0%", "15%"]);
+  const opacity = useTransform(scrollYProgress, [0, 0.8], [1, 0]);
 
-        <div className="container relative">
+  return (
+    <section ref={heroRef} className="relative overflow-hidden">
+      {/* Hero Top - Dark gradient with parallax */}
+      <div className="relative py-20 lg:py-28 overflow-hidden">
+        {/* Parallax background layer */}
+        <motion.div
+          className="absolute inset-0 gradient-hero"
+          style={{ y: bgY }}
+        />
+
+        {/* Subtle pattern overlay */}
+        <motion.div
+          className="absolute inset-0 opacity-[0.03]"
+          style={{
+            backgroundImage: 'radial-gradient(circle at 1px 1px, white 1px, transparent 0)',
+            backgroundSize: '40px 40px',
+            y: bgY,
+          }}
+        />
+
+        <motion.div className="container relative" style={{ y: textY, opacity }}>
           <div className="mx-auto max-w-4xl text-center">
             {/* Badge */}
             <div className="mb-6 inline-flex items-center gap-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/10 px-4 py-2 text-sm font-medium text-white/90 animate-fade-in">
@@ -142,7 +161,7 @@ export function Hero() {
               </Button>
             </div>
           </div>
-        </div>
+        </motion.div>
       </div>
 
       {/* Action Cards - overlapping section */}
