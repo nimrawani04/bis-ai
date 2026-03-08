@@ -400,7 +400,7 @@ export default function BISChat() {
           body: JSON.stringify({ messages: messagesForApi, topic_filter: activeFilter, language: selectedLang, simple_mode: simpleMode }),
         });
 
-        await handleStreamResponse(resp);
+        await handleStreamResponse(resp, isVoiceQuery || autoReadAloud);
       } else {
         const resp = await fetch(CHAT_URL, {
           method: 'POST',
