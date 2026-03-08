@@ -354,7 +354,26 @@ export default function BISChat() {
     setImagePreview(null);
     setIsLoading(true);
 
+    const isVoiceQuery = lastQueryWasVoice.current;
+    lastQueryWasVoice.current = false;
+
     try {
+      // Check offline cache first
+      if (!currentImage) {
+        const offlineAnswer = getOfflineAnswer(trimmed);
+        if (offlineAnswer && !navigator.onLine) {
+          setMessages(prev => [...prev, { role: 'assistant', content: offlineAnswer }]);
+          setIsLoading(false);
+          if (isVoiceQuery || autoReadAloud) {
+            const { body } = parseSources(offlineAnswer);
+            const utterance = new SpeechSynthesisUtterance(body);
+            utterance.rate = 0.95;
+            window.speechSynthesis.speak(utterance);
+          }
+          return;
+        }
+      }
+
       // If there's an image, use vision analysis
       if (currentImage && currentImage.startsWith('http')) {
         // First analyze the image
@@ -378,7 +397,7 @@ export default function BISChat() {
             'Content-Type': 'application/json',
             Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
           },
-          body: JSON.stringify({ messages: messagesForApi, topic_filter: activeFilter, language: selectedLang }),
+          body: JSON.stringify({ messages: messagesForApi, topic_filter: activeFilter, language: selectedLang, simple_mode: simpleMode }),
         });
 
         await handleStreamResponse(resp);
