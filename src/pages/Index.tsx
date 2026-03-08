@@ -5,6 +5,7 @@ import { ProductSearch } from '@/components/ProductSearch';
 import { HouseholdScanner } from '@/components/HouseholdScanner';
 import { CommunityTrustScore } from '@/components/CommunityTrustScore';
 import { SafetyAlerts } from '@/components/SafetyAlerts';
+import { MarketRiskMap } from '@/components/MarketRiskMap';
 import { KnowledgeHub } from '@/components/KnowledgeHub';
 import { ReportProduct } from '@/components/ReportProduct';
 import { Footer } from '@/components/Footer';
@@ -20,6 +21,7 @@ const Index = () => {
         <ProductSearch />
         <HouseholdScanner />
         <CommunityTrustScore />
+        <MarketRiskMap />
         <ReportProduct />
         <KnowledgeHub />
       </main>
