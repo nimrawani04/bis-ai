@@ -751,6 +751,12 @@ export default function BISChat() {
                   </button>
                 </div>
 
+                {/* Risk Meter & Everyday Safety Mode */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full max-w-lg mb-6">
+                  <RiskMeter />
+                  <EverydaySafetyMode onProductClick={sendMessage} disabled={isLoading} />
+                </div>
+
                 {/* Check My Product - prominent CTA */}
                 <div className="w-full max-w-lg bg-card border-2 border-primary/20 rounded-2xl p-4 mb-6">
                   <h3 className="text-sm font-bold text-foreground mb-1 flex items-center gap-2">
