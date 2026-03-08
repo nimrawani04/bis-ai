@@ -1,9 +1,9 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Search, QrCode, CheckCircle2, AlertTriangle, XCircle, Shield,
   Calendar, Building2, FileText, ExternalLink, Camera, Upload, Star,
-  ScanBarcode, Loader2, X, ImageIcon,
+  ScanBarcode, Loader2, X, ImageIcon, Clock, ChevronRight,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -12,6 +12,17 @@ import { Badge } from '@/components/ui/badge';
 import { searchProducts, getProductByNumber, type Product } from '@/data/products';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+
+interface ScanHistoryItem {
+  id: string;
+  image_url: string;
+  product_name: string | null;
+  brand: string | null;
+  category: string | null;
+  risk_level: string;
+  summary: string | null;
+  created_at: string;
+}
 type ScanMode = 'barcode' | 'certificate' | 'image';
 
 export function ProductVerification() {
@@ -31,6 +42,31 @@ export function ProductVerification() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const dropZoneRef = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState(false);
+
+  // Scan history state
+  const [scanHistory, setScanHistory] = useState<ScanHistoryItem[]>([]);
+  const [isLoadingHistory, setIsLoadingHistory] = useState(false);
+
+  const fetchScanHistory = useCallback(async () => {
+    setIsLoadingHistory(true);
+    try {
+      const { data, error } = await supabase
+        .from('scan_history')
+        .select('id, image_url, product_name, brand, category, risk_level, summary, created_at')
+        .order('created_at', { ascending: false })
+        .limit(10);
+      if (error) throw error;
+      setScanHistory((data as ScanHistoryItem[]) || []);
+    } catch (err) {
+      console.error('Failed to fetch scan history:', err);
+    } finally {
+      setIsLoadingHistory(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchScanHistory();
+  }, [fetchScanHistory]);
 
   const handleFileSelect = useCallback((file: File) => {
     if (!file.type.startsWith('image/')) {
@@ -98,7 +134,23 @@ export function ProductVerification() {
 
       if (analysisError) throw analysisError;
 
-      setAnalysisResult(analysisData.analysis);
+      const analysis = analysisData.analysis;
+      setAnalysisResult(analysis);
+
+      // Save to scan history
+      await supabase.from('scan_history').insert({
+        image_url: publicUrl,
+        product_name: analysis.productName || null,
+        brand: analysis.brand || null,
+        category: analysis.category || null,
+        risk_level: analysis.riskLevel || 'medium',
+        summary: analysis.summary || null,
+        certification_marks: analysis.certificationMarks || [],
+        safety_observations: analysis.safetyObservations || [],
+        recommendation: analysis.recommendation || null,
+        analysis_json: analysis,
+      });
+      fetchScanHistory();
       toast.success('Image analyzed successfully!');
     } catch (error: any) {
       console.error('Upload/analysis error:', error);
@@ -519,6 +571,60 @@ export function ProductVerification() {
                   </>
                 );
               })()}
+            </div>
+          )}
+
+          {/* Scan History */}
+          {scanHistory.length > 0 && (
+            <div className="mt-12 animate-fade-in">
+              <div className="flex items-center gap-2 mb-6">
+                <Clock className="h-5 w-5 text-primary" />
+                <h3 className="text-xl font-bold text-foreground">Recent Scans</h3>
+                <Badge variant="outline" className="rounded-full ml-2">{scanHistory.length}</Badge>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {scanHistory.map((item) => (
+                  <Card key={item.id} className="overflow-hidden rounded-2xl hover:shadow-elevated transition-all group">
+                    <div className="h-32 bg-muted/30 overflow-hidden">
+                      <img
+                        src={item.image_url}
+                        alt={item.product_name || 'Scanned product'}
+                        className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300"
+                        loading="lazy"
+                      />
+                    </div>
+                    <CardContent className="p-4">
+                      <div className="flex items-start justify-between gap-2 mb-2">
+                        <div className="min-w-0">
+                          <h4 className="font-semibold text-foreground text-sm truncate">
+                            {item.product_name || 'Unknown Product'}
+                          </h4>
+                          {item.brand && (
+                            <p className="text-xs text-muted-foreground truncate">{item.brand}</p>
+                          )}
+                        </div>
+                        <Badge className={`shrink-0 rounded-full text-[10px] px-2 py-0.5 ${
+                          item.risk_level === 'low' ? 'bg-success text-success-foreground' :
+                          item.risk_level === 'high' ? 'bg-danger text-danger-foreground' : 'bg-warning text-warning-foreground'
+                        }`}>
+                          {item.risk_level === 'low' ? 'Low' : item.risk_level === 'high' ? 'High' : 'Med'}
+                        </Badge>
+                      </div>
+                      {item.summary && (
+                        <p className="text-xs text-muted-foreground line-clamp-2">{item.summary}</p>
+                      )}
+                      <div className="flex items-center justify-between mt-3 pt-2 border-t border-border">
+                        {item.category && (
+                          <Badge variant="outline" className="rounded-full text-[10px]">{item.category}</Badge>
+                        )}
+                        <span className="text-[10px] text-muted-foreground">
+                          {new Date(item.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}
+                        </span>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
             </div>
           )}
         </div>

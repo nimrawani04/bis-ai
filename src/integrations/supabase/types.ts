@@ -122,6 +122,51 @@ export type Database = {
         }
         Relationships: []
       }
+      scan_history: {
+        Row: {
+          analysis_json: Json | null
+          brand: string | null
+          category: string | null
+          certification_marks: string[] | null
+          created_at: string
+          id: string
+          image_url: string
+          product_name: string | null
+          recommendation: string | null
+          risk_level: string | null
+          safety_observations: string[] | null
+          summary: string | null
+        }
+        Insert: {
+          analysis_json?: Json | null
+          brand?: string | null
+          category?: string | null
+          certification_marks?: string[] | null
+          created_at?: string
+          id?: string
+          image_url: string
+          product_name?: string | null
+          recommendation?: string | null
+          risk_level?: string | null
+          safety_observations?: string[] | null
+          summary?: string | null
+        }
+        Update: {
+          analysis_json?: Json | null
+          brand?: string | null
+          category?: string | null
+          certification_marks?: string[] | null
+          created_at?: string
+          id?: string
+          image_url?: string
+          product_name?: string | null
+          recommendation?: string | null
+          risk_level?: string | null
+          safety_observations?: string[] | null
+          summary?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
