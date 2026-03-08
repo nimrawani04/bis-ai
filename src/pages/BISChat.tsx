@@ -12,6 +12,8 @@ import {
 import { toast } from '@/components/ui/sonner';
 import { Badge } from '@/components/ui/badge';
 import { useSearchParams } from 'react-router-dom';
+import { RiskMeter } from '@/components/RiskMeter';
+import { EverydaySafetyMode } from '@/components/EverydaySafetyMode';
 import { supabase } from '@/integrations/supabase/client';
 
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/bis-chat`;
@@ -747,6 +749,12 @@ export default function BISChat() {
                     className="flex items-center gap-1.5 text-xs bg-primary/10 text-primary hover:bg-primary/20 px-3 py-2 rounded-full transition-colors font-medium">
                     ⚖️ Compare Standards
                   </button>
+                </div>
+
+                {/* Risk Meter & Everyday Safety Mode */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full max-w-lg mb-6">
+                  <RiskMeter />
+                  <EverydaySafetyMode onProductClick={sendMessage} disabled={isLoading} />
                 </div>
 
                 {/* Check My Product - prominent CTA */}
