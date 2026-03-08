@@ -235,11 +235,19 @@ export default function BISChat() {
   // Handle query from Standards Explorer
   useEffect(() => {
     const q = searchParams.get('q');
-    if (q && !initialQueryHandled.current) {
+    if (q && !initialQueryHandled.current && !isLoading) {
       initialQueryHandled.current = true;
-      setTimeout(() => sendMessage(q), 300);
+      // Use a small delay to ensure component is fully mounted
+      const timer = setTimeout(() => {
+        setInput(q);
+        // Trigger send after setting input
+        setTimeout(() => {
+          sendMessage(q);
+        }, 100);
+      }, 500);
+      return () => clearTimeout(timer);
     }
-  }, [searchParams]);
+  }, [searchParams, isLoading]);
 
   const clearConversation = () => { setMessages([]); setInput(''); };
 
