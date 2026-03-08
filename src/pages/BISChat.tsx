@@ -12,6 +12,8 @@ import {
 import { toast } from '@/components/ui/sonner';
 import { Badge } from '@/components/ui/badge';
 import { useSearchParams } from 'react-router-dom';
+import { RiskMeter } from '@/components/RiskMeter';
+import { EverydaySafetyMode } from '@/components/EverydaySafetyMode';
 import { supabase } from '@/integrations/supabase/client';
 
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/bis-chat`;
