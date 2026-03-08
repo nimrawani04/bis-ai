@@ -226,30 +226,36 @@ function FeedbackButtons({ feedback, onFeedback }: { feedback?: 'up' | 'down'; o
 
 function CitationPreview({ url }: { url: string }) {
   const [expanded, setExpanded] = useState(false);
-  const getDescription = (u: string) => {
-    if (u.includes('certification/product-certification')) return 'BIS Product Certification Scheme allows manufacturers to obtain ISI Mark for products conforming to Indian Standards.';
-    if (u.includes('certification/hallmarking')) return 'BIS Hallmarking is a purity certification for gold and silver jewelry. HUID is assigned to each piece.';
-    if (u.includes('certification/scheme-for-compulsory-registration') || u.includes('crs')) return 'The Compulsory Registration Scheme (CRS) applies to electronic and IT goods.';
-    if (u.includes('certification/foreign-manufacturers')) return 'FMCS enables foreign manufacturers to obtain BIS certification for products exported to India.';
-    if (u.includes('consumer-affairs')) return 'BIS Consumer Affairs handles complaints about sub-standard ISI marked products and runs awareness campaigns.';
-    if (u.includes('standards')) return 'BIS has published over 22,000 Indian Standards covering sectors like food, electronics, textiles, and more.';
-    if (u.includes('laboratory')) return 'BIS operates NABL-accredited testing laboratories in Mumbai, Kolkata, Chandigarh, Chennai, and Sahibabad.';
-    if (u.includes('about-bis')) return 'BIS is India\'s national standards body, established under BIS Act 2016.';
-    if (u.includes('manakonline')) return 'BIS Manak Online is the official portal for certification applications, tracking, and certificates.';
-    return 'Official BIS website page with relevant information about Bureau of Indian Standards.';
+  const getDescription = (u: string): { title: string; quote: string } => {
+    if (u.includes('certification/product-certification')) return { title: '📋 BIS Product Certification', quote: 'The product certification scheme allows manufacturers to obtain ISI Mark by submitting application, undergoing factory inspection, and product testing at BIS-recognized laboratories.' };
+    if (u.includes('certification/hallmarking')) return { title: '💎 BIS Hallmarking', quote: 'BIS Hallmarking certifies purity of gold and silver jewelry. Each piece receives a HUID (Hallmark Unique Identification) number. Mandatory for gold jewelry since June 2021.' };
+    if (u.includes('certification/scheme-for-compulsory-registration') || u.includes('crs')) return { title: '🔌 Compulsory Registration Scheme', quote: 'The CRS applies to electronic and IT goods across 15 product categories. Manufacturers must get self-declaration with testing at BIS-recognized labs before selling in India.' };
+    if (u.includes('certification/foreign-manufacturers')) return { title: '🌍 FMCS', quote: 'Foreign Manufacturers Certification Scheme enables overseas manufacturers to obtain BIS certification. Requires factory inspection by BIS officers and an authorized Indian representative.' };
+    if (u.includes('consumer-affairs')) return { title: '🛡️ Consumer Affairs', quote: 'Consumers can file complaints about sub-standard ISI marked products through the BIS portal. BIS conducts market surveillance and consumer awareness campaigns.' };
+    if (u.includes('standards')) return { title: '📐 BIS Standards', quote: 'BIS has published over 22,000 Indian Standards covering food, electronics, textiles, civil engineering, chemicals, and mechanical sectors. Developed through Technical Committees.' };
+    if (u.includes('laboratory')) return { title: '🔬 BIS Laboratories', quote: 'BIS operates NABL-accredited testing laboratories in Mumbai, Kolkata, Chandigarh, Chennai, and Sahibabad for gold/silver, electronics, chemicals, food, and textiles.' };
+    if (u.includes('about-bis')) return { title: '🏛️ About BIS', quote: 'The Bureau of Indian Standards is India\'s national standards body, established under BIS Act 2016. Headquarters in New Delhi with 5 Regional and 21 Branch Offices.' };
+    if (u.includes('manakonline')) return { title: '💻 Manak Online Portal', quote: 'BIS Manak Online is the official portal for all certification applications, tracking status, paying fees, downloading certificates, and license renewal.' };
+    return { title: '🔗 BIS Official', quote: 'Official BIS website page with relevant information about Bureau of Indian Standards services and certifications.' };
   };
 
+  const { title, quote } = getDescription(url);
+
   return (
-    <div className="group">
-      <div className="flex items-center gap-2">
-        <a href={url} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline truncate flex-1">{url}</a>
-        <button onClick={() => setExpanded(!expanded)} className="text-xs text-muted-foreground hover:text-foreground p-0.5 rounded transition-colors shrink-0" title="Preview source">
-          {expanded ? <ChevronUp className="h-3 w-3" /> : <Quote className="h-3 w-3" />}
-        </button>
-      </div>
+    <div className="group border border-border/50 rounded-lg overflow-hidden hover:border-primary/30 transition-colors">
+      <button onClick={() => setExpanded(!expanded)} className="w-full text-left px-3 py-2 flex items-center gap-2 hover:bg-secondary/30 transition-colors">
+        <ExternalLink className="h-3 w-3 text-primary shrink-0" />
+        <span className="text-xs font-medium text-foreground flex-1 truncate">{title}</span>
+        {expanded ? <ChevronUp className="h-3 w-3 text-muted-foreground shrink-0" /> : <ChevronDown className="h-3 w-3 text-muted-foreground shrink-0" />}
+      </button>
       {expanded && (
-        <div className="mt-1.5 bg-secondary/50 border border-border rounded-lg px-3 py-2 text-xs text-muted-foreground italic animate-fade-in">
-          "{getDescription(url)}"
+        <div className="px-3 pb-2 animate-fade-in">
+          <div className="bg-secondary/40 border-l-2 border-primary/50 rounded px-3 py-2 text-xs text-muted-foreground italic mb-2">
+            "{quote}"
+          </div>
+          <a href={url} target="_blank" rel="noopener noreferrer" className="text-[10px] text-primary hover:underline flex items-center gap-1">
+            <ExternalLink className="h-2.5 w-2.5" /> {url}
+          </a>
         </div>
       )}
     </div>
