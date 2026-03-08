@@ -342,9 +342,9 @@ export function ReportProduct() {
             </Card>
 
             <div className="text-center">
-              <Button type="submit" variant="accent" size="lg" className="px-10">
-                <Send className="h-5 w-5" />
-                Submit Report
+              <Button type="submit" variant="accent" size="lg" className="px-10" disabled={isSubmitting}>
+                {isSubmitting ? <Loader2 className="h-5 w-5 animate-spin" /> : <Send className="h-5 w-5" />}
+                {isSubmitting ? 'Submitting...' : 'Submit Report'}
               </Button>
               <p className="text-xs text-muted-foreground mt-3">
                 Your identity will remain anonymous. Reports are shared with BIS and consumer protection authorities.
