@@ -130,11 +130,14 @@ function ShareButton({ text }: { text: string }) {
   );
 }
 
-function speakText(text: string, onEnd?: () => void) {
-  // Cancel any ongoing speech
-  window.speechSynthesis.cancel();
+// Language code to BCP 47 mapping for TTS
+const langToTTS: Record<string, string> = {
+  en: 'en-IN', hi: 'hi-IN', bn: 'bn-IN', ta: 'ta-IN', te: 'te-IN',
+  ur: 'ur-PK', mr: 'mr-IN', gu: 'gu-IN', kn: 'kn-IN', ml: 'ml-IN', pa: 'pa-IN', ks: 'ks-IN'
+};
 
-  // Chrome bug: speechSynthesis gets stuck. This resets it.
+function speakText(text: string, lang = 'en', onEnd?: () => void) {
+  window.speechSynthesis.cancel();
   window.speechSynthesis.cancel();
 
   const utterance = new SpeechSynthesisUtterance(text);
@@ -142,12 +145,19 @@ function speakText(text: string, onEnd?: () => void) {
   utterance.pitch = 1;
   utterance.volume = 1;
 
-  // Try to pick a good voice
+  // Pick voice matching selected language
+  const ttsLang = langToTTS[lang] || 'en-IN';
   const voices = window.speechSynthesis.getVoices();
-  const englishVoice = voices.find(v => v.lang.startsWith('en') && v.name.includes('Google')) 
-    || voices.find(v => v.lang.startsWith('en'))
+  const langPrefix = ttsLang.split('-')[0];
+  const matchedVoice = voices.find(v => v.lang === ttsLang)
+    || voices.find(v => v.lang.startsWith(langPrefix) && v.name.includes('Google'))
+    || voices.find(v => v.lang.startsWith(langPrefix))
+    || voices.find(v => v.lang.startsWith('en') && v.name.includes('Google'))
     || voices[0];
-  if (englishVoice) utterance.voice = englishVoice;
+  if (matchedVoice) {
+    utterance.voice = matchedVoice;
+    utterance.lang = ttsLang;
+  }
 
   utterance.onend = () => onEnd?.();
   utterance.onerror = (e) => {
@@ -155,10 +165,8 @@ function speakText(text: string, onEnd?: () => void) {
     onEnd?.();
   };
 
-  // Chrome requires a small delay after cancel
   setTimeout(() => {
     window.speechSynthesis.speak(utterance);
-    // Chrome bug: speech pauses after 15 seconds. Keep it alive.
     const keepAlive = setInterval(() => {
       if (!window.speechSynthesis.speaking) {
         clearInterval(keepAlive);
