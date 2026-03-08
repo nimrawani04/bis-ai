@@ -148,8 +148,16 @@ export function Hero() {
       {/* Action Cards - overlapping section */}
       <div className="container relative -mt-8 z-10 pb-12">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 max-w-5xl mx-auto">
-          {actionCards.map((card) => (
-            <a key={card.title} href={card.href} className="group">
+          {actionCards.map((card, index) => (
+            <motion.a
+              key={card.title}
+              href={card.href}
+              className="group"
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: index * 0.12, ease: [0.22, 1, 0.36, 1] }}
+            >
               <Card className={`h-full shadow-elevated border-2 border-transparent transition-all duration-300 ${card.border} hover:shadow-lg hover:-translate-y-1`}>
                 <CardContent className="p-5">
                   <div className={`inline-flex items-center justify-center h-12 w-12 rounded-xl ${card.bg} mb-4`}>
@@ -159,7 +167,7 @@ export function Hero() {
                   <p className="text-sm text-muted-foreground leading-relaxed">{card.description}</p>
                 </CardContent>
               </Card>
-            </a>
+            </motion.a>
           ))}
         </div>
       </div>
