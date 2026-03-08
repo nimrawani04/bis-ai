@@ -43,6 +43,31 @@ export function ProductVerification() {
   const dropZoneRef = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState(false);
 
+  // Scan history state
+  const [scanHistory, setScanHistory] = useState<ScanHistoryItem[]>([]);
+  const [isLoadingHistory, setIsLoadingHistory] = useState(false);
+
+  const fetchScanHistory = useCallback(async () => {
+    setIsLoadingHistory(true);
+    try {
+      const { data, error } = await supabase
+        .from('scan_history')
+        .select('id, image_url, product_name, brand, category, risk_level, summary, created_at')
+        .order('created_at', { ascending: false })
+        .limit(10);
+      if (error) throw error;
+      setScanHistory((data as ScanHistoryItem[]) || []);
+    } catch (err) {
+      console.error('Failed to fetch scan history:', err);
+    } finally {
+      setIsLoadingHistory(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchScanHistory();
+  }, [fetchScanHistory]);
+
   const handleFileSelect = useCallback((file: File) => {
     if (!file.type.startsWith('image/')) {
       toast.error('Please upload an image file (JPG, PNG)');
