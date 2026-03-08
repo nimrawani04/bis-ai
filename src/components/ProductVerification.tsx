@@ -203,12 +203,133 @@ export function ProductVerification() {
             <CardContent className="p-6">
               {scanMode === 'image' ? (
                 <div className="flex flex-col items-center gap-4">
-                  <div className="w-full max-w-sm border-2 border-dashed border-border rounded-2xl p-8 text-center hover:border-primary/40 transition-colors cursor-pointer">
-                    <Upload className="h-10 w-10 text-muted-foreground mx-auto mb-3" />
-                    <p className="text-sm font-medium text-foreground mb-1">Drag & drop product image</p>
-                    <p className="text-xs text-muted-foreground">or click to browse files</p>
-                  </div>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) handleFileSelect(file);
+                    }}
+                  />
+
+                  {imagePreview ? (
+                    <div className="w-full max-w-sm">
+                      <div className="relative rounded-2xl overflow-hidden border-2 border-primary/20 bg-card">
+                        <img src={imagePreview} alt="Uploaded product" className="w-full h-48 object-contain bg-muted/30" />
+                        <button
+                          onClick={clearUpload}
+                          className="absolute top-2 right-2 p-1.5 rounded-full bg-background/80 backdrop-blur-sm hover:bg-background transition-colors"
+                        >
+                          <X className="h-4 w-4 text-muted-foreground" />
+                        </button>
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-2 text-center truncate">{uploadedFile?.name}</p>
+                      <Button
+                        variant="hero"
+                        size="lg"
+                        className="w-full mt-3 rounded-xl"
+                        onClick={handleUploadAndAnalyze}
+                        disabled={isUploading || isAnalyzing}
+                      >
+                        {isUploading ? (
+                          <><Loader2 className="h-5 w-5 animate-spin" /> Uploading...</>
+                        ) : isAnalyzing ? (
+                          <><Loader2 className="h-5 w-5 animate-spin" /> Analyzing with AI...</>
+                        ) : (
+                          <><Search className="h-5 w-5" /> Analyze Product</>
+                        )}
+                      </Button>
+                    </div>
+                  ) : (
+                    <div
+                      ref={dropZoneRef}
+                      onDrop={handleDrop}
+                      onDragOver={handleDragOver}
+                      onDragLeave={handleDragLeave}
+                      onClick={() => fileInputRef.current?.click()}
+                      className={`w-full max-w-sm border-2 border-dashed rounded-2xl p-8 text-center transition-colors cursor-pointer ${
+                        isDragging
+                          ? 'border-primary bg-primary/5'
+                          : 'border-border hover:border-primary/40'
+                      }`}
+                    >
+                      <Upload className="h-10 w-10 text-muted-foreground mx-auto mb-3" />
+                      <p className="text-sm font-medium text-foreground mb-1">Drag & drop product image</p>
+                      <p className="text-xs text-muted-foreground">or <span className="text-primary underline">click to browse files</span></p>
+                    </div>
+                  )}
                   <p className="text-xs text-muted-foreground">Supports JPG, PNG — Max 5MB</p>
+
+                  {/* Analysis Result */}
+                  {analysisResult && (
+                    <Card className="w-full mt-2 rounded-2xl border-2 border-primary/20 animate-fade-in">
+                      <CardContent className="p-5 space-y-4">
+                        <div className="flex items-center gap-3">
+                          <div className={`p-2.5 rounded-xl ${
+                            analysisResult.riskLevel === 'low' ? 'bg-success/10' :
+                            analysisResult.riskLevel === 'high' ? 'bg-danger/10' : 'bg-warning/10'
+                          }`}>
+                            {analysisResult.riskLevel === 'low' ? (
+                              <CheckCircle2 className="h-6 w-6 text-success" />
+                            ) : analysisResult.riskLevel === 'high' ? (
+                              <XCircle className="h-6 w-6 text-danger" />
+                            ) : (
+                              <AlertTriangle className="h-6 w-6 text-warning" />
+                            )}
+                          </div>
+                          <div>
+                            <h4 className="font-bold text-foreground">{analysisResult.productName || 'Product Analysis'}</h4>
+                            {analysisResult.brand && <p className="text-sm text-muted-foreground">{analysisResult.brand}</p>}
+                          </div>
+                          <Badge className={`ml-auto rounded-full ${
+                            analysisResult.riskLevel === 'low' ? 'bg-success text-success-foreground' :
+                            analysisResult.riskLevel === 'high' ? 'bg-danger text-danger-foreground' : 'bg-warning text-warning-foreground'
+                          }`}>
+                            {analysisResult.riskLevel === 'low' ? 'Low Risk' :
+                             analysisResult.riskLevel === 'high' ? 'High Risk' : 'Medium Risk'}
+                          </Badge>
+                        </div>
+
+                        {analysisResult.summary && (
+                          <p className="text-sm text-foreground">{analysisResult.summary}</p>
+                        )}
+
+                        {analysisResult.certificationMarks?.length > 0 && (
+                          <div>
+                            <p className="text-xs font-medium text-muted-foreground mb-1.5">Certification Marks Found</p>
+                            <div className="flex flex-wrap gap-1.5">
+                              {analysisResult.certificationMarks.map((mark: string, i: number) => (
+                                <Badge key={i} variant="outline" className="rounded-full text-xs">{mark}</Badge>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {analysisResult.safetyObservations?.length > 0 && (
+                          <div>
+                            <p className="text-xs font-medium text-muted-foreground mb-1.5">Safety Observations</p>
+                            <ul className="space-y-1.5">
+                              {analysisResult.safetyObservations.map((obs: string, i: number) => (
+                                <li key={i} className="flex items-start gap-2 text-sm text-foreground">
+                                  <Shield className="h-4 w-4 text-primary flex-shrink-0 mt-0.5" />
+                                  {obs}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+
+                        {analysisResult.recommendation && (
+                          <div className="bg-primary/5 rounded-xl p-3">
+                            <p className="text-xs font-medium text-primary mb-1">Recommendation</p>
+                            <p className="text-sm text-foreground">{analysisResult.recommendation}</p>
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+                  )}
                 </div>
               ) : (
                 <div className="flex flex-col sm:flex-row gap-4">
