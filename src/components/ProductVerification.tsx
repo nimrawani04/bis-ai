@@ -134,7 +134,23 @@ export function ProductVerification() {
 
       if (analysisError) throw analysisError;
 
-      setAnalysisResult(analysisData.analysis);
+      const analysis = analysisData.analysis;
+      setAnalysisResult(analysis);
+
+      // Save to scan history
+      await supabase.from('scan_history').insert({
+        image_url: publicUrl,
+        product_name: analysis.productName || null,
+        brand: analysis.brand || null,
+        category: analysis.category || null,
+        risk_level: analysis.riskLevel || 'medium',
+        summary: analysis.summary || null,
+        certification_marks: analysis.certificationMarks || [],
+        safety_observations: analysis.safetyObservations || [],
+        recommendation: analysis.recommendation || null,
+        analysis_json: analysis,
+      });
+      fetchScanHistory();
       toast.success('Image analyzed successfully!');
     } catch (error: any) {
       console.error('Upload/analysis error:', error);
