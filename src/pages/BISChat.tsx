@@ -538,6 +538,39 @@ export default function BISChat() {
         </div>
       </div>
 
+      {/* Mode toggles */}
+      <div className="border-b border-border bg-card/30 px-4 py-2">
+        <div className="max-w-7xl mx-auto flex items-center gap-4 flex-wrap">
+          <button
+            onClick={() => setSimpleMode(!simpleMode)}
+            className={`flex items-center gap-2 text-xs px-3 py-1.5 rounded-full border transition-all ${
+              simpleMode
+                ? 'bg-accent text-accent-foreground border-accent font-medium'
+                : 'border-border text-muted-foreground hover:text-foreground hover:bg-secondary'
+            }`}
+          >
+            <span className="text-sm">🧑‍🌾</span>
+            {simpleMode ? 'Simple Mode ON' : 'Simple Mode'}
+          </button>
+          <button
+            onClick={() => setAutoReadAloud(!autoReadAloud)}
+            className={`flex items-center gap-2 text-xs px-3 py-1.5 rounded-full border transition-all ${
+              autoReadAloud
+                ? 'bg-primary text-primary-foreground border-primary font-medium'
+                : 'border-border text-muted-foreground hover:text-foreground hover:bg-secondary'
+            }`}
+          >
+            <Volume2 className="h-3.5 w-3.5" />
+            {autoReadAloud ? 'Auto Read ON' : 'Auto Read Aloud'}
+          </button>
+          {simpleMode && (
+            <span className="text-xs text-muted-foreground italic">
+              Answers will use simple, easy-to-understand language
+            </span>
+          )}
+        </div>
+      </div>
+
       {/* Chat header bar */}
       {messages.length > 0 && (
         <div className="border-b border-border bg-card/50 backdrop-blur px-4 py-2 flex items-center justify-between max-w-7xl mx-auto w-full animate-fade-in">
