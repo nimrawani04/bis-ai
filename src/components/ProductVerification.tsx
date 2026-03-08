@@ -1,9 +1,9 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Search, QrCode, CheckCircle2, AlertTriangle, XCircle, Shield,
   Calendar, Building2, FileText, ExternalLink, Camera, Upload, Star,
-  ScanBarcode, Loader2, X, ImageIcon,
+  ScanBarcode, Loader2, X, ImageIcon, Clock, ChevronRight,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -12,6 +12,17 @@ import { Badge } from '@/components/ui/badge';
 import { searchProducts, getProductByNumber, type Product } from '@/data/products';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+
+interface ScanHistoryItem {
+  id: string;
+  image_url: string;
+  product_name: string | null;
+  brand: string | null;
+  category: string | null;
+  risk_level: string;
+  summary: string | null;
+  created_at: string;
+}
 type ScanMode = 'barcode' | 'certificate' | 'image';
 
 export function ProductVerification() {
