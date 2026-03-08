@@ -1,3 +1,4 @@
+import { motion } from 'framer-motion';
 import { ShieldCheck, ChevronRight } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
