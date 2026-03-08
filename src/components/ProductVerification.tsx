@@ -288,15 +288,23 @@ export function ProductVerification() {
                 </Card>
               </div>
 
-              {/* Report Button for fake products */}
-              {selectedProduct.status === 'not-found' && (
-                <div className="mt-6 text-center">
+              {/* Action Buttons */}
+              <div className="mt-6 flex flex-wrap gap-4 justify-center">
+                <Button 
+                  variant="hero" 
+                  size="lg" 
+                  onClick={() => navigate(`/passport/${selectedProduct.id}`)}
+                >
+                  <ExternalLink className="h-5 w-5" />
+                  View Digital Passport
+                </Button>
+                {selectedProduct.status === 'not-found' && (
                   <Button variant="accent" size="lg">
                     <AlertTriangle className="h-5 w-5" />
                     Report This Product to BIS
                   </Button>
-                </div>
-              )}
+                )}
+              </div>
             </div>
           )}
         </div>
