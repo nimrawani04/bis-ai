@@ -37,7 +37,11 @@ export function ProductPassportCard({ productId }: ProductPassportCardProps) {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const product = products.find(p => p.id === productId);
+  const product = mockProducts.find(p => p.id === productId) as Product & { 
+    brand?: string; 
+    certNumber?: string; 
+    verified?: boolean; 
+  } | undefined;
 
   useEffect(() => {
     async function fetchReviews() {
