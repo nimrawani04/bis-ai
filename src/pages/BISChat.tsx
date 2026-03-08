@@ -412,6 +412,7 @@ export default function BISChat() {
             messages: updatedMessages.map(m => ({ role: m.role, content: m.content })),
             topic_filter: activeFilter,
             language: selectedLang,
+            simple_mode: simpleMode,
           }),
         });
 
