@@ -326,49 +326,49 @@ export function HouseholdScanner() {
                 const risk = getRiskDescription(item);
                 return (
                   <Card key={index} className="shadow-card">
-                    <CardContent className="p-4">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-4">
+                    <CardContent className="p-3 sm:p-4">
+                      <div className="flex items-start sm:items-center justify-between gap-2">
+                        <div className="flex items-start sm:items-center gap-2 sm:gap-4 flex-1 min-w-0">
                           {item.product ? (
-                            <div className={`p-2 rounded-lg ${
+                            <div className={`p-1.5 sm:p-2 rounded-lg shrink-0 ${
                               item.product.status === 'verified' ? 'bg-success/10'
                               : item.product.status === 'not-found' ? 'bg-danger/10'
                               : 'bg-warning/10'
                             }`}>
                               {item.product.status === 'verified' ? (
-                                <CheckCircle2 className="h-5 w-5 text-success" />
+                                <CheckCircle2 className="h-4 w-4 sm:h-5 sm:w-5 text-success" />
                               ) : item.product.status === 'not-found' ? (
-                                <ShieldX className="h-5 w-5 text-danger" />
+                                <ShieldX className="h-4 w-4 sm:h-5 sm:w-5 text-danger" />
                               ) : (
-                                <AlertTriangle className="h-5 w-5 text-warning" />
+                                <AlertTriangle className="h-4 w-4 sm:h-5 sm:w-5 text-warning" />
                               )}
                             </div>
                           ) : (
-                            <div className="p-2 rounded-lg bg-danger/10">
-                              <ShieldX className="h-5 w-5 text-danger" />
+                            <div className="p-1.5 sm:p-2 rounded-lg bg-danger/10 shrink-0">
+                              <ShieldX className="h-4 w-4 sm:h-5 sm:w-5 text-danger" />
                             </div>
                           )}
-                          <div>
-                            <p className="font-semibold text-foreground">
+                          <div className="min-w-0">
+                            <p className="font-semibold text-foreground text-sm sm:text-base truncate">
                               {item.product?.name ?? item.query}
                             </p>
-                            <p className="text-sm text-muted-foreground">
+                            <p className="text-xs sm:text-sm text-muted-foreground truncate">
                               {item.product ? item.product.manufacturer : 'Product not found in database'}
                             </p>
                           </div>
                         </div>
-                        <div className="flex items-center gap-3">
-                          <Badge className={
+                        <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
+                          <Badge className={`text-[10px] sm:text-xs ${
                             item.product?.status === 'verified' ? 'bg-success text-success-foreground'
                             : !item.product || item.product.status === 'not-found' ? 'bg-danger text-danger-foreground'
                             : 'bg-warning text-warning-foreground'
-                          }>
+                          }`}>
                             {item.product?.status === 'verified' ? 'Verified'
                             : !item.product || item.product.status === 'not-found' ? 'Not Found'
                             : 'Caution'}
                           </Badge>
-                          <Button variant="ghost" size="icon" onClick={() => removeItem(index)} className="text-muted-foreground hover:text-danger">
-                            <Trash2 className="h-4 w-4" />
+                          <Button variant="ghost" size="icon" onClick={() => removeItem(index)} className="h-8 w-8 text-muted-foreground hover:text-danger">
+                            <Trash2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                           </Button>
                         </div>
                       </div>

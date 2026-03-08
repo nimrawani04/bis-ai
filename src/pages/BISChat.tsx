@@ -571,12 +571,12 @@ export default function BISChat() {
       <BISHeader />
 
       {/* Topic Filters */}
-      <div className="border-b border-border bg-card/50 backdrop-blur px-4 py-2">
-        <div className="max-w-7xl mx-auto flex items-center gap-2 overflow-x-auto scrollbar-none">
+      <div className="border-b border-border bg-card/50 backdrop-blur px-2 sm:px-4 py-2">
+        <div className="max-w-7xl mx-auto flex items-center gap-1.5 sm:gap-2 overflow-x-auto scrollbar-none">
           <Filter className="h-4 w-4 text-muted-foreground shrink-0" />
           {topicFilters.map(f => (
             <Badge key={f.id} variant={activeFilter === f.id ? 'default' : 'outline'}
-              className={`cursor-pointer shrink-0 text-xs transition-all ${activeFilter === f.id ? 'bg-primary text-primary-foreground hover:bg-primary/90' : 'hover:bg-secondary'}`}
+              className={`cursor-pointer shrink-0 text-[10px] sm:text-xs transition-all ${activeFilter === f.id ? 'bg-primary text-primary-foreground hover:bg-primary/90' : 'hover:bg-secondary'}`}
               onClick={() => setActiveFilter(f.id)}>
               {f.label}
             </Badge>
@@ -584,15 +584,15 @@ export default function BISChat() {
         </div>
       </div>
 
-      {/* Language Selector - prominent row */}
-      <div className="border-b border-border bg-secondary/20 px-4 py-2">
-        <div className="max-w-7xl mx-auto flex items-center gap-2 overflow-x-auto scrollbar-none">
-          <Globe className="h-4 w-4 text-primary shrink-0" />
-          <span className="text-xs font-medium text-muted-foreground shrink-0">Language:</span>
+      {/* Language Selector */}
+      <div className="border-b border-border bg-secondary/20 px-2 sm:px-4 py-1.5 sm:py-2">
+        <div className="max-w-7xl mx-auto flex items-center gap-1.5 sm:gap-2 overflow-x-auto scrollbar-none">
+          <Globe className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-primary shrink-0" />
+          <span className="text-[10px] sm:text-xs font-medium text-muted-foreground shrink-0">Lang:</span>
           {languages.map(lang => (
             <button key={lang.code}
               onClick={() => setSelectedLang(lang.code)}
-              className={`shrink-0 text-xs px-2.5 py-1 rounded-full border transition-all ${
+              className={`shrink-0 text-[10px] sm:text-xs px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full border transition-all ${
                 selectedLang === lang.code
                   ? 'bg-primary text-primary-foreground border-primary font-medium'
                   : 'border-border text-muted-foreground hover:text-foreground hover:bg-secondary hover:border-foreground/20'
@@ -604,32 +604,32 @@ export default function BISChat() {
       </div>
 
       {/* Mode toggles */}
-      <div className="border-b border-border bg-card/30 px-4 py-2">
-        <div className="max-w-7xl mx-auto flex items-center gap-4 flex-wrap">
+      <div className="border-b border-border bg-card/30 px-2 sm:px-4 py-1.5 sm:py-2">
+        <div className="max-w-7xl mx-auto flex items-center gap-2 sm:gap-4 flex-wrap">
           <button
             onClick={() => setSimpleMode(!simpleMode)}
-            className={`flex items-center gap-2 text-xs px-3 py-1.5 rounded-full border transition-all ${
+            className={`flex items-center gap-1.5 text-[10px] sm:text-xs px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full border transition-all ${
               simpleMode
                 ? 'bg-accent text-accent-foreground border-accent font-medium'
                 : 'border-border text-muted-foreground hover:text-foreground hover:bg-secondary'
             }`}
           >
             <span className="text-sm">🧑‍🌾</span>
-            {simpleMode ? 'Simple Mode ON' : 'Simple Mode'}
+            {simpleMode ? 'Simple ON' : 'Simple'}
           </button>
           <button
             onClick={() => setAutoReadAloud(!autoReadAloud)}
-            className={`flex items-center gap-2 text-xs px-3 py-1.5 rounded-full border transition-all ${
+            className={`flex items-center gap-1.5 text-[10px] sm:text-xs px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full border transition-all ${
               autoReadAloud
                 ? 'bg-primary text-primary-foreground border-primary font-medium'
                 : 'border-border text-muted-foreground hover:text-foreground hover:bg-secondary'
             }`}
           >
-            <Volume2 className="h-3.5 w-3.5" />
-            {autoReadAloud ? 'Auto Read ON' : 'Auto Read Aloud'}
+            <Volume2 className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
+            {autoReadAloud ? 'Auto Read ON' : 'Auto Read'}
           </button>
           {simpleMode && (
-            <span className="text-xs text-muted-foreground italic">
+            <span className="text-[10px] sm:text-xs text-muted-foreground italic hidden sm:inline">
               Answers will use simple, easy-to-understand language
             </span>
           )}
@@ -728,31 +728,31 @@ export default function BISChat() {
                 </div>
 
                 {/* Quick Help Buttons */}
-                <div className="flex flex-wrap gap-2 justify-center mb-6">
+                <div className="flex flex-wrap gap-1.5 sm:gap-2 justify-center mb-6">
                   <button onClick={() => sendMessage('How to check if ISI mark is genuine?')} disabled={isLoading}
-                    className="flex items-center gap-1.5 text-xs bg-primary/10 text-primary hover:bg-primary/20 px-3 py-2 rounded-full transition-colors font-medium">
+                    className="flex items-center gap-1 sm:gap-1.5 text-[10px] sm:text-xs bg-primary/10 text-primary hover:bg-primary/20 px-2 sm:px-3 py-1.5 sm:py-2 rounded-full transition-colors font-medium">
                     ✅ Check ISI Mark
                   </button>
                   <button onClick={() => sendMessage('How to apply for BIS certification?')} disabled={isLoading}
-                    className="flex items-center gap-1.5 text-xs bg-primary/10 text-primary hover:bg-primary/20 px-3 py-2 rounded-full transition-colors font-medium">
+                    className="flex items-center gap-1 sm:gap-1.5 text-[10px] sm:text-xs bg-primary/10 text-primary hover:bg-primary/20 px-2 sm:px-3 py-1.5 sm:py-2 rounded-full transition-colors font-medium">
                     📋 Apply for Certification
                   </button>
                   <button onClick={() => sendMessage('How to file a consumer complaint about fake products?')} disabled={isLoading}
-                    className="flex items-center gap-1.5 text-xs bg-primary/10 text-primary hover:bg-primary/20 px-3 py-2 rounded-full transition-colors font-medium">
-                    🛡️ File Consumer Complaint
+                    className="flex items-center gap-1 sm:gap-1.5 text-[10px] sm:text-xs bg-primary/10 text-primary hover:bg-primary/20 px-2 sm:px-3 py-1.5 sm:py-2 rounded-full transition-colors font-medium">
+                    🛡️ File Complaint
                   </button>
                   <button onClick={() => sendMessage('What are BIS standards and why are they important?')} disabled={isLoading}
-                    className="flex items-center gap-1.5 text-xs bg-primary/10 text-primary hover:bg-primary/20 px-3 py-2 rounded-full transition-colors font-medium">
-                    📖 Understand Standards
+                    className="flex items-center gap-1 sm:gap-1.5 text-[10px] sm:text-xs bg-primary/10 text-primary hover:bg-primary/20 px-2 sm:px-3 py-1.5 sm:py-2 rounded-full transition-colors font-medium">
+                    📖 Standards
                   </button>
                   <button onClick={() => sendMessage('Compare BIS hallmarking and product certification schemes')} disabled={isLoading}
-                    className="flex items-center gap-1.5 text-xs bg-primary/10 text-primary hover:bg-primary/20 px-3 py-2 rounded-full transition-colors font-medium">
-                    ⚖️ Compare Standards
+                    className="flex items-center gap-1 sm:gap-1.5 text-[10px] sm:text-xs bg-primary/10 text-primary hover:bg-primary/20 px-2 sm:px-3 py-1.5 sm:py-2 rounded-full transition-colors font-medium">
+                    ⚖️ Compare
                   </button>
                 </div>
 
                 {/* Risk Meter & Everyday Safety Mode */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full max-w-lg mb-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 w-full max-w-lg mb-6 px-1">
                   <RiskMeter />
                   <EverydaySafetyMode onProductClick={sendMessage} disabled={isLoading} />
                 </div>

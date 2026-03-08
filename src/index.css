@@ -196,4 +196,12 @@
     @apply bg-clip-text text-transparent;
     background-image: var(--gradient-hero);
   }
+
+  .scrollbar-none {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;
+  }
 }
