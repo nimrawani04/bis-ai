@@ -232,22 +232,8 @@ export default function BISChat() {
     localStorage.setItem('bis-question-history', JSON.stringify(questionHistory));
   }, [questionHistory]);
 
-  // Handle query from Standards Explorer
-  useEffect(() => {
-    const q = searchParams.get('q');
-    if (q && !initialQueryHandled.current && !isLoading) {
-      initialQueryHandled.current = true;
-      // Use a small delay to ensure component is fully mounted
-      const timer = setTimeout(() => {
-        setInput(q);
-        // Trigger send after setting input
-        setTimeout(() => {
-          sendMessage(q);
-        }, 100);
-      }, 500);
-      return () => clearTimeout(timer);
-    }
-  }, [searchParams, isLoading]);
+
+
 
   const clearConversation = () => { setMessages([]); setInput(''); };
 
@@ -396,6 +382,19 @@ export default function BISChat() {
       setIsLoading(false);
     }
   };
+
+  // Handle query from Standards Explorer - run once on mount
+  useEffect(() => {
+    const q = searchParams.get('q');
+    if (q && !initialQueryHandled.current) {
+      initialQueryHandled.current = true;
+      setInput(q);
+      const timer = setTimeout(() => {
+        sendMessage(q);
+      }, 300);
+      return () => clearTimeout(timer);
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleStreamResponse = async (resp: Response) => {
     if (!resp.ok) {
