@@ -204,6 +204,23 @@ function CitationPreview({ url }: { url: string }) {
   );
 }
 
+// Offline knowledge cache for common BIS questions
+const offlineKnowledge: Record<string, string> = {
+  'what is bis': 'The Bureau of Indian Standards (BIS) is the national standards body of India, established under the BIS Act 2016. It operates under the Ministry of Consumer Affairs, Food and Public Distribution. BIS develops Indian Standards, runs product certification (ISI Mark), hallmarking of precious metals, and the Compulsory Registration Scheme (CRS) for electronics.\n\n---SOURCES---\n- https://www.bis.gov.in/index.php/about-bis/\n\n---SUGGESTIONS---\n- What certification schemes does BIS offer?\n- How to apply for BIS certification?\n- What is ISI mark?',
+  'what is isi mark': 'The ISI Mark is a certification mark issued by BIS for products that conform to Indian Standards. It applies to over 900 products. Manufacturers must apply via manakonline.bis.gov.in, undergo factory inspection and product testing. The ISI Mark assures consumers that the product meets quality and safety standards.\n\n---SOURCES---\n- https://www.bis.gov.in/index.php/certification/product-certification/\n\n---SUGGESTIONS---\n- How to check if ISI mark is genuine?\n- Which products require ISI mark?\n- How to apply for ISI mark?',
+  'what is hallmarking': 'BIS Hallmarking is a purity certification for gold and silver jewelry. Gold jewelry is hallmarked in grades: 14K (585), 18K (750), 20K (833), 22K (916), and 24K (999). Each piece gets a HUID (Hallmark Unique Identification) number. Hallmarking has been mandatory for gold jewelry since June 2021.\n\n---SOURCES---\n- https://www.bis.gov.in/index.php/certification/hallmarking/\n\n---SUGGESTIONS---\n- How to verify hallmark on gold jewelry?\n- What is HUID number?\n- Where are hallmarking centers located?',
+  'how to apply for bis certification': 'Steps to apply for BIS certification:\n1. Visit manakonline.bis.gov.in and create an account\n2. Submit online application with documents (test reports, factory details, quality control plan)\n3. BIS reviews and assigns an officer\n4. Factory/premises inspection\n5. Product samples tested at BIS labs\n6. If compliant, license is granted\n7. Annual surveillance and periodic renewal required\n\n---SOURCES---\n- https://www.bis.gov.in/index.php/certification/product-certification/\n- https://manakonline.bis.gov.in\n\n---SUGGESTIONS---\n- What documents are needed for BIS certification?\n- How long does BIS certification take?\n- What are the fees for BIS certification?',
+  'how to file consumer complaint': 'To file a complaint about sub-standard ISI marked products:\n1. Visit the BIS Consumer Affairs portal\n2. Provide details about the product and the issue\n3. BIS will investigate through market surveillance\n4. You can also contact BIS regional/branch offices\n\nBIS also conducts consumer awareness campaigns and workshops.\n\n---SOURCES---\n- https://www.bis.gov.in/index.php/consumer-affairs/\n\n---SUGGESTIONS---\n- What happens after filing a complaint?\n- How does BIS conduct market surveillance?\n- What are BIS consumer awareness programs?',
+};
+
+function getOfflineAnswer(query: string): string | null {
+  const q = query.toLowerCase().trim().replace(/[?।]/g, '');
+  for (const [key, answer] of Object.entries(offlineKnowledge)) {
+    if (q.includes(key) || key.includes(q)) return answer;
+  }
+  return null;
+}
+
 export default function BISChat() {
   const [searchParams] = useSearchParams();
   const [messages, setMessages] = useState<Message[]>([]);
@@ -213,6 +230,9 @@ export default function BISChat() {
   const [showHistory, setShowHistory] = useState(false);
   const [selectedLang, setSelectedLang] = useState('en');
   const [isRecording, setIsRecording] = useState(false);
+  const [simpleMode, setSimpleMode] = useState(false);
+  const [autoReadAloud, setAutoReadAloud] = useState(false);
+  const lastQueryWasVoice = useRef(false);
   
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
@@ -263,7 +283,10 @@ export default function BISChat() {
       const transcript = event.results[0][0].transcript;
       setInput(transcript);
       setIsRecording(false);
-      toast.success('Voice captured!');
+      lastQueryWasVoice.current = true;
+      toast.success('Voice captured! Sending...');
+      // Auto-send voice query
+      setTimeout(() => sendMessage(transcript), 200);
     };
     recognition.onerror = () => {
       setIsRecording(false);
@@ -331,7 +354,26 @@ export default function BISChat() {
     setImagePreview(null);
     setIsLoading(true);
 
+    const isVoiceQuery = lastQueryWasVoice.current;
+    lastQueryWasVoice.current = false;
+
     try {
+      // Check offline cache first
+      if (!currentImage) {
+        const offlineAnswer = getOfflineAnswer(trimmed);
+        if (offlineAnswer && !navigator.onLine) {
+          setMessages(prev => [...prev, { role: 'assistant', content: offlineAnswer }]);
+          setIsLoading(false);
+          if (isVoiceQuery || autoReadAloud) {
+            const { body } = parseSources(offlineAnswer);
+            const utterance = new SpeechSynthesisUtterance(body);
+            utterance.rate = 0.95;
+            window.speechSynthesis.speak(utterance);
+          }
+          return;
+        }
+      }
+
       // If there's an image, use vision analysis
       if (currentImage && currentImage.startsWith('http')) {
         // First analyze the image
@@ -355,10 +397,10 @@ export default function BISChat() {
             'Content-Type': 'application/json',
             Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
           },
-          body: JSON.stringify({ messages: messagesForApi, topic_filter: activeFilter, language: selectedLang }),
+          body: JSON.stringify({ messages: messagesForApi, topic_filter: activeFilter, language: selectedLang, simple_mode: simpleMode }),
         });
 
-        await handleStreamResponse(resp);
+        await handleStreamResponse(resp, isVoiceQuery || autoReadAloud);
       } else {
         const resp = await fetch(CHAT_URL, {
           method: 'POST',
@@ -370,10 +412,11 @@ export default function BISChat() {
             messages: updatedMessages.map(m => ({ role: m.role, content: m.content })),
             topic_filter: activeFilter,
             language: selectedLang,
+            simple_mode: simpleMode,
           }),
         });
 
-        await handleStreamResponse(resp);
+        await handleStreamResponse(resp, isVoiceQuery || autoReadAloud);
       }
     } catch (e) {
       console.error('Chat error:', e);
@@ -396,7 +439,7 @@ export default function BISChat() {
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const handleStreamResponse = async (resp: Response) => {
+  const handleStreamResponse = async (resp: Response, shouldReadAloud = false) => {
     if (!resp.ok) {
       const err = await resp.json().catch(() => ({ error: 'Request failed' }));
       if (resp.status === 429) toast.error('Rate limit reached. Please wait and try again.');
@@ -441,6 +484,14 @@ export default function BISChat() {
         }
       }
     }
+
+    // Auto read-aloud if voice query or autoReadAloud enabled
+    if (shouldReadAloud && accumulated) {
+      const { body } = parseSources(accumulated);
+      const utterance = new SpeechSynthesisUtterance(body);
+      utterance.rate = 0.95;
+      window.speechSynthesis.speak(utterance);
+    }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -484,6 +535,39 @@ export default function BISChat() {
               {lang.label}
             </button>
           ))}
+        </div>
+      </div>
+
+      {/* Mode toggles */}
+      <div className="border-b border-border bg-card/30 px-4 py-2">
+        <div className="max-w-7xl mx-auto flex items-center gap-4 flex-wrap">
+          <button
+            onClick={() => setSimpleMode(!simpleMode)}
+            className={`flex items-center gap-2 text-xs px-3 py-1.5 rounded-full border transition-all ${
+              simpleMode
+                ? 'bg-accent text-accent-foreground border-accent font-medium'
+                : 'border-border text-muted-foreground hover:text-foreground hover:bg-secondary'
+            }`}
+          >
+            <span className="text-sm">🧑‍🌾</span>
+            {simpleMode ? 'Simple Mode ON' : 'Simple Mode'}
+          </button>
+          <button
+            onClick={() => setAutoReadAloud(!autoReadAloud)}
+            className={`flex items-center gap-2 text-xs px-3 py-1.5 rounded-full border transition-all ${
+              autoReadAloud
+                ? 'bg-primary text-primary-foreground border-primary font-medium'
+                : 'border-border text-muted-foreground hover:text-foreground hover:bg-secondary'
+            }`}
+          >
+            <Volume2 className="h-3.5 w-3.5" />
+            {autoReadAloud ? 'Auto Read ON' : 'Auto Read Aloud'}
+          </button>
+          {simpleMode && (
+            <span className="text-xs text-muted-foreground italic">
+              Answers will use simple, easy-to-understand language
+            </span>
+          )}
         </div>
       </div>
 
@@ -577,6 +661,27 @@ export default function BISChat() {
                   <span>•</span>
                   <span className="flex items-center gap-1"><Volume2 className="h-3 w-3" /> Read aloud</span>
                 </div>
+
+                {/* Quick Help Buttons */}
+                <div className="flex flex-wrap gap-2 justify-center mb-6">
+                  <button onClick={() => sendMessage('How to check if ISI mark is genuine?')} disabled={isLoading}
+                    className="flex items-center gap-1.5 text-xs bg-primary/10 text-primary hover:bg-primary/20 px-3 py-2 rounded-full transition-colors font-medium">
+                    ✅ Check ISI Mark
+                  </button>
+                  <button onClick={() => sendMessage('How to apply for BIS certification?')} disabled={isLoading}
+                    className="flex items-center gap-1.5 text-xs bg-primary/10 text-primary hover:bg-primary/20 px-3 py-2 rounded-full transition-colors font-medium">
+                    📋 Apply for Certification
+                  </button>
+                  <button onClick={() => sendMessage('How to file a consumer complaint about fake products?')} disabled={isLoading}
+                    className="flex items-center gap-1.5 text-xs bg-primary/10 text-primary hover:bg-primary/20 px-3 py-2 rounded-full transition-colors font-medium">
+                    🛡️ File Consumer Complaint
+                  </button>
+                  <button onClick={() => sendMessage('What are BIS standards and why are they important?')} disabled={isLoading}
+                    className="flex items-center gap-1.5 text-xs bg-primary/10 text-primary hover:bg-primary/20 px-3 py-2 rounded-full transition-colors font-medium">
+                    📖 Understand Standards
+                  </button>
+                </div>
+
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 w-full max-w-lg">
                   {exampleQuestions.map(q => (
                     <button key={q} onClick={() => sendMessage(q)} disabled={isLoading}
