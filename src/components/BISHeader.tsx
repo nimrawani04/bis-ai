@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { useState } from 'react';
 import { useTheme } from '@/components/ThemeProvider';
 import { Link, useLocation } from 'react-router-dom';
+import ashokaChakra from '@/assets/ashoka-chakra.png';
 
 const navLinks = [
   { to: '/', label: 'Home' },

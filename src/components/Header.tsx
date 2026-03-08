@@ -2,6 +2,7 @@ import { Shield, Menu, X, Sun, Moon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
 import { useTheme } from '@/components/ThemeProvider';
+import ashokaChakra from '@/assets/ashoka-chakra.png';
 
 function TricolorStrip() {
   return <div className="tricolor-strip w-full" />;
