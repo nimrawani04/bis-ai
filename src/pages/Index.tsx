@@ -3,6 +3,7 @@ import { Hero } from '@/components/Hero';
 import { ProductVerification } from '@/components/ProductVerification';
 import { ProductSearch } from '@/components/ProductSearch';
 import { HouseholdScanner } from '@/components/HouseholdScanner';
+import { CommunityTrustScore } from '@/components/CommunityTrustScore';
 import { KnowledgeHub } from '@/components/KnowledgeHub';
 import { ReportProduct } from '@/components/ReportProduct';
 import { Footer } from '@/components/Footer';
@@ -16,6 +17,7 @@ const Index = () => {
         <ProductVerification />
         <ProductSearch />
         <HouseholdScanner />
+        <CommunityTrustScore />
         <ReportProduct />
         <KnowledgeHub />
       </main>
