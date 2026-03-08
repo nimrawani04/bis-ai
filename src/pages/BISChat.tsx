@@ -604,32 +604,32 @@ export default function BISChat() {
       </div>
 
       {/* Mode toggles */}
-      <div className="border-b border-border bg-card/30 px-4 py-2">
-        <div className="max-w-7xl mx-auto flex items-center gap-4 flex-wrap">
+      <div className="border-b border-border bg-card/30 px-2 sm:px-4 py-1.5 sm:py-2">
+        <div className="max-w-7xl mx-auto flex items-center gap-2 sm:gap-4 flex-wrap">
           <button
             onClick={() => setSimpleMode(!simpleMode)}
-            className={`flex items-center gap-2 text-xs px-3 py-1.5 rounded-full border transition-all ${
+            className={`flex items-center gap-1.5 text-[10px] sm:text-xs px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full border transition-all ${
               simpleMode
                 ? 'bg-accent text-accent-foreground border-accent font-medium'
                 : 'border-border text-muted-foreground hover:text-foreground hover:bg-secondary'
             }`}
           >
             <span className="text-sm">🧑‍🌾</span>
-            {simpleMode ? 'Simple Mode ON' : 'Simple Mode'}
+            {simpleMode ? 'Simple ON' : 'Simple'}
           </button>
           <button
             onClick={() => setAutoReadAloud(!autoReadAloud)}
-            className={`flex items-center gap-2 text-xs px-3 py-1.5 rounded-full border transition-all ${
+            className={`flex items-center gap-1.5 text-[10px] sm:text-xs px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full border transition-all ${
               autoReadAloud
                 ? 'bg-primary text-primary-foreground border-primary font-medium'
                 : 'border-border text-muted-foreground hover:text-foreground hover:bg-secondary'
             }`}
           >
-            <Volume2 className="h-3.5 w-3.5" />
-            {autoReadAloud ? 'Auto Read ON' : 'Auto Read Aloud'}
+            <Volume2 className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
+            {autoReadAloud ? 'Auto Read ON' : 'Auto Read'}
           </button>
           {simpleMode && (
-            <span className="text-xs text-muted-foreground italic">
+            <span className="text-[10px] sm:text-xs text-muted-foreground italic hidden sm:inline">
               Answers will use simple, easy-to-understand language
             </span>
           )}
