@@ -8,7 +8,7 @@ import { Link } from 'react-router-dom';
 import { useState, useMemo } from 'react';
 import {
   Cpu, Building2, UtensilsCrossed, Shirt, FlaskConical,
-  Cog, Zap, Droplets, Car, MessageSquare, Search, X,
+  Cog, Zap, Droplets, Car, MessageSquare, Search, X, Sparkles,
 } from 'lucide-react';
 
 const categories = [
@@ -18,6 +18,7 @@ const categories = [
     count: '500+',
     description: 'Standards for electronic devices, IT equipment, batteries, and telecom products. Includes CRS requirements.',
     examples: ['IS 616 - Audio equipment', 'IS 13252 - IT equipment safety', 'IS 1293 - Batteries'],
+    query: 'What BIS standards apply to electronics and IT products?',
   },
   {
     name: 'Construction & Building',
@@ -25,6 +26,7 @@ const categories = [
     count: '800+',
     description: 'Standards for cement, steel, bricks, pipes, and building materials for safe construction.',
     examples: ['IS 269 - Ordinary Portland Cement', 'IS 1786 - Steel bars', 'IS 2062 - Structural steel'],
+    query: 'What BIS standards apply to construction and building materials?',
   },
   {
     name: 'Food Safety',
@@ -32,6 +34,7 @@ const categories = [
     count: '400+',
     description: 'Standards for food products, packaging, and safety including drinking water.',
     examples: ['IS 10500 - Drinking water', 'IS 7466 - Packaged food', 'IS 4162 - Edible oil'],
+    query: 'What are BIS food safety standards?',
   },
   {
     name: 'Textiles',
@@ -39,6 +42,7 @@ const categories = [
     count: '300+',
     description: 'Standards for fabrics, garments, and textile products ensuring quality and safety.',
     examples: ['IS 1390 - Cotton fabrics', 'IS 3871 - Handloom products', 'IS 7064 - Wool products'],
+    query: 'What BIS standards apply to textiles and garments?',
   },
   {
     name: 'Chemical',
@@ -46,6 +50,7 @@ const categories = [
     count: '350+',
     description: 'Standards for chemicals, pesticides, fertilizers, and related products.',
     examples: ['IS 4707 - Paints', 'IS 5182 - Air quality', 'IS 10500 - Water quality'],
+    query: 'What BIS standards apply to chemical products?',
   },
   {
     name: 'Mechanical Engineering',
@@ -53,6 +58,7 @@ const categories = [
     count: '600+',
     description: 'Standards for machinery, tools, fasteners, and mechanical components.',
     examples: ['IS 2062 - Steel products', 'IS 1367 - Fasteners', 'IS 5765 - LPG cylinders'],
+    query: 'What BIS standards apply to mechanical engineering products?',
   },
   {
     name: 'Electrical',
@@ -60,6 +66,7 @@ const categories = [
     count: '450+',
     description: 'Standards for electrical equipment, wiring, switches, and safety devices.',
     examples: ['IS 694 - PVC cables', 'IS 3854 - Switches', 'IS 1293 - Batteries'],
+    query: 'What BIS standards apply to electrical equipment?',
   },
   {
     name: 'Water Resources',
@@ -67,6 +74,7 @@ const categories = [
     count: '200+',
     description: 'Standards related to water supply, irrigation, and water quality management.',
     examples: ['IS 10500 - Drinking water', 'IS 4984 - HDPE pipes', 'IS 12235 - Water meters'],
+    query: 'What BIS standards apply to water resources and quality?',
   },
   {
     name: 'Transport',
@@ -74,6 +82,7 @@ const categories = [
     count: '250+',
     description: 'Standards for vehicles, helmets, automotive parts, and transportation safety.',
     examples: ['IS 4151 - Helmets', 'IS 14164 - Seat belts', 'IS 2553 - Automotive glass'],
+    query: 'What BIS standards apply to transport and vehicles?',
   },
 ];
 
@@ -102,7 +111,7 @@ export default function StandardsExplorer() {
               Standards Explorer
             </h1>
             <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-              Browse BIS standards across product categories
+              Browse BIS standards across product categories. Click any category to explore and ask AI.
             </p>
           </div>
 
@@ -110,17 +119,12 @@ export default function StandardsExplorer() {
           <div className="max-w-lg mx-auto mb-10">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
+              <Input value={search} onChange={(e) => setSearch(e.target.value)}
                 placeholder="Search standards by keyword (e.g. cement, helmet, food)..."
-                className="pl-10 pr-10 h-12 text-base"
-              />
+                className="pl-10 pr-10 h-12 text-base" />
               {search && (
-                <button
-                  onClick={() => setSearch('')}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-                >
+                <button onClick={() => setSearch('')}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors">
                   <X className="h-4 w-4" />
                 </button>
               )}
@@ -136,20 +140,16 @@ export default function StandardsExplorer() {
             <div className="text-center py-16 animate-fade-in">
               <Search className="h-10 w-10 text-muted-foreground/30 mx-auto mb-3" />
               <p className="text-muted-foreground">No categories match "{search}"</p>
-              <Button variant="ghost" size="sm" onClick={() => setSearch('')} className="mt-2">
-                Clear search
-              </Button>
+              <Button variant="ghost" size="sm" onClick={() => setSearch('')} className="mt-2">Clear search</Button>
             </div>
           ) : (
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
               {filtered.map((cat) => {
                 const isOpen = expanded === cat.name;
                 return (
-                  <Card
-                    key={cat.name}
+                  <Card key={cat.name}
                     className={`cursor-pointer transition-all hover:shadow-md animate-fade-in ${isOpen ? 'ring-2 ring-primary' : ''}`}
-                    onClick={() => setExpanded(isOpen ? null : cat.name)}
-                  >
+                    onClick={() => setExpanded(isOpen ? null : cat.name)}>
                     <CardContent className="p-5">
                       <div className="flex items-start gap-3 mb-3">
                         <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
@@ -169,9 +169,9 @@ export default function StandardsExplorer() {
                               <li key={ex} className="text-xs text-muted-foreground">• {ex}</li>
                             ))}
                           </ul>
-                          <Link to="/chat" onClick={(e) => e.stopPropagation()}>
-                            <Button variant="ghost" size="sm" className="mt-3 text-xs gap-1">
-                              <MessageSquare className="h-3 w-3" />
+                          <Link to={`/chat?q=${encodeURIComponent(cat.query)}`} onClick={(e) => e.stopPropagation()}>
+                            <Button size="sm" className="mt-3 text-xs gap-1.5 w-full">
+                              <Sparkles className="h-3 w-3" />
                               Ask AI about {cat.name}
                             </Button>
                           </Link>
