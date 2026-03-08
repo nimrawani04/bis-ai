@@ -130,7 +130,7 @@ export function ProductPassportCard({ productId }: ProductPassportCardProps) {
             <span className="text-sm font-medium opacity-90">Digital Product Passport</span>
           </div>
           <h1 className="text-3xl font-bold">{product.name}</h1>
-          <p className="opacity-90 mt-1">{product.brand}</p>
+          <p className="opacity-90 mt-1">{product.manufacturer}</p>
         </div>
         
         <CardContent className="p-6">
