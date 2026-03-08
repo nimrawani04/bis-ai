@@ -4,8 +4,11 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "@/components/ThemeProvider";
-import Index from "./pages/Index";
-import ProductPassport from "./pages/ProductPassport";
+import BISHome from "./pages/BISHome";
+import BISChat from "./pages/BISChat";
+import CertificationGuide from "./pages/CertificationGuide";
+import StandardsExplorer from "./pages/StandardsExplorer";
+import AboutBIS from "./pages/AboutBIS";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -18,10 +21,11 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/passport/:productId" element={<ProductPassport />} />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-            <Route path="*" element={<NotFound />} />
+            <Route path="/" element={<BISHome />} />
+            <Route path="/chat" element={<BISChat />} />
+            <Route path="/certification" element={<CertificationGuide />} />
+            <Route path="/standards" element={<StandardsExplorer />} />
+            <Route path="/about" element={<AboutBIS />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
