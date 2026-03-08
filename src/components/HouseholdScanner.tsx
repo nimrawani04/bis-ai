@@ -1,15 +1,50 @@
 import { useState } from 'react';
-import { Home, Plus, Trash2, ShieldCheck, ShieldAlert, ShieldX, AlertTriangle, CheckCircle2, Search, BarChart3 } from 'lucide-react';
+import {
+  Home, Plus, Trash2, ShieldCheck, ShieldAlert, ShieldX,
+  AlertTriangle, CheckCircle2, Search, BarChart3, Zap,
+  Flame, ThermometerSun, Loader2, Sparkles,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import { Separator } from '@/components/ui/separator';
+import { toast } from '@/components/ui/sonner';
+import ReactMarkdown from 'react-markdown';
 import { searchProducts, getProductByNumber, type Product } from '@/data/products';
 
 interface ScannedProduct {
   query: string;
   product: Product | null;
+}
+
+// Per-item risk descriptions based on product status and category
+const riskDescriptions: Record<string, Record<string, string>> = {
+  'not-found': {
+    'Electrical Wires': 'Uncertified wiring — risk of short circuit and electrical fire',
+    'Chargers': 'Uncertified charger — overheating and battery damage risk',
+    'Helmets': 'Uncertified helmet — may not protect in an accident',
+    'Pressure Cookers': 'Uncertified cooker — risk of explosion from faulty valve',
+    'Electric Appliances': 'Uncertified appliance — electrocution and fire hazard',
+    'LPG Equipment': 'Uncertified LPG equipment — gas leak and fire risk',
+    'Toys': 'Uncertified toy — may contain toxic materials or choking hazards',
+    default: 'Product not BIS certified — safety cannot be guaranteed',
+  },
+  expired: {
+    default: 'Certification has expired — product may no longer meet current safety standards',
+  },
+  warning: {
+    default: 'Product has safety advisories — check for recalls or updated standards',
+  },
+};
+
+function getRiskDescription(item: ScannedProduct): string | null {
+  if (!item.product) return riskDescriptions['not-found'].default;
+  if (item.product.status === 'verified') return null;
+  const statusRisks = riskDescriptions[item.product.status];
+  if (!statusRisks) return null;
+  return statusRisks[item.product.category] || statusRisks.default;
 }
 
 function getOverallScore(items: ScannedProduct[]): number {
@@ -24,15 +59,19 @@ function getOverallScore(items: ScannedProduct[]): number {
 }
 
 function getScoreConfig(score: number) {
-  if (score >= 80) return { label: 'Excellent', icon: ShieldCheck, color: 'text-success', bg: 'bg-success/10', border: 'border-success/30', bar: 'bg-success' };
-  if (score >= 50) return { label: 'Needs Attention', icon: ShieldAlert, color: 'text-warning', bg: 'bg-warning/10', border: 'border-warning/30', bar: 'bg-warning' };
-  return { label: 'At Risk', icon: ShieldX, color: 'text-danger', bg: 'bg-danger/10', border: 'border-danger/30', bar: 'bg-danger' };
+  if (score >= 80) return { label: 'Excellent', icon: ShieldCheck, color: 'text-success', bg: 'bg-success/10', border: 'border-success/30' };
+  if (score >= 50) return { label: 'Needs Attention', icon: ShieldAlert, color: 'text-warning', bg: 'bg-warning/10', border: 'border-warning/30' };
+  return { label: 'At Risk', icon: ShieldX, color: 'text-danger', bg: 'bg-danger/10', border: 'border-danger/30' };
 }
+
+const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/home-safety-report`;
 
 export function HouseholdScanner() {
   const [items, setItems] = useState<ScannedProduct[]>([]);
   const [currentQuery, setCurrentQuery] = useState('');
   const [showReport, setShowReport] = useState(false);
+  const [aiReport, setAiReport] = useState('');
+  const [aiLoading, setAiLoading] = useState(false);
 
   const addProduct = () => {
     if (!currentQuery.trim()) return;
@@ -48,7 +87,10 @@ export function HouseholdScanner() {
 
   const removeItem = (index: number) => {
     setItems((prev) => prev.filter((_, i) => i !== index));
-    if (items.length <= 1) setShowReport(false);
+    if (items.length <= 1) {
+      setShowReport(false);
+      setAiReport('');
+    }
   };
 
   const score = getOverallScore(items);
@@ -56,6 +98,82 @@ export function HouseholdScanner() {
   const verified = items.filter((i) => i.product?.status === 'verified').length;
   const unverified = items.filter((i) => !i.product || i.product.status === 'not-found').length;
   const warnings = items.filter((i) => i.product?.status === 'warning' || i.product?.status === 'expired').length;
+  const unsafeItems = items.filter((i) => getRiskDescription(i) !== null);
+
+  const generateAiReport = async () => {
+    setAiLoading(true);
+    setAiReport('');
+
+    const productSummary = items.map((item) => {
+      const name = item.product?.name ?? item.query;
+      const status = item.product?.status ?? 'not-found';
+      const category = item.product?.category ?? 'Unknown';
+      const risk = getRiskDescription(item);
+      return `- ${name} (Category: ${category}, Status: ${status}${risk ? `, Risk: ${risk}` : ''})`;
+    }).join('\n');
+
+    try {
+      const resp = await fetch(CHAT_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+        },
+        body: JSON.stringify({ products: productSummary, score }),
+      });
+
+      if (!resp.ok) {
+        if (resp.status === 429) toast.error('Rate limit reached. Please try again shortly.');
+        else if (resp.status === 402) toast.error('AI usage limit reached.');
+        else toast.error('Could not generate AI report.');
+        setAiLoading(false);
+        return;
+      }
+
+      const reader = resp.body?.getReader();
+      if (!reader) throw new Error('No stream');
+      const decoder = new TextDecoder();
+      let buffer = '';
+      let accumulated = '';
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+
+        let idx: number;
+        while ((idx = buffer.indexOf('\n')) !== -1) {
+          let line = buffer.slice(0, idx);
+          buffer = buffer.slice(idx + 1);
+          if (line.endsWith('\r')) line = line.slice(0, -1);
+          if (!line.startsWith('data: ')) continue;
+          const jsonStr = line.slice(6).trim();
+          if (jsonStr === '[DONE]') break;
+          try {
+            const parsed = JSON.parse(jsonStr);
+            const content = parsed.choices?.[0]?.delta?.content;
+            if (content) {
+              accumulated += content;
+              setAiReport(accumulated);
+            }
+          } catch {
+            buffer = line + '\n' + buffer;
+            break;
+          }
+        }
+      }
+    } catch (e) {
+      console.error('AI report error:', e);
+      toast.error('Failed to generate AI report.');
+    } finally {
+      setAiLoading(false);
+    }
+  };
+
+  const handleGenerateReport = () => {
+    setShowReport(true);
+    generateAiReport();
+  };
 
   return (
     <section id="scanner" className="py-20">
@@ -65,13 +183,13 @@ export function HouseholdScanner() {
           <div className="text-center mb-12">
             <div className="inline-flex items-center gap-2 rounded-full bg-accent/10 px-4 py-2 text-sm font-medium text-accent mb-4">
               <Home className="h-4 w-4" />
-              Household Safety Scanner
+              My Safe Home Dashboard
             </div>
             <h2 className="text-3xl font-bold text-foreground mb-4">
               Scan Your Home Products
             </h2>
             <p className="text-muted-foreground max-w-2xl mx-auto">
-              Add the products in your household to get an overall safety score and actionable recommendations.
+              Add the products in your household to get an overall safety score, risk alerts, and AI-powered recommendations.
             </p>
           </div>
 
@@ -98,7 +216,7 @@ export function HouseholdScanner() {
               {/* Quick add suggestions */}
               <div className="mt-4 flex flex-wrap gap-2">
                 <span className="text-sm text-muted-foreground">Quick add:</span>
-                {['Steelbird Helmet', 'Prestige Cooker', 'Finolex Cable', 'FAKE-12345'].map((example) => (
+                {['Steelbird Helmet', 'Prestige Cooker', 'Havells Iron', 'Finolex Cable', 'FAKE-12345'].map((example) => (
                   <button
                     key={example}
                     className="text-sm text-primary hover:underline"
@@ -126,66 +244,72 @@ export function HouseholdScanner() {
                 <BarChart3 className="h-5 w-5 text-primary" />
                 Scanned Products ({items.length})
               </h3>
-              {items.map((item, index) => (
-                <Card key={index} className="shadow-card">
-                  <CardContent className="p-4 flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                      {item.product ? (
-                        <div className={`p-2 rounded-lg ${
-                          item.product.status === 'verified'
-                            ? 'bg-success/10'
-                            : item.product.status === 'not-found'
-                            ? 'bg-danger/10'
-                            : 'bg-warning/10'
-                        }`}>
-                          {item.product.status === 'verified' ? (
-                            <CheckCircle2 className="h-5 w-5 text-success" />
-                          ) : item.product.status === 'not-found' ? (
-                            <ShieldX className="h-5 w-5 text-danger" />
+              {items.map((item, index) => {
+                const risk = getRiskDescription(item);
+                return (
+                  <Card key={index} className="shadow-card">
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-4">
+                          {item.product ? (
+                            <div className={`p-2 rounded-lg ${
+                              item.product.status === 'verified' ? 'bg-success/10'
+                              : item.product.status === 'not-found' ? 'bg-danger/10'
+                              : 'bg-warning/10'
+                            }`}>
+                              {item.product.status === 'verified' ? (
+                                <CheckCircle2 className="h-5 w-5 text-success" />
+                              ) : item.product.status === 'not-found' ? (
+                                <ShieldX className="h-5 w-5 text-danger" />
+                              ) : (
+                                <AlertTriangle className="h-5 w-5 text-warning" />
+                              )}
+                            </div>
                           ) : (
-                            <AlertTriangle className="h-5 w-5 text-warning" />
+                            <div className="p-2 rounded-lg bg-danger/10">
+                              <ShieldX className="h-5 w-5 text-danger" />
+                            </div>
                           )}
+                          <div>
+                            <p className="font-semibold text-foreground">
+                              {item.product?.name ?? item.query}
+                            </p>
+                            <p className="text-sm text-muted-foreground">
+                              {item.product ? item.product.manufacturer : 'Product not found in database'}
+                            </p>
+                          </div>
                         </div>
-                      ) : (
-                        <div className="p-2 rounded-lg bg-danger/10">
-                          <ShieldX className="h-5 w-5 text-danger" />
+                        <div className="flex items-center gap-3">
+                          <Badge className={
+                            item.product?.status === 'verified' ? 'bg-success text-success-foreground'
+                            : !item.product || item.product.status === 'not-found' ? 'bg-danger text-danger-foreground'
+                            : 'bg-warning text-warning-foreground'
+                          }>
+                            {item.product?.status === 'verified' ? 'Verified'
+                            : !item.product || item.product.status === 'not-found' ? 'Not Found'
+                            : 'Caution'}
+                          </Badge>
+                          <Button variant="ghost" size="icon" onClick={() => removeItem(index)} className="text-muted-foreground hover:text-danger">
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                      {/* Inline risk warning */}
+                      {risk && (
+                        <div className="mt-3 flex items-start gap-2 px-2 py-2 rounded-lg bg-danger/5 border border-danger/20">
+                          <AlertTriangle className="h-4 w-4 text-danger flex-shrink-0 mt-0.5" />
+                          <span className="text-sm text-danger font-medium">{risk}</span>
                         </div>
                       )}
-                      <div>
-                        <p className="font-semibold text-foreground">
-                          {item.product?.name ?? item.query}
-                        </p>
-                        <p className="text-sm text-muted-foreground">
-                          {item.product ? item.product.manufacturer : 'Product not found in database'}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <Badge className={
-                        item.product?.status === 'verified'
-                          ? 'bg-success text-success-foreground'
-                          : !item.product || item.product.status === 'not-found'
-                          ? 'bg-danger text-danger-foreground'
-                          : 'bg-warning text-warning-foreground'
-                      }>
-                        {item.product?.status === 'verified'
-                          ? 'Verified'
-                          : !item.product || item.product.status === 'not-found'
-                          ? 'Not Found'
-                          : 'Caution'}
-                      </Badge>
-                      <Button variant="ghost" size="icon" onClick={() => removeItem(index)} className="text-muted-foreground hover:text-danger">
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+                    </CardContent>
+                  </Card>
+                );
+              })}
 
               {/* Generate Report */}
               <div className="text-center pt-4">
-                <Button variant="hero" size="lg" onClick={() => setShowReport(true)}>
-                  <BarChart3 className="h-5 w-5" />
+                <Button variant="hero" size="lg" onClick={handleGenerateReport} disabled={aiLoading}>
+                  {aiLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : <BarChart3 className="h-5 w-5" />}
                   Generate Safety Report
                 </Button>
               </div>
@@ -208,9 +332,7 @@ export function HouseholdScanner() {
                       </Badge>
                     </div>
                     <div className="flex-1 text-center md:text-left">
-                      <h3 className="text-2xl font-bold text-foreground mb-2">
-                        Home Safety Score
-                      </h3>
+                      <h3 className="text-2xl font-bold text-foreground mb-2">Home Safety Score</h3>
                       <p className="text-muted-foreground mb-4">
                         Based on {items.length} scanned product{items.length > 1 ? 's' : ''} in your household.
                       </p>
@@ -234,7 +356,45 @@ export function HouseholdScanner() {
                 </CardContent>
               </Card>
 
-              {/* Recommendations */}
+              {/* Unsafe Items Alert */}
+              {unsafeItems.length > 0 && (
+                <Card className="border-2 border-danger/30 bg-danger/5">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="flex items-center gap-2 text-danger">
+                      <AlertTriangle className="h-5 w-5" />
+                      Unsafe Items Detected ({unsafeItems.length})
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <ul className="space-y-3">
+                      {unsafeItems.map((item, i) => {
+                        const risk = getRiskDescription(item);
+                        return (
+                          <li key={i} className="flex items-start gap-3">
+                            <div className="mt-0.5">
+                              {item.product?.status === 'not-found' || !item.product ? (
+                                <Zap className="h-4 w-4 text-danger" />
+                              ) : item.product?.category?.includes('Electric') || item.product?.category === 'Chargers' ? (
+                                <Flame className="h-4 w-4 text-danger" />
+                              ) : (
+                                <ThermometerSun className="h-4 w-4 text-warning" />
+                              )}
+                            </div>
+                            <div>
+                              <p className="font-semibold text-foreground text-sm">
+                                {item.product?.name ?? item.query}
+                              </p>
+                              <p className="text-sm text-danger">⚠ {risk}</p>
+                            </div>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Static Recommendations */}
               <Card className="shadow-card">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
@@ -248,7 +408,7 @@ export function HouseholdScanner() {
                       <li className="flex items-start gap-3">
                         <ShieldX className="h-5 w-5 text-danger flex-shrink-0 mt-0.5" />
                         <span className="text-foreground">
-                          <strong>{unverified} product{unverified > 1 ? 's' : ''}</strong> could not be verified. Replace them with ISI-certified alternatives immediately.
+                          <strong>{unverified} product{unverified > 1 ? 's' : ''}</strong> could not be verified. Replace with ISI-certified alternatives immediately.
                         </span>
                       </li>
                     )}
@@ -275,6 +435,43 @@ export function HouseholdScanner() {
                       </span>
                     </li>
                   </ul>
+                </CardContent>
+              </Card>
+
+              {/* AI-Powered Detailed Report */}
+              <Card className="shadow-card overflow-hidden">
+                <CardHeader className="bg-primary/5 border-b border-border">
+                  <CardTitle className="flex items-center gap-2">
+                    <Sparkles className="h-5 w-5 text-primary" />
+                    AI Safety Analysis
+                    {aiLoading && (
+                      <Badge variant="secondary" className="ml-auto gap-1.5 animate-pulse">
+                        <Loader2 className="h-3 w-3 animate-spin" />
+                        Analyzing...
+                      </Badge>
+                    )}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-6">
+                  {aiReport ? (
+                    <div className="prose prose-sm max-w-none dark:prose-invert
+                      prose-headings:text-foreground prose-p:text-muted-foreground
+                      prose-strong:text-foreground prose-li:text-muted-foreground
+                      prose-h2:text-lg prose-h2:mt-0 prose-h2:mb-2
+                      prose-h3:text-base prose-h3:mt-3 prose-h3:mb-2
+                      max-h-[500px] overflow-y-auto">
+                      <ReactMarkdown>{aiReport}</ReactMarkdown>
+                    </div>
+                  ) : aiLoading ? (
+                    <div className="flex items-center gap-3 text-muted-foreground py-8 justify-center">
+                      <Loader2 className="h-5 w-5 animate-spin text-primary" />
+                      <span>Generating personalized safety analysis for your home...</span>
+                    </div>
+                  ) : (
+                    <p className="text-muted-foreground text-center py-6">
+                      AI report will appear here when you generate the report.
+                    </p>
+                  )}
                 </CardContent>
               </Card>
             </div>
