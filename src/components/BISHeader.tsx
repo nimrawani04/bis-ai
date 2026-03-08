@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { useState } from 'react';
 import { useTheme } from '@/components/ThemeProvider';
 import { Link, useLocation } from 'react-router-dom';
+import ashokaChakra from '@/assets/ashoka-chakra.png';
 
 const navLinks = [
   { to: '/', label: 'Home' },
@@ -18,10 +19,13 @@ function TricolorStrip() {
 
 function GovBanner() {
   return (
-    <div className="w-full bg-[hsl(var(--flag-navy))] text-white/90 text-[10px] sm:text-xs py-1 px-4 text-center tracking-wide">
-      <span className="font-medium">भारतीय मानक ब्यूरो</span>
-      <span className="mx-2 opacity-40">|</span>
-      <span>Bureau of Indian Standards — Ministry of Consumer Affairs, Govt. of India</span>
+    <div className="w-full bg-[hsl(var(--flag-navy))] text-white/90 text-[10px] sm:text-xs py-1 px-4 text-center tracking-wide flex items-center justify-center gap-2">
+      <img src={ashokaChakra} alt="Ashoka Chakra" className="h-4 w-4 sm:h-5 sm:w-5 invert brightness-200" />
+      <span>
+        <span className="font-medium">भारतीय मानक ब्यूरो</span>
+        <span className="mx-2 opacity-40">|</span>
+        <span>Bureau of Indian Standards — Ministry of Consumer Affairs, Govt. of India</span>
+      </span>
     </div>
   );
 }
