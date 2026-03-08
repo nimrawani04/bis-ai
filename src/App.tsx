@@ -10,6 +10,7 @@ import CertificationGuide from "./pages/CertificationGuide";
 import StandardsExplorer from "./pages/StandardsExplorer";
 import AboutBIS from "./pages/AboutBIS";
 import NotFound from "./pages/NotFound";
+import Auth from "./pages/Auth";
 
 const queryClient = new QueryClient();
 
@@ -26,6 +27,7 @@ const App = () => (
             <Route path="/certification" element={<CertificationGuide />} />
             <Route path="/standards" element={<StandardsExplorer />} />
             <Route path="/about" element={<AboutBIS />} />
+            <Route path="/auth" element={<Auth />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
