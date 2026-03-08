@@ -61,6 +61,9 @@ export function Header() {
             <a href="#search" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
               Search Standards
             </a>
+            <a href="#scanner" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+              Safety Scanner
+            </a>
             <a href="#knowledge" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
               Knowledge Hub
             </a>
