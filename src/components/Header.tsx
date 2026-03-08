@@ -1,10 +1,11 @@
-import { Shield, Menu, X } from 'lucide-react';
+import { Shield, Menu, X, Sun, Moon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
+import { useTheme } from '@/components/ThemeProvider';
 
 export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-
+  const { theme, toggleTheme } = useTheme();
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center justify-between">
@@ -34,6 +35,13 @@ export function Header() {
           <a href="#knowledge" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
             Knowledge
           </a>
+          <button
+            onClick={toggleTheme}
+            className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
+            aria-label="Toggle theme"
+          >
+            {theme === 'light' ? <Moon className="h-5 w-5" /> : <Sun className="h-5 w-5" />}
+          </button>
           <a href="#report">
             <Button variant="accent" size="sm">
               Report Unsafe Product
