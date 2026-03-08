@@ -232,22 +232,22 @@ export default function BISChat() {
     localStorage.setItem('bis-question-history', JSON.stringify(questionHistory));
   }, [questionHistory]);
 
-  // Handle query from Standards Explorer
+  // Handle query from Standards Explorer - run once on mount
+  const sendMessageRef = useRef(sendMessage);
+  sendMessageRef.current = sendMessage;
+  
   useEffect(() => {
     const q = searchParams.get('q');
-    if (q && !initialQueryHandled.current && !isLoading) {
+    if (q && !initialQueryHandled.current) {
       initialQueryHandled.current = true;
-      // Use a small delay to ensure component is fully mounted
+      setInput(q);
       const timer = setTimeout(() => {
-        setInput(q);
-        // Trigger send after setting input
-        setTimeout(() => {
-          sendMessage(q);
-        }, 100);
-      }, 500);
+        sendMessageRef.current(q);
+      }, 300);
       return () => clearTimeout(timer);
     }
-  }, [searchParams, isLoading]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const clearConversation = () => { setMessages([]); setInput(''); };
 
