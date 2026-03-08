@@ -1,5 +1,6 @@
 import { Header } from '@/components/Header';
 import { Hero } from '@/components/Hero';
+import { SmartSafetyAssistant } from '@/components/SmartSafetyAssistant';
 import { ProductVerification } from '@/components/ProductVerification';
 import { ProductSearch } from '@/components/ProductSearch';
 import { HouseholdScanner } from '@/components/HouseholdScanner';
@@ -17,6 +18,7 @@ const Index = () => {
       <Header />
       <main>
         <Hero />
+        <SmartSafetyAssistant />
         <SafetyAlerts />
         <ProductVerification />
         <ProductSearch />
