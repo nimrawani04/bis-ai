@@ -75,7 +75,9 @@ export function ReportProduct() {
     });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!form.productName.trim() || !form.category || !form.issueType || !form.description.trim()) {
@@ -87,12 +89,53 @@ export function ReportProduct() {
       return;
     }
 
-    // Simulate submission
-    setSubmitted(true);
-    toast({
-      title: 'Report Submitted',
-      description: 'Thank you for helping keep consumers safe. Your report has been recorded.',
-    });
+    setIsSubmitting(true);
+
+    try {
+      // Upload photos to storage
+      const photoUrls: string[] = [];
+      for (const photo of photos) {
+        const fileExt = photo.file.name.split('.').pop();
+        const filePath = `${crypto.randomUUID()}.${fileExt}`;
+        const { error: uploadError } = await supabase.storage
+          .from('report-photos')
+          .upload(filePath, photo.file);
+
+        if (!uploadError) {
+          const { data: urlData } = supabase.storage
+            .from('report-photos')
+            .getPublicUrl(filePath);
+          photoUrls.push(urlData.publicUrl);
+        }
+      }
+
+      // Insert report into database
+      const { error } = await supabase.from('product_reports').insert({
+        product_name: form.productName.trim(),
+        category: form.category,
+        issue_type: form.issueType,
+        description: form.description.trim(),
+        location: form.location.trim() || null,
+        purchase_place: form.purchasePlace.trim() || null,
+        photo_urls: photoUrls.length > 0 ? photoUrls : null,
+      });
+
+      if (error) throw error;
+
+      setSubmitted(true);
+      toast({
+        title: 'Report Submitted',
+        description: 'Thank you for helping keep consumers safe. Your report has been recorded.',
+      });
+    } catch (err) {
+      toast({
+        title: 'Submission Failed',
+        description: 'Something went wrong. Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleReset = () => {
