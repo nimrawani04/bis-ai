@@ -206,14 +206,11 @@ export const productCategories: ProductCategory[] = [
 ];
 
 export function searchProducts(query: string): Product[] {
-  const lowerQuery = query.toLowerCase();
-  return mockProducts.filter(
-    p => 
-      p.name.toLowerCase().includes(lowerQuery) ||
-      p.certificationNumber.toLowerCase().includes(lowerQuery) ||
-      p.manufacturer.toLowerCase().includes(lowerQuery) ||
-      p.category.toLowerCase().includes(lowerQuery)
-  );
+  const queryWords = query.toLowerCase().split(/\s+/).filter(Boolean);
+  return mockProducts.filter(p => {
+    const searchable = `${p.name} ${p.certificationNumber} ${p.manufacturer} ${p.category}`.toLowerCase();
+    return queryWords.every(word => searchable.includes(word));
+  });
 }
 
 export function getProductByNumber(certNumber: string): Product | undefined {
