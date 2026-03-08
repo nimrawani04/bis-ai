@@ -43,10 +43,57 @@ const actionCards = [
 ];
 
 const stats = [
-  { value: '1,240', label: 'Products Verified', icon: CheckCircle2, color: 'text-success' },
-  { value: '87', label: 'Unsafe Reports', icon: AlertTriangle, color: 'text-danger' },
-  { value: '120', label: 'Certified Brands', icon: Award, color: 'text-primary' },
+  { value: 1240, label: 'Products Verified', icon: CheckCircle2, color: 'text-success' },
+  { value: 87, label: 'Unsafe Reports', icon: AlertTriangle, color: 'text-danger' },
+  { value: 120, label: 'Certified Brands', icon: Award, color: 'text-primary' },
 ];
+
+function useCountUp(target: number, duration = 2000) {
+  const [count, setCount] = useState(0);
+  const ref = useRef<HTMLDivElement>(null);
+  const started = useRef(false);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && !started.current) {
+          started.current = true;
+          const start = performance.now();
+          const step = (now: number) => {
+            const progress = Math.min((now - start) / duration, 1);
+            const eased = 1 - Math.pow(1 - progress, 3); // easeOutCubic
+            setCount(Math.round(eased * target));
+            if (progress < 1) requestAnimationFrame(step);
+          };
+          requestAnimationFrame(step);
+        }
+      },
+      { threshold: 0.3 }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [target, duration]);
+
+  return { count, ref };
+}
+
+function AnimatedStat({ value, label, icon: Icon, color }: { value: number; label: string; icon: typeof CheckCircle2; color: string }) {
+  const { count, ref } = useCountUp(value);
+  const formatted = count.toLocaleString('en-IN');
+  return (
+    <div ref={ref} className="flex items-center gap-3 text-center sm:text-left">
+      <div className="p-2.5 rounded-xl bg-card shadow-card">
+        <Icon className={`h-6 w-6 ${color}`} />
+      </div>
+      <div>
+        <div className="text-2xl font-extrabold text-foreground tabular-nums">{formatted}</div>
+        <div className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{label}</div>
+      </div>
+    </div>
+  );
+}
 
 export function Hero() {
   return (
