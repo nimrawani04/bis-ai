@@ -23,6 +23,7 @@ const Index = () => {
         <HouseholdScanner />
         <CommunityTrustScore />
         <MarketRiskMap />
+        <ProductComparison />
         <ReportProduct />
         <KnowledgeHub />
       </main>
