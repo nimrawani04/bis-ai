@@ -5,7 +5,7 @@ import { Separator } from '@/components/ui/separator';
 import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { QRCodeSVG } from 'qrcode.react';
+
 import { toast } from '@/components/ui/sonner';
 import { 
   Shield, 
@@ -173,12 +173,11 @@ export function ProductPassportCard({ productId }: ProductPassportCardProps) {
                   </DialogHeader>
                   <div className="flex flex-col items-center gap-6 py-4">
                     <div className="p-4 bg-card rounded-xl border border-border">
-                      <QRCodeSVG
-                        value={passportUrl}
-                        size={200}
-                        bgColor="transparent"
-                        fgColor="hsl(175, 60%, 30%)"
-                        level="H"
+                      <img
+                        src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(passportUrl)}&color=2d8a7e&bgcolor=ffffff&format=svg`}
+                        alt="QR Code"
+                        width={200}
+                        height={200}
                       />
                     </div>
                     <p className="text-sm text-muted-foreground text-center">
