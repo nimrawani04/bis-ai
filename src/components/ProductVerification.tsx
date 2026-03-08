@@ -50,6 +50,7 @@ export function ProductVerification() {
   // Scan history state
   const [scanHistory, setScanHistory] = useState<ScanHistoryItem[]>([]);
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
+  const [expandedScanId, setExpandedScanId] = useState<string | null>(null);
 
   const fetchScanHistory = useCallback(async () => {
     setIsLoadingHistory(true);
