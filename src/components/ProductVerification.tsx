@@ -573,6 +573,60 @@ export function ProductVerification() {
               })()}
             </div>
           )}
+
+          {/* Scan History */}
+          {scanHistory.length > 0 && (
+            <div className="mt-12 animate-fade-in">
+              <div className="flex items-center gap-2 mb-6">
+                <Clock className="h-5 w-5 text-primary" />
+                <h3 className="text-xl font-bold text-foreground">Recent Scans</h3>
+                <Badge variant="outline" className="rounded-full ml-2">{scanHistory.length}</Badge>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {scanHistory.map((item) => (
+                  <Card key={item.id} className="overflow-hidden rounded-2xl hover:shadow-elevated transition-all group">
+                    <div className="h-32 bg-muted/30 overflow-hidden">
+                      <img
+                        src={item.image_url}
+                        alt={item.product_name || 'Scanned product'}
+                        className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300"
+                        loading="lazy"
+                      />
+                    </div>
+                    <CardContent className="p-4">
+                      <div className="flex items-start justify-between gap-2 mb-2">
+                        <div className="min-w-0">
+                          <h4 className="font-semibold text-foreground text-sm truncate">
+                            {item.product_name || 'Unknown Product'}
+                          </h4>
+                          {item.brand && (
+                            <p className="text-xs text-muted-foreground truncate">{item.brand}</p>
+                          )}
+                        </div>
+                        <Badge className={`shrink-0 rounded-full text-[10px] px-2 py-0.5 ${
+                          item.risk_level === 'low' ? 'bg-success text-success-foreground' :
+                          item.risk_level === 'high' ? 'bg-danger text-danger-foreground' : 'bg-warning text-warning-foreground'
+                        }`}>
+                          {item.risk_level === 'low' ? 'Low' : item.risk_level === 'high' ? 'High' : 'Med'}
+                        </Badge>
+                      </div>
+                      {item.summary && (
+                        <p className="text-xs text-muted-foreground line-clamp-2">{item.summary}</p>
+                      )}
+                      <div className="flex items-center justify-between mt-3 pt-2 border-t border-border">
+                        {item.category && (
+                          <Badge variant="outline" className="rounded-full text-[10px]">{item.category}</Badge>
+                        )}
+                        <span className="text-[10px] text-muted-foreground">
+                          {new Date(item.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}
+                        </span>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </section>
