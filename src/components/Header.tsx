@@ -61,9 +61,11 @@ export function Header() {
             <a href="#knowledge" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
               Knowledge Hub
             </a>
-            <Button variant="accent" size="sm" className="w-full">
-              Report Unsafe Product
-            </Button>
+            <a href="#report">
+              <Button variant="accent" size="sm" className="w-full">
+                Report Unsafe Product
+              </Button>
+            </a>
           </nav>
         </div>
       )}
