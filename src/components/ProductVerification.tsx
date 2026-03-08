@@ -588,47 +588,103 @@ export function ProductVerification() {
                 <Badge variant="outline" className="rounded-full ml-2">{scanHistory.length}</Badge>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {scanHistory.map((item) => (
-                  <Card key={item.id} className="overflow-hidden rounded-2xl hover:shadow-elevated transition-all group">
-                    <div className="h-32 bg-muted/30 overflow-hidden">
-                      <img
-                        src={item.image_url}
-                        alt={item.product_name || 'Scanned product'}
-                        className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300"
-                        loading="lazy"
-                      />
-                    </div>
-                    <CardContent className="p-4">
-                      <div className="flex items-start justify-between gap-2 mb-2">
-                        <div className="min-w-0">
-                          <h4 className="font-semibold text-foreground text-sm truncate">
-                            {item.product_name || 'Unknown Product'}
-                          </h4>
-                          {item.brand && (
-                            <p className="text-xs text-muted-foreground truncate">{item.brand}</p>
-                          )}
+                {scanHistory.map((item) => {
+                  const isExpanded = expandedScanId === item.id;
+                  return (
+                    <Card
+                      key={item.id}
+                      className={`overflow-hidden rounded-2xl transition-all cursor-pointer ${
+                        isExpanded ? 'sm:col-span-2 lg:col-span-3 shadow-elevated' : 'hover:shadow-elevated group'
+                      }`}
+                      onClick={() => setExpandedScanId(isExpanded ? null : item.id)}
+                    >
+                      <div className={isExpanded ? 'grid md:grid-cols-[280px_1fr]' : ''}>
+                        <div className={`${isExpanded ? 'h-full min-h-[200px]' : 'h-32'} bg-muted/30 overflow-hidden`}>
+                          <img
+                            src={item.image_url}
+                            alt={item.product_name || 'Scanned product'}
+                            className={`w-full h-full object-contain transition-transform duration-300 ${!isExpanded ? 'group-hover:scale-105' : ''}`}
+                            loading="lazy"
+                          />
                         </div>
-                        <Badge className={`shrink-0 rounded-full text-[10px] px-2 py-0.5 ${
-                          item.risk_level === 'low' ? 'bg-success text-success-foreground' :
-                          item.risk_level === 'high' ? 'bg-danger text-danger-foreground' : 'bg-warning text-warning-foreground'
-                        }`}>
-                          {item.risk_level === 'low' ? 'Low' : item.risk_level === 'high' ? 'High' : 'Med'}
-                        </Badge>
+                        <CardContent className="p-4">
+                          <div className="flex items-start justify-between gap-2 mb-2">
+                            <div className="min-w-0">
+                              <h4 className="font-semibold text-foreground text-sm truncate">
+                                {item.product_name || 'Unknown Product'}
+                              </h4>
+                              {item.brand && (
+                                <p className="text-xs text-muted-foreground truncate">{item.brand}</p>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-2 shrink-0">
+                              <Badge className={`rounded-full text-[10px] px-2 py-0.5 ${
+                                item.risk_level === 'low' ? 'bg-success text-success-foreground' :
+                                item.risk_level === 'high' ? 'bg-danger text-danger-foreground' : 'bg-warning text-warning-foreground'
+                              }`}>
+                                {item.risk_level === 'low' ? 'Low Risk' : item.risk_level === 'high' ? 'High Risk' : 'Medium Risk'}
+                              </Badge>
+                              <ChevronRight className={`h-4 w-4 text-muted-foreground transition-transform ${isExpanded ? 'rotate-90' : ''}`} />
+                            </div>
+                          </div>
+
+                          {!isExpanded && item.summary && (
+                            <p className="text-xs text-muted-foreground line-clamp-2">{item.summary}</p>
+                          )}
+
+                          {isExpanded && (
+                            <div className="space-y-4 mt-3 animate-fade-in">
+                              {item.summary && (
+                                <p className="text-sm text-foreground">{item.summary}</p>
+                              )}
+
+                              {item.certification_marks && item.certification_marks.length > 0 && (
+                                <div>
+                                  <p className="text-xs font-medium text-muted-foreground mb-1.5">Certification Marks</p>
+                                  <div className="flex flex-wrap gap-1.5">
+                                    {item.certification_marks.map((mark, i) => (
+                                      <Badge key={i} variant="outline" className="rounded-full text-xs">{mark}</Badge>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+
+                              {item.safety_observations && item.safety_observations.length > 0 && (
+                                <div>
+                                  <p className="text-xs font-medium text-muted-foreground mb-1.5">Safety Observations</p>
+                                  <ul className="space-y-1.5">
+                                    {item.safety_observations.map((obs, i) => (
+                                      <li key={i} className="flex items-start gap-2 text-sm text-foreground">
+                                        <Shield className="h-4 w-4 text-primary flex-shrink-0 mt-0.5" />
+                                        {obs}
+                                      </li>
+                                    ))}
+                                  </ul>
+                                </div>
+                              )}
+
+                              {item.recommendation && (
+                                <div className="bg-primary/5 rounded-xl p-3">
+                                  <p className="text-xs font-medium text-primary mb-1">Recommendation</p>
+                                  <p className="text-sm text-foreground">{item.recommendation}</p>
+                                </div>
+                              )}
+                            </div>
+                          )}
+
+                          <div className="flex items-center justify-between mt-3 pt-2 border-t border-border">
+                            {item.category && (
+                              <Badge variant="outline" className="rounded-full text-[10px]">{item.category}</Badge>
+                            )}
+                            <span className="text-[10px] text-muted-foreground">
+                              {new Date(item.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                            </span>
+                          </div>
+                        </CardContent>
                       </div>
-                      {item.summary && (
-                        <p className="text-xs text-muted-foreground line-clamp-2">{item.summary}</p>
-                      )}
-                      <div className="flex items-center justify-between mt-3 pt-2 border-t border-border">
-                        {item.category && (
-                          <Badge variant="outline" className="rounded-full text-[10px]">{item.category}</Badge>
-                        )}
-                        <span className="text-[10px] text-muted-foreground">
-                          {new Date(item.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}
-                        </span>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
+                    </Card>
+                  );
+                })}
               </div>
             </div>
           )}
