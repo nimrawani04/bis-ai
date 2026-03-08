@@ -213,7 +213,7 @@ export default function BISChat() {
   const [showHistory, setShowHistory] = useState(false);
   const [selectedLang, setSelectedLang] = useState('en');
   const [isRecording, setIsRecording] = useState(false);
-  const [showLangPicker, setShowLangPicker] = useState(false);
+  
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -235,11 +235,19 @@ export default function BISChat() {
   // Handle query from Standards Explorer
   useEffect(() => {
     const q = searchParams.get('q');
-    if (q && !initialQueryHandled.current) {
+    if (q && !initialQueryHandled.current && !isLoading) {
       initialQueryHandled.current = true;
-      setTimeout(() => sendMessage(q), 300);
+      // Use a small delay to ensure component is fully mounted
+      const timer = setTimeout(() => {
+        setInput(q);
+        // Trigger send after setting input
+        setTimeout(() => {
+          sendMessage(q);
+        }, 100);
+      }, 500);
+      return () => clearTimeout(timer);
     }
-  }, [searchParams]);
+  }, [searchParams, isLoading]);
 
   const clearConversation = () => { setMessages([]); setInput(''); };
 
@@ -447,7 +455,7 @@ export default function BISChat() {
     <div className="min-h-screen bg-background flex flex-col">
       <BISHeader />
 
-      {/* Topic Filters + Language Selector */}
+      {/* Topic Filters */}
       <div className="border-b border-border bg-card/50 backdrop-blur px-4 py-2">
         <div className="max-w-7xl mx-auto flex items-center gap-2 overflow-x-auto scrollbar-none">
           <Filter className="h-4 w-4 text-muted-foreground shrink-0" />
@@ -458,27 +466,25 @@ export default function BISChat() {
               {f.label}
             </Badge>
           ))}
-          <div className="w-px h-5 bg-border mx-1 shrink-0" />
-          {/* Language selector */}
-          <div className="relative shrink-0">
-            <button onClick={() => setShowLangPicker(!showLangPicker)}
-              className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground px-2 py-1 rounded-md border border-border hover:bg-secondary transition-colors">
-              <Globe className="h-3.5 w-3.5" />
-              {languages.find(l => l.code === selectedLang)?.label.split(' ')[0] || 'English'}
-              <ChevronDown className="h-3 w-3" />
+        </div>
+      </div>
+
+      {/* Language Selector - prominent row */}
+      <div className="border-b border-border bg-secondary/20 px-4 py-2">
+        <div className="max-w-7xl mx-auto flex items-center gap-2 overflow-x-auto scrollbar-none">
+          <Globe className="h-4 w-4 text-primary shrink-0" />
+          <span className="text-xs font-medium text-muted-foreground shrink-0">Language:</span>
+          {languages.map(lang => (
+            <button key={lang.code}
+              onClick={() => setSelectedLang(lang.code)}
+              className={`shrink-0 text-xs px-2.5 py-1 rounded-full border transition-all ${
+                selectedLang === lang.code
+                  ? 'bg-primary text-primary-foreground border-primary font-medium'
+                  : 'border-border text-muted-foreground hover:text-foreground hover:bg-secondary hover:border-foreground/20'
+              }`}>
+              {lang.label}
             </button>
-            {showLangPicker && (
-              <div className="absolute top-full right-0 mt-1 bg-card border border-border rounded-lg shadow-lg z-50 py-1 w-48 max-h-64 overflow-y-auto animate-fade-in">
-                {languages.map(lang => (
-                  <button key={lang.code}
-                    onClick={() => { setSelectedLang(lang.code); setShowLangPicker(false); }}
-                    className={`w-full text-left px-3 py-1.5 text-sm hover:bg-secondary transition-colors ${selectedLang === lang.code ? 'text-primary font-medium' : 'text-foreground'}`}>
-                    {lang.label}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
+          ))}
         </div>
       </div>
 
