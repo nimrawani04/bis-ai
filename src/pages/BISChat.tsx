@@ -130,6 +130,54 @@ function ShareButton({ text }: { text: string }) {
   );
 }
 
+function speakText(text: string, onEnd?: () => void) {
+  // Cancel any ongoing speech
+  window.speechSynthesis.cancel();
+
+  // Chrome bug: speechSynthesis gets stuck. This resets it.
+  window.speechSynthesis.cancel();
+
+  const utterance = new SpeechSynthesisUtterance(text);
+  utterance.rate = 0.95;
+  utterance.pitch = 1;
+  utterance.volume = 1;
+
+  // Try to pick a good voice
+  const voices = window.speechSynthesis.getVoices();
+  const englishVoice = voices.find(v => v.lang.startsWith('en') && v.name.includes('Google')) 
+    || voices.find(v => v.lang.startsWith('en'))
+    || voices[0];
+  if (englishVoice) utterance.voice = englishVoice;
+
+  utterance.onend = () => onEnd?.();
+  utterance.onerror = (e) => {
+    console.error('Speech error:', e);
+    onEnd?.();
+  };
+
+  // Chrome requires a small delay after cancel
+  setTimeout(() => {
+    window.speechSynthesis.speak(utterance);
+    // Chrome bug: speech pauses after 15 seconds. Keep it alive.
+    const keepAlive = setInterval(() => {
+      if (!window.speechSynthesis.speaking) {
+        clearInterval(keepAlive);
+        return;
+      }
+      window.speechSynthesis.pause();
+      window.speechSynthesis.resume();
+    }, 10000);
+    utterance.onend = () => {
+      clearInterval(keepAlive);
+      onEnd?.();
+    };
+    utterance.onerror = () => {
+      clearInterval(keepAlive);
+      onEnd?.();
+    };
+  }, 100);
+}
+
 function ReadAloudButton({ text }: { text: string }) {
   const [speaking, setSpeaking] = useState(false);
 
@@ -138,12 +186,8 @@ function ReadAloudButton({ text }: { text: string }) {
       window.speechSynthesis.cancel();
       setSpeaking(false);
     } else {
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.rate = 0.95;
-      utterance.onend = () => setSpeaking(false);
-      utterance.onerror = () => setSpeaking(false);
-      window.speechSynthesis.speak(utterance);
       setSpeaking(true);
+      speakText(text, () => setSpeaking(false));
     }
   };
 
@@ -152,9 +196,9 @@ function ReadAloudButton({ text }: { text: string }) {
   }, []);
 
   return (
-    <button onClick={handleToggle} className={`inline-flex items-center gap-1 text-xs p-1 rounded transition-colors ${speaking ? 'text-primary' : 'text-muted-foreground hover:text-foreground'}`} title={speaking ? 'Stop reading' : 'Read aloud'}>
-      {speaking ? <VolumeX className="h-3 w-3" /> : <Volume2 className="h-3 w-3" />}
-      {speaking ? 'Stop' : 'Listen'}
+    <button onClick={handleToggle} className={`inline-flex items-center gap-1.5 text-xs px-2 py-1 rounded-md transition-colors ${speaking ? 'text-primary bg-primary/10 font-medium' : 'text-muted-foreground hover:text-foreground hover:bg-secondary'}`} title={speaking ? 'Stop reading' : 'Read aloud'}>
+      {speaking ? <VolumeX className="h-3.5 w-3.5" /> : <Volume2 className="h-3.5 w-3.5" />}
+      {speaking ? '⏹ Stop' : '🔊 Listen'}
     </button>
   );
 }
@@ -234,6 +278,14 @@ export default function BISChat() {
   const [autoReadAloud, setAutoReadAloud] = useState(false);
   const lastQueryWasVoice = useRef(false);
   
+  // Pre-load voices (Chrome loads them asynchronously)
+  useEffect(() => {
+    window.speechSynthesis.getVoices();
+    window.speechSynthesis.onvoiceschanged = () => {
+      window.speechSynthesis.getVoices();
+    };
+  }, []);
+
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -366,9 +418,7 @@ export default function BISChat() {
           setIsLoading(false);
           if (isVoiceQuery || autoReadAloud) {
             const { body } = parseSources(offlineAnswer);
-            const utterance = new SpeechSynthesisUtterance(body);
-            utterance.rate = 0.95;
-            window.speechSynthesis.speak(utterance);
+            speakText(body);
           }
           return;
         }
@@ -488,9 +538,7 @@ export default function BISChat() {
     // Auto read-aloud if voice query or autoReadAloud enabled
     if (shouldReadAloud && accumulated) {
       const { body } = parseSources(accumulated);
-      const utterance = new SpeechSynthesisUtterance(body);
-      utterance.rate = 0.95;
-      window.speechSynthesis.speak(utterance);
+      speakText(body);
     }
   };
 
