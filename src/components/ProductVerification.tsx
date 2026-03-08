@@ -56,7 +56,7 @@ export function ProductVerification() {
     try {
       const { data, error } = await supabase
         .from('scan_history')
-        .select('id, image_url, product_name, brand, category, risk_level, summary, created_at')
+        .select('id, image_url, product_name, brand, category, risk_level, summary, certification_marks, safety_observations, recommendation, analysis_json, created_at')
         .order('created_at', { ascending: false })
         .limit(10);
       if (error) throw error;
