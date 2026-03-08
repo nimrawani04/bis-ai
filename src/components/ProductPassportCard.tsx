@@ -126,14 +126,77 @@ export function ProductPassportCard({ productId }: ProductPassportCardProps) {
     'Report any safety concerns immediately'
   ];
 
+  const passportUrl = `${window.location.origin}/passport/${productId}`;
+
+  const handleCopyLink = () => {
+    navigator.clipboard.writeText(passportUrl);
+    toast('Link copied to clipboard!');
+  };
+
   return (
     <div className="max-w-3xl mx-auto space-y-6">
       {/* Header Card */}
       <Card className="overflow-hidden">
         <div className="gradient-hero p-6 text-primary-foreground">
-          <div className="flex items-center gap-3 mb-2">
-            <FileCheck className="h-8 w-8" />
-            <span className="text-sm font-medium opacity-90">Digital Product Passport</span>
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-3">
+              <FileCheck className="h-8 w-8" />
+              <span className="text-sm font-medium opacity-90">Digital Product Passport</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-9 w-9 text-primary-foreground/80 hover:text-primary-foreground hover:bg-primary-foreground/10"
+                onClick={handleCopyLink}
+                title="Copy shareable link"
+              >
+                <LinkIcon className="h-4 w-4" />
+              </Button>
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-9 w-9 text-primary-foreground/80 hover:text-primary-foreground hover:bg-primary-foreground/10"
+                    title="Show QR code"
+                  >
+                    <QrCode className="h-4 w-4" />
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-md">
+                  <DialogHeader>
+                    <DialogTitle className="flex items-center gap-2">
+                      <Share2 className="h-5 w-5 text-primary" />
+                      Share Product Passport
+                    </DialogTitle>
+                  </DialogHeader>
+                  <div className="flex flex-col items-center gap-6 py-4">
+                    <div className="p-4 bg-card rounded-xl border border-border">
+                      <QRCodeSVG
+                        value={passportUrl}
+                        size={200}
+                        bgColor="transparent"
+                        fgColor="hsl(175, 60%, 30%)"
+                        level="H"
+                      />
+                    </div>
+                    <p className="text-sm text-muted-foreground text-center">
+                      Scan this QR code to view the Digital Product Passport for <strong>{product.name}</strong>
+                    </p>
+                    <div className="flex items-center gap-2 w-full">
+                      <div className="flex-1 truncate rounded-lg border border-border bg-secondary px-3 py-2 text-sm text-muted-foreground">
+                        {passportUrl}
+                      </div>
+                      <Button variant="outline" size="sm" onClick={handleCopyLink}>
+                        <LinkIcon className="h-4 w-4 mr-1" />
+                        Copy
+                      </Button>
+                    </div>
+                  </div>
+                </DialogContent>
+              </Dialog>
+            </div>
           </div>
           <h1 className="text-3xl font-bold">{product.name}</h1>
           <p className="opacity-90 mt-1">{product.manufacturer}</p>
