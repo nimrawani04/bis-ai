@@ -83,6 +83,45 @@ export type Database = {
         }
         Relationships: []
       }
+      safety_alerts: {
+        Row: {
+          affected_products: string | null
+          alert_date: string
+          category: string
+          created_at: string
+          description: string
+          id: string
+          is_active: boolean
+          severity: string
+          source: string | null
+          title: string
+        }
+        Insert: {
+          affected_products?: string | null
+          alert_date?: string
+          category: string
+          created_at?: string
+          description: string
+          id?: string
+          is_active?: boolean
+          severity?: string
+          source?: string | null
+          title: string
+        }
+        Update: {
+          affected_products?: string | null
+          alert_date?: string
+          category?: string
+          created_at?: string
+          description?: string
+          id?: string
+          is_active?: boolean
+          severity?: string
+          source?: string | null
+          title?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
