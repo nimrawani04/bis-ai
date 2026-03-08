@@ -160,6 +160,19 @@
     box-shadow: var(--shadow-elevated);
   }
 
+  .tricolor-strip {
+    height: 4px;
+    background: linear-gradient(
+      to right,
+      hsl(var(--flag-saffron)) 0%,
+      hsl(var(--flag-saffron)) 33.33%,
+      hsl(var(--flag-white)) 33.33%,
+      hsl(var(--flag-white)) 66.66%,
+      hsl(var(--flag-green)) 66.66%,
+      hsl(var(--flag-green)) 100%
+    );
+  }
+
   .status-verified {
     @apply bg-success text-success-foreground;
   }
