@@ -82,6 +82,20 @@ export function BISHeader() {
             >
               {theme === 'light' ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
             </button>
+            {user ? (
+              <div className="flex items-center gap-2 ml-1">
+                <span className="text-xs text-muted-foreground truncate max-w-[120px]">{user.email}</span>
+                <Button size="sm" variant="outline" onClick={signOut}>
+                  <LogOut className="h-3.5 w-3.5 mr-1" /> Sign Out
+                </Button>
+              </div>
+            ) : (
+              <Link to="/auth">
+                <Button size="sm" className="ml-1">
+                  <LogIn className="h-3.5 w-3.5 mr-1" /> Sign In
+                </Button>
+              </Link>
+            )}
           </nav>
 
           <button
