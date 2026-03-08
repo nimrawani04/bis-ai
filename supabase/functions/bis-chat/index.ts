@@ -188,7 +188,7 @@ serve(async (req) => {
   }
 
   try {
-    const { messages, topic_filter } = await req.json();
+    const { messages, topic_filter, language } = await req.json();
     if (!messages || !Array.isArray(messages) || messages.length === 0) {
       return new Response(JSON.stringify({ error: "Missing messages" }), {
         status: 400,
@@ -199,10 +199,19 @@ serve(async (req) => {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
-    // Build context-aware system prompt with optional topic filter
+    // Build context-aware system prompt with optional topic filter and language
     let finalSystemPrompt = systemPrompt;
     if (topic_filter && topic_filter !== "all") {
       finalSystemPrompt += `\n\nIMPORTANT: The user has selected the "${topic_filter}" topic filter. Prioritize information related to "${topic_filter}" when answering. If the question doesn't relate to this filter, still answer if it's BIS-related.`;
+    }
+
+    const langMap: Record<string, string> = {
+      hi: "Hindi", bn: "Bengali", ta: "Tamil", te: "Telugu", ur: "Urdu",
+      ks: "Kashmiri", mr: "Marathi", gu: "Gujarati", kn: "Kannada",
+      ml: "Malayalam", pa: "Punjabi"
+    };
+    if (language && language !== "en" && langMap[language]) {
+      finalSystemPrompt += `\n\nIMPORTANT LANGUAGE INSTRUCTION: The user has selected ${langMap[language]} as their preferred language. You MUST respond in ${langMap[language]} script/language. Keep technical terms (like BIS, ISI, FMCS, CRS) in English but write the explanation in ${langMap[language]}. The ---SOURCES--- and ---SUGGESTIONS--- section markers must remain in English, but suggestion text should be in ${langMap[language]}.`;
     }
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
