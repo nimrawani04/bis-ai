@@ -3,6 +3,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Progress } from '@/components/ui/progress';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { QRCodeSVG } from 'qrcode.react';
+import { toast } from '@/components/ui/sonner';
 import { 
   Shield, 
   Building2, 
@@ -15,7 +19,10 @@ import {
   Clock,
   Users,
   CheckCircle2,
-  XCircle
+  XCircle,
+  Share2,
+  Link as LinkIcon,
+  QrCode
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { mockProducts, type Product } from '@/data/products';
