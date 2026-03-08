@@ -7,6 +7,7 @@ import { CommunityTrustScore } from '@/components/CommunityTrustScore';
 import { SafetyAlerts } from '@/components/SafetyAlerts';
 import { MarketRiskMap } from '@/components/MarketRiskMap';
 import { KnowledgeHub } from '@/components/KnowledgeHub';
+import { ProductComparison } from '@/components/ProductComparison';
 import { ReportProduct } from '@/components/ReportProduct';
 import { Footer } from '@/components/Footer';
 
