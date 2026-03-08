@@ -34,7 +34,7 @@ export function Footer() {
 
         <div className="mt-8 pt-8 border-t border-border text-center">
           <p className="text-xs text-muted-foreground">
-            © 2024 ISI Guardian. Built for Smart India Hackathon. 
+            © 2024 StandardShield. Built for Smart India Hackathon.
             This is a demonstration project.
           </p>
         </div>
