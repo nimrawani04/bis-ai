@@ -530,9 +530,7 @@ export default function BISChat() {
     // Auto read-aloud if voice query or autoReadAloud enabled
     if (shouldReadAloud && accumulated) {
       const { body } = parseSources(accumulated);
-      const utterance = new SpeechSynthesisUtterance(body);
-      utterance.rate = 0.95;
-      window.speechSynthesis.speak(utterance);
+      speakText(body);
     }
   };
 
