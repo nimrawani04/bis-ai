@@ -1,6 +1,7 @@
-import { Shield, Menu, X } from 'lucide-react';
+import { Shield, Menu, X, Sun, Moon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
+import { useTheme } from '@/components/ThemeProvider';
 
 export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
