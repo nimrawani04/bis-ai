@@ -410,9 +410,7 @@ export default function BISChat() {
           setIsLoading(false);
           if (isVoiceQuery || autoReadAloud) {
             const { body } = parseSources(offlineAnswer);
-            const utterance = new SpeechSynthesisUtterance(body);
-            utterance.rate = 0.95;
-            window.speechSynthesis.speak(utterance);
+            speakText(body);
           }
           return;
         }
