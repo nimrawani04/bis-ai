@@ -426,7 +426,7 @@ export default function BISChat() {
           setIsLoading(false);
           if (isVoiceQuery || autoReadAloud) {
             const { body } = parseSources(offlineAnswer);
-            speakText(body);
+            speakText(body, selectedLang);
           }
           return;
         }
