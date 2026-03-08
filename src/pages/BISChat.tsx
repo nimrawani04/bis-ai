@@ -383,7 +383,20 @@ export default function BISChat() {
     }
   };
 
-  const handleStreamResponse = async (resp: Response) => {
+  // Handle query from Standards Explorer - run once on mount
+  useEffect(() => {
+    const q = searchParams.get('q');
+    if (q && !initialQueryHandled.current) {
+      initialQueryHandled.current = true;
+      setInput(q);
+      const timer = setTimeout(() => {
+        sendMessage(q);
+      }, 300);
+      return () => clearTimeout(timer);
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+
     if (!resp.ok) {
       const err = await resp.json().catch(() => ({ error: 'Request failed' }));
       if (resp.status === 429) toast.error('Rate limit reached. Please wait and try again.');
