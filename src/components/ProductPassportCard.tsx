@@ -18,7 +18,7 @@ import {
   XCircle
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { products } from '@/data/products';
+import { mockProducts, type Product } from '@/data/products';
 
 interface ProductPassportCardProps {
   productId?: string;
