@@ -124,6 +124,22 @@ export function BISHeader() {
                 {link.label}
               </Link>
             ))}
+            <div className="border-t border-border mt-2 pt-2">
+              {user ? (
+                <div className="flex items-center justify-between px-3 py-2">
+                  <span className="text-xs text-muted-foreground truncate">{user.email}</span>
+                  <Button size="sm" variant="outline" onClick={() => { signOut(); setMobileMenuOpen(false); }}>
+                    <LogOut className="h-3.5 w-3.5 mr-1" /> Sign Out
+                  </Button>
+                </div>
+              ) : (
+                <Link to="/auth" onClick={() => setMobileMenuOpen(false)}>
+                  <Button size="sm" className="w-full">
+                    <LogIn className="h-3.5 w-3.5 mr-1" /> Sign In
+                  </Button>
+                </Link>
+              )}
+            </div>
           </nav>
         </div>
       )}
