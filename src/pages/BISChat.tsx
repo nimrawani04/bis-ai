@@ -742,6 +742,42 @@ export default function BISChat() {
                     className="flex items-center gap-1.5 text-xs bg-primary/10 text-primary hover:bg-primary/20 px-3 py-2 rounded-full transition-colors font-medium">
                     📖 Understand Standards
                   </button>
+                  <button onClick={() => sendMessage('Compare BIS hallmarking and product certification schemes')} disabled={isLoading}
+                    className="flex items-center gap-1.5 text-xs bg-primary/10 text-primary hover:bg-primary/20 px-3 py-2 rounded-full transition-colors font-medium">
+                    ⚖️ Compare Standards
+                  </button>
+                </div>
+
+                {/* Check My Product - prominent CTA */}
+                <div className="w-full max-w-lg bg-card border-2 border-primary/20 rounded-2xl p-4 mb-6">
+                  <h3 className="text-sm font-bold text-foreground mb-1 flex items-center gap-2">
+                    📦 Check My Product
+                  </h3>
+                  <p className="text-xs text-muted-foreground mb-3">
+                    Type a product name or upload a photo to check if it needs BIS certification
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    <button onClick={() => sendMessage('Is BIS certification required for electric heaters? What should I check before buying?')} disabled={isLoading}
+                      className="text-xs bg-secondary hover:bg-secondary/80 text-foreground px-3 py-1.5 rounded-lg transition-colors">
+                      🔌 Electric Heater
+                    </button>
+                    <button onClick={() => sendMessage('Is BIS certification required for phone chargers? What should I check before buying?')} disabled={isLoading}
+                      className="text-xs bg-secondary hover:bg-secondary/80 text-foreground px-3 py-1.5 rounded-lg transition-colors">
+                      🔋 Phone Charger
+                    </button>
+                    <button onClick={() => sendMessage('Is BIS certification required for helmets? What should I check before buying?')} disabled={isLoading}
+                      className="text-xs bg-secondary hover:bg-secondary/80 text-foreground px-3 py-1.5 rounded-lg transition-colors">
+                      ⛑️ Helmet
+                    </button>
+                    <button onClick={() => sendMessage('Is BIS certification required for water purifiers? What should I check before buying?')} disabled={isLoading}
+                      className="text-xs bg-secondary hover:bg-secondary/80 text-foreground px-3 py-1.5 rounded-lg transition-colors">
+                      💧 Water Purifier
+                    </button>
+                    <button onClick={() => fileInputRef.current?.click()} disabled={isLoading}
+                      className="text-xs bg-primary/10 text-primary hover:bg-primary/20 px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1">
+                      <ImagePlus className="h-3 w-3" /> Upload Product Photo
+                    </button>
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 w-full max-w-lg">
