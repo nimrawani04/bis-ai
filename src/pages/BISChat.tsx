@@ -3,7 +3,7 @@ import { BISHeader } from '@/components/BISHeader';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import ReactMarkdown from 'react-markdown';
-import { Send, Loader2, MessageSquare, ExternalLink, Lightbulb, Trash2, Shield } from 'lucide-react';
+import { Send, Loader2, MessageSquare, ExternalLink, Lightbulb, Trash2, Shield, Copy, Share2, Check } from 'lucide-react';
 import { toast } from '@/components/ui/sonner';
 
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/bis-chat`;
