@@ -3,12 +3,16 @@ import { BISHeader } from '@/components/BISHeader';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import ReactMarkdown from 'react-markdown';
-import { Send, Loader2, MessageSquare, ExternalLink, Lightbulb, Trash2, Shield, Copy, Share2, Check } from 'lucide-react';
+import {
+  Send, Loader2, MessageSquare, ExternalLink, Lightbulb, Trash2, Shield,
+  Copy, Share2, Check, ThumbsUp, ThumbsDown, History, Filter, ChevronDown, ChevronUp, Quote
+} from 'lucide-react';
 import { toast } from '@/components/ui/sonner';
+import { Badge } from '@/components/ui/badge';
 
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/bis-chat`;
 
-type Message = { role: 'user' | 'assistant'; content: string };
+type Message = { role: 'user' | 'assistant'; content: string; feedback?: 'up' | 'down' };
 
 const exampleQuestions = [
   'What is BIS?',
@@ -17,6 +21,16 @@ const exampleQuestions = [
   'How can consumers file complaints?',
   'What is BIS hallmarking?',
   'What is the ISI mark?',
+];
+
+const topicFilters = [
+  { id: 'all', label: 'All Topics' },
+  { id: 'certification', label: 'Certification' },
+  { id: 'standards', label: 'Standards' },
+  { id: 'hallmarking', label: 'Hallmarking' },
+  { id: 'consumer', label: 'Consumer Programs' },
+  { id: 'laboratories', label: 'Laboratories' },
+  { id: 'publications', label: 'Publications' },
 ];
 
 function parseSources(text: string): { body: string; sources: string[]; suggestions: string[] } {
@@ -60,7 +74,7 @@ function TypingIndicator() {
             <span className="w-2 h-2 rounded-full bg-primary/60 animate-bounce" style={{ animationDelay: '150ms' }} />
             <span className="w-2 h-2 rounded-full bg-primary/60 animate-bounce" style={{ animationDelay: '300ms' }} />
           </div>
-          <span className="text-xs text-muted-foreground">Thinking...</span>
+          <span className="text-xs text-muted-foreground">Searching BIS knowledge base...</span>
         </div>
       </div>
     </div>
@@ -76,29 +90,91 @@ function CopyButton({ text }: { text: string }) {
     setTimeout(() => setCopied(false), 2000);
   };
   return (
-    <Button variant="ghost" size="sm" onClick={handleCopy} className="h-7 px-2 gap-1.5 text-xs text-muted-foreground hover:text-foreground">
+    <button onClick={handleCopy} className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors p-1 rounded">
       {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
       {copied ? 'Copied' : 'Copy'}
-    </Button>
+    </button>
   );
 }
 
 function ShareButton({ text }: { text: string }) {
   const handleShare = async () => {
     if (navigator.share) {
-      try {
-        await navigator.share({ title: 'BIS AI Answer', text });
-      } catch {}
+      try { await navigator.share({ title: 'BIS AI Answer', text }); } catch {}
     } else {
       await navigator.clipboard.writeText(text);
       toast.success('Answer copied for sharing');
     }
   };
   return (
-    <Button variant="ghost" size="sm" onClick={handleShare} className="h-7 px-2 gap-1.5 text-xs text-muted-foreground hover:text-foreground">
-      <Share2 className="h-3 w-3" />
-      Share
-    </Button>
+    <button onClick={handleShare} className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors p-1 rounded">
+      <Share2 className="h-3 w-3" /> Share
+    </button>
+  );
+}
+
+function FeedbackButtons({ feedback, onFeedback }: { feedback?: 'up' | 'down'; onFeedback: (type: 'up' | 'down') => void }) {
+  return (
+    <div className="inline-flex items-center gap-1">
+      <button
+        onClick={() => onFeedback('up')}
+        className={`inline-flex items-center gap-1 text-xs p-1 rounded transition-colors ${
+          feedback === 'up' ? 'text-green-600 bg-green-500/10' : 'text-muted-foreground hover:text-green-600'
+        }`}
+        title="Helpful"
+      >
+        <ThumbsUp className="h-3 w-3" />
+      </button>
+      <button
+        onClick={() => onFeedback('down')}
+        className={`inline-flex items-center gap-1 text-xs p-1 rounded transition-colors ${
+          feedback === 'down' ? 'text-red-600 bg-red-500/10' : 'text-muted-foreground hover:text-red-600'
+        }`}
+        title="Not helpful"
+      >
+        <ThumbsDown className="h-3 w-3" />
+      </button>
+    </div>
+  );
+}
+
+function CitationPreview({ url }: { url: string }) {
+  const [expanded, setExpanded] = useState(false);
+
+  // Extract a description from the URL path
+  const getDescription = (u: string) => {
+    if (u.includes('certification/product-certification')) return 'BIS Product Certification Scheme allows manufacturers to obtain ISI Mark for products conforming to Indian Standards. The scheme involves application, testing, inspection, and surveillance.';
+    if (u.includes('certification/hallmarking')) return 'BIS Hallmarking is a purity certification for gold and silver jewelry. It ensures that consumers get the purity they pay for. HUID (Hallmark Unique Identification) is assigned to each piece.';
+    if (u.includes('certification/scheme-for-compulsory-registration') || u.includes('crs')) return 'The Compulsory Registration Scheme (CRS) applies to electronic and IT goods. Products must be tested and registered with BIS before sale in India.';
+    if (u.includes('certification/foreign-manufacturers')) return 'FMCS enables foreign manufacturers to obtain BIS certification for products they wish to export to India, ensuring compliance with Indian Standards.';
+    if (u.includes('consumer-affairs')) return 'BIS Consumer Affairs handles complaints about sub-standard ISI marked products, conducts market surveillance, and runs consumer awareness campaigns.';
+    if (u.includes('standards')) return 'BIS has published over 22,000 Indian Standards covering sectors like food, electronics, textiles, construction, chemicals, and mechanical engineering.';
+    if (u.includes('laboratory')) return 'BIS operates testing laboratories in Mumbai, Kolkata, Chandigarh, Chennai, and Sahibabad. Labs are NABL accredited for testing various products.';
+    if (u.includes('about-bis')) return 'BIS is the national standards body of India, established under BIS Act 2016. It develops Indian Standards, operates certification schemes, and ensures product quality.';
+    if (u.includes('manakonline')) return 'BIS Manak Online is the official portal for applying for BIS certification, tracking applications, paying fees, and downloading certificates.';
+    return 'Official BIS website page containing relevant information about Bureau of Indian Standards and its services.';
+  };
+
+  return (
+    <div className="group">
+      <div className="flex items-center gap-2">
+        <a href={url} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline truncate flex-1">
+          {url}
+        </a>
+        <button
+          onClick={() => setExpanded(!expanded)}
+          className="text-xs text-muted-foreground hover:text-foreground p-0.5 rounded transition-colors shrink-0"
+          title="Preview source"
+        >
+          {expanded ? <ChevronUp className="h-3 w-3" /> : <Quote className="h-3 w-3" />}
+        </button>
+      </div>
+      {expanded && (
+        <div className="mt-1.5 bg-secondary/50 border border-border rounded-lg px-3 py-2 text-xs text-muted-foreground italic animate-fade-in">
+          "{getDescription(url)}"
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -106,7 +182,16 @@ export default function BISChat() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [activeFilter, setActiveFilter] = useState('all');
+  const [showHistory, setShowHistory] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  // Track question history across sessions
+  const [questionHistory, setQuestionHistory] = useState<string[]>(() => {
+    try {
+      return JSON.parse(localStorage.getItem('bis-question-history') || '[]');
+    } catch { return []; }
+  });
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -114,14 +199,29 @@ export default function BISChat() {
     }
   }, [messages, isLoading]);
 
+  useEffect(() => {
+    localStorage.setItem('bis-question-history', JSON.stringify(questionHistory));
+  }, [questionHistory]);
+
   const clearConversation = () => {
     setMessages([]);
     setInput('');
   };
 
+  const handleFeedback = (index: number, type: 'up' | 'down') => {
+    setMessages(prev => prev.map((m, i) => i === index ? { ...m, feedback: type } : m));
+    toast.success(type === 'up' ? 'Thanks for the feedback!' : 'We\'ll work to improve this answer.');
+  };
+
   const sendMessage = async (text: string) => {
     const trimmed = text.trim();
     if (!trimmed || isLoading) return;
+
+    // Add to question history
+    setQuestionHistory(prev => {
+      const updated = [trimmed, ...prev.filter(q => q !== trimmed)].slice(0, 20);
+      return updated;
+    });
 
     const userMsg: Message = { role: 'user', content: trimmed };
     const updatedMessages = [...messages, userMsg];
@@ -136,7 +236,10 @@ export default function BISChat() {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
         },
-        body: JSON.stringify({ messages: updatedMessages }),
+        body: JSON.stringify({
+          messages: updatedMessages.map(m => ({ role: m.role, content: m.content })),
+          topic_filter: activeFilter,
+        }),
       });
 
       if (!resp.ok) {
@@ -199,33 +302,69 @@ export default function BISChat() {
     sendMessage(input);
   };
 
+  const userQuestions = messages.filter(m => m.role === 'user');
+
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <BISHeader />
 
-      {/* Chat header bar with clear button */}
+      {/* Topic Filters */}
+      <div className="border-b border-border bg-card/50 backdrop-blur px-4 py-2">
+        <div className="max-w-7xl mx-auto flex items-center gap-2 overflow-x-auto scrollbar-none">
+          <Filter className="h-4 w-4 text-muted-foreground shrink-0" />
+          <span className="text-xs text-muted-foreground shrink-0">Search within:</span>
+          {topicFilters.map(f => (
+            <Badge
+              key={f.id}
+              variant={activeFilter === f.id ? 'default' : 'outline'}
+              className={`cursor-pointer shrink-0 text-xs transition-all ${
+                activeFilter === f.id
+                  ? 'bg-primary text-primary-foreground hover:bg-primary/90'
+                  : 'hover:bg-secondary'
+              }`}
+              onClick={() => setActiveFilter(f.id)}
+            >
+              {f.label}
+            </Badge>
+          ))}
+        </div>
+      </div>
+
+      {/* Chat header bar with clear & history buttons */}
       {messages.length > 0 && (
         <div className="border-b border-border bg-card/50 backdrop-blur px-4 py-2 flex items-center justify-between max-w-7xl mx-auto w-full animate-fade-in">
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <MessageSquare className="h-4 w-4" />
-            <span>{messages.filter(m => m.role === 'user').length} question{messages.filter(m => m.role === 'user').length !== 1 ? 's' : ''}</span>
+            <span>{userQuestions.length} question{userQuestions.length !== 1 ? 's' : ''}</span>
           </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={clearConversation}
-            className="gap-1.5 text-xs text-muted-foreground hover:text-destructive"
-            disabled={isLoading}
-          >
-            <Trash2 className="h-3.5 w-3.5" />
-            Clear conversation
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowHistory(!showHistory)}
+              className="gap-1.5 text-xs text-muted-foreground hover:text-foreground lg:hidden"
+            >
+              <History className="h-3.5 w-3.5" />
+              History
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={clearConversation}
+              className="gap-1.5 text-xs text-muted-foreground hover:text-destructive"
+              disabled={isLoading}
+            >
+              <Trash2 className="h-3.5 w-3.5" />
+              Clear
+            </Button>
+          </div>
         </div>
       )}
 
       <div className="flex-1 flex max-w-7xl mx-auto w-full overflow-hidden">
         {/* Sidebar - desktop */}
-        <aside className="hidden lg:flex w-72 border-r border-border p-6 flex-col gap-6 shrink-0">
+        <aside className="hidden lg:flex w-72 border-r border-border p-6 flex-col gap-6 shrink-0 overflow-y-auto">
+          {/* Example questions */}
           <div>
             <h3 className="text-sm font-semibold text-foreground mb-1 flex items-center gap-2">
               <Lightbulb className="h-4 w-4 text-primary" />
@@ -244,7 +383,52 @@ export default function BISChat() {
               ))}
             </div>
           </div>
+
+          {/* Question History */}
+          {questionHistory.length > 0 && (
+            <div>
+              <h3 className="text-sm font-semibold text-foreground mb-1 flex items-center gap-2">
+                <History className="h-4 w-4 text-primary" />
+                Recent Questions
+              </h3>
+              <div className="flex flex-col gap-1 mt-3">
+                {questionHistory.slice(0, 10).map((q, i) => (
+                  <button
+                    key={i}
+                    onClick={() => sendMessage(q)}
+                    disabled={isLoading}
+                    className="text-left text-xs text-muted-foreground hover:text-foreground hover:bg-secondary/50 px-3 py-1.5 rounded-lg transition-colors truncate"
+                    title={q}
+                  >
+                    {q}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
         </aside>
+
+        {/* Mobile history panel */}
+        {showHistory && (
+          <div className="lg:hidden absolute inset-x-0 top-auto z-40 bg-background border-b border-border p-4 animate-fade-in shadow-lg">
+            <h3 className="text-sm font-semibold text-foreground mb-2 flex items-center gap-2">
+              <History className="h-4 w-4 text-primary" />
+              Recent Questions
+            </h3>
+            <div className="flex flex-col gap-1 max-h-48 overflow-y-auto">
+              {questionHistory.length === 0 && <p className="text-xs text-muted-foreground">No questions yet.</p>}
+              {questionHistory.slice(0, 10).map((q, i) => (
+                <button
+                  key={i}
+                  onClick={() => { sendMessage(q); setShowHistory(false); }}
+                  className="text-left text-sm text-muted-foreground hover:text-foreground hover:bg-secondary/50 px-3 py-2 rounded-lg transition-colors"
+                >
+                  {q}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Chat area */}
         <div className="flex-1 flex flex-col min-w-0">
@@ -258,7 +442,6 @@ export default function BISChat() {
                 <p className="text-muted-foreground max-w-md mb-8 text-sm sm:text-base">
                   Ask anything about BIS standards, certification, hallmarking, or policies. Get instant answers with source citations.
                 </p>
-                {/* Example questions grid */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 w-full max-w-lg">
                   {exampleQuestions.map((q) => (
                     <button
@@ -290,44 +473,40 @@ export default function BISChat() {
               const isLast = i === messages.length - 1;
               const isEmpty = !msg.content;
 
-              if (isEmpty && isLoading) return null; // show typing indicator instead
+              if (isEmpty && isLoading) return null;
 
               return (
                 <div key={i} className="flex justify-start animate-fade-in group">
                   <div className="bg-card border border-border rounded-2xl rounded-bl-sm px-4 py-3 max-w-[95%] sm:max-w-[85%] md:max-w-[75%] space-y-3">
-                    <div className="prose prose-sm max-w-none dark:prose-invert prose-headings:text-foreground prose-p:text-muted-foreground prose-strong:text-foreground prose-li:text-muted-foreground">
+                    <div className="prose prose-sm max-w-none dark:prose-invert prose-headings:text-foreground prose-p:text-muted-foreground prose-strong:text-foreground prose-li:text-muted-foreground prose-table:text-muted-foreground prose-th:text-foreground prose-th:bg-secondary/50 prose-td:border-border prose-th:border-border prose-th:px-3 prose-th:py-1.5 prose-td:px-3 prose-td:py-1.5">
                       <ReactMarkdown>{body}</ReactMarkdown>
                     </div>
 
-                    {/* Copy & Share buttons */}
+                    {/* Action buttons row */}
                     {body && (
-                      <div className="flex items-center gap-1 pt-1">
+                      <div className="flex items-center gap-2 pt-1 border-t border-border/50">
                         <CopyButton text={body} />
                         <ShareButton text={body} />
+                        <div className="w-px h-4 bg-border" />
+                        <FeedbackButtons feedback={msg.feedback} onFeedback={(type) => handleFeedback(i, type)} />
                       </div>
                     )}
 
+                    {/* Sources with citation preview */}
                     {sources.length > 0 && (
                       <div className="border-t border-border pt-3">
-                        <p className="text-xs font-semibold text-foreground mb-1.5 flex items-center gap-1">
+                        <p className="text-xs font-semibold text-foreground mb-2 flex items-center gap-1">
                           <ExternalLink className="h-3 w-3" /> Sources
                         </p>
-                        <div className="flex flex-col gap-1">
+                        <div className="flex flex-col gap-2">
                           {sources.map((src, j) => (
-                            <a
-                              key={j}
-                              href={src}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-xs text-primary hover:underline truncate block"
-                            >
-                              {src}
-                            </a>
+                            <CitationPreview key={j} url={src} />
                           ))}
                         </div>
                       </div>
                     )}
 
+                    {/* Related questions */}
                     {suggestions.length > 0 && isLast && !isLoading && (
                       <div className="border-t border-border pt-3">
                         <p className="text-xs font-semibold text-foreground mb-1.5 flex items-center gap-1">
@@ -361,7 +540,7 @@ export default function BISChat() {
               <Input
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                placeholder="Ask about BIS standards..."
+                placeholder="Ask about BIS standards, certification, hallmarking..."
                 className="h-11 sm:h-12 text-sm sm:text-base"
                 disabled={isLoading}
               />
