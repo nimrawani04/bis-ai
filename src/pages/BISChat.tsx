@@ -258,11 +258,19 @@ export default function BISChat() {
               if (isEmpty && isLoading) return null; // show typing indicator instead
 
               return (
-                <div key={i} className="flex justify-start animate-fade-in">
+                <div key={i} className="flex justify-start animate-fade-in group">
                   <div className="bg-card border border-border rounded-2xl rounded-bl-sm px-4 py-3 max-w-[95%] sm:max-w-[85%] md:max-w-[75%] space-y-3">
                     <div className="prose prose-sm max-w-none dark:prose-invert prose-headings:text-foreground prose-p:text-muted-foreground prose-strong:text-foreground prose-li:text-muted-foreground">
                       <ReactMarkdown>{body}</ReactMarkdown>
                     </div>
+
+                    {/* Copy & Share buttons */}
+                    {body && (
+                      <div className="flex items-center gap-1 pt-1">
+                        <CopyButton text={body} />
+                        <ShareButton text={body} />
+                      </div>
+                    )}
 
                     {sources.length > 0 && (
                       <div className="border-t border-border pt-3">
