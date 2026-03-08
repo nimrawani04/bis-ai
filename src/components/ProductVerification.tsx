@@ -21,6 +21,93 @@ export function ProductVerification() {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [hasSearched, setHasSearched] = useState(false);
   const [scanMode, setScanMode] = useState<ScanMode>('certificate');
+  
+  // Image upload state
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [analysisResult, setAnalysisResult] = useState<any>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const dropZoneRef = useRef<HTMLDivElement>(null);
+  const [isDragging, setIsDragging] = useState(false);
+
+  const handleFileSelect = useCallback((file: File) => {
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please upload an image file (JPG, PNG)');
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('File size must be under 5MB');
+      return;
+    }
+    setUploadedFile(file);
+    setAnalysisResult(null);
+    const reader = new FileReader();
+    reader.onload = (e) => setImagePreview(e.target?.result as string);
+    reader.readAsDataURL(file);
+  }, []);
+
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    const file = e.dataTransfer.files[0];
+    if (file) handleFileSelect(file);
+  }, [handleFileSelect]);
+
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+  }, []);
+
+  const handleDragLeave = useCallback(() => setIsDragging(false), []);
+
+  const clearUpload = () => {
+    setUploadedFile(null);
+    setImagePreview(null);
+    setAnalysisResult(null);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
+  const handleUploadAndAnalyze = async () => {
+    if (!uploadedFile) return;
+    
+    setIsUploading(true);
+    try {
+      // Upload to storage
+      const fileName = `${Date.now()}-${uploadedFile.name}`;
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('product-images')
+        .upload(fileName, uploadedFile);
+
+      if (uploadError) throw uploadError;
+
+      // Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('product-images')
+        .getPublicUrl(uploadData.path);
+
+      setIsUploading(false);
+      setIsAnalyzing(true);
+
+      // Analyze with AI
+      const { data: analysisData, error: analysisError } = await supabase.functions
+        .invoke('analyze-product-image', {
+          body: { imageUrl: publicUrl },
+        });
+
+      if (analysisError) throw analysisError;
+
+      setAnalysisResult(analysisData.analysis);
+      toast.success('Image analyzed successfully!');
+    } catch (error: any) {
+      console.error('Upload/analysis error:', error);
+      toast.error(error.message || 'Failed to analyze image');
+    } finally {
+      setIsUploading(false);
+      setIsAnalyzing(false);
+    }
+  };
 
   const handleSearch = () => {
     if (!query.trim()) return;
