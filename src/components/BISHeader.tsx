@@ -1,9 +1,10 @@
-import { Shield, Menu, X, Sun, Moon } from 'lucide-react';
+import { Shield, Menu, X, Sun, Moon, LogIn, LogOut, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
 import { useTheme } from '@/components/ThemeProvider';
 import { Link, useLocation } from 'react-router-dom';
 import ashokaChakra from '@/assets/ashoka-chakra.png';
+import { useAuth } from '@/hooks/useAuth';
 
 const navLinks = [
   { to: '/', label: 'Home' },
