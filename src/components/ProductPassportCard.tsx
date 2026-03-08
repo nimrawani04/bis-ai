@@ -163,7 +163,7 @@ export function ProductPassportCard({ productId }: ProductPassportCardProps) {
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Certificate Number</p>
-                  <p className="font-semibold font-mono">{product.certNumber}</p>
+                  <p className="font-semibold font-mono">{product.certificationNumber}</p>
                 </div>
               </div>
 
