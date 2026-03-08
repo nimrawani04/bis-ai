@@ -3,7 +3,7 @@ import { BISHeader } from '@/components/BISHeader';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import ReactMarkdown from 'react-markdown';
-import { Send, Loader2, MessageSquare, ExternalLink, Lightbulb, Trash2, Shield } from 'lucide-react';
+import { Send, Loader2, MessageSquare, ExternalLink, Lightbulb, Trash2, Shield, Copy, Share2, Check } from 'lucide-react';
 import { toast } from '@/components/ui/sonner';
 
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/bis-chat`;
@@ -64,6 +64,41 @@ function TypingIndicator() {
         </div>
       </div>
     </div>
+  );
+}
+
+function CopyButton({ text }: { text: string }) {
+  const [copied, setCopied] = useState(false);
+  const handleCopy = async () => {
+    await navigator.clipboard.writeText(text);
+    setCopied(true);
+    toast.success('Copied to clipboard');
+    setTimeout(() => setCopied(false), 2000);
+  };
+  return (
+    <Button variant="ghost" size="sm" onClick={handleCopy} className="h-7 px-2 gap-1.5 text-xs text-muted-foreground hover:text-foreground">
+      {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
+      {copied ? 'Copied' : 'Copy'}
+    </Button>
+  );
+}
+
+function ShareButton({ text }: { text: string }) {
+  const handleShare = async () => {
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: 'BIS AI Answer', text });
+      } catch {}
+    } else {
+      await navigator.clipboard.writeText(text);
+      toast.success('Answer copied for sharing');
+    }
+  };
+  return (
+    <Button variant="ghost" size="sm" onClick={handleShare} className="h-7 px-2 gap-1.5 text-xs text-muted-foreground hover:text-foreground">
+      <Share2 className="h-3 w-3" />
+      Share
+    </Button>
   );
 }
 
@@ -258,11 +293,19 @@ export default function BISChat() {
               if (isEmpty && isLoading) return null; // show typing indicator instead
 
               return (
-                <div key={i} className="flex justify-start animate-fade-in">
+                <div key={i} className="flex justify-start animate-fade-in group">
                   <div className="bg-card border border-border rounded-2xl rounded-bl-sm px-4 py-3 max-w-[95%] sm:max-w-[85%] md:max-w-[75%] space-y-3">
                     <div className="prose prose-sm max-w-none dark:prose-invert prose-headings:text-foreground prose-p:text-muted-foreground prose-strong:text-foreground prose-li:text-muted-foreground">
                       <ReactMarkdown>{body}</ReactMarkdown>
                     </div>
+
+                    {/* Copy & Share buttons */}
+                    {body && (
+                      <div className="flex items-center gap-1 pt-1">
+                        <CopyButton text={body} />
+                        <ShareButton text={body} />
+                      </div>
+                    )}
 
                     {sources.length > 0 && (
                       <div className="border-t border-border pt-3">
