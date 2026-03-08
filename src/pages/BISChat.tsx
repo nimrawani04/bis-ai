@@ -661,6 +661,27 @@ export default function BISChat() {
                   <span>•</span>
                   <span className="flex items-center gap-1"><Volume2 className="h-3 w-3" /> Read aloud</span>
                 </div>
+
+                {/* Quick Help Buttons */}
+                <div className="flex flex-wrap gap-2 justify-center mb-6">
+                  <button onClick={() => sendMessage('How to check if ISI mark is genuine?')} disabled={isLoading}
+                    className="flex items-center gap-1.5 text-xs bg-primary/10 text-primary hover:bg-primary/20 px-3 py-2 rounded-full transition-colors font-medium">
+                    ✅ Check ISI Mark
+                  </button>
+                  <button onClick={() => sendMessage('How to apply for BIS certification?')} disabled={isLoading}
+                    className="flex items-center gap-1.5 text-xs bg-primary/10 text-primary hover:bg-primary/20 px-3 py-2 rounded-full transition-colors font-medium">
+                    📋 Apply for Certification
+                  </button>
+                  <button onClick={() => sendMessage('How to file a consumer complaint about fake products?')} disabled={isLoading}
+                    className="flex items-center gap-1.5 text-xs bg-primary/10 text-primary hover:bg-primary/20 px-3 py-2 rounded-full transition-colors font-medium">
+                    🛡️ File Consumer Complaint
+                  </button>
+                  <button onClick={() => sendMessage('What are BIS standards and why are they important?')} disabled={isLoading}
+                    className="flex items-center gap-1.5 text-xs bg-primary/10 text-primary hover:bg-primary/20 px-3 py-2 rounded-full transition-colors font-medium">
+                    📖 Understand Standards
+                  </button>
+                </div>
+
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 w-full max-w-lg">
                   {exampleQuestions.map(q => (
                     <button key={q} onClick={() => sendMessage(q)} disabled={isLoading}
