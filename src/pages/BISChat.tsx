@@ -278,6 +278,14 @@ export default function BISChat() {
   const [autoReadAloud, setAutoReadAloud] = useState(false);
   const lastQueryWasVoice = useRef(false);
   
+  // Pre-load voices (Chrome loads them asynchronously)
+  useEffect(() => {
+    window.speechSynthesis.getVoices();
+    window.speechSynthesis.onvoiceschanged = () => {
+      window.speechSynthesis.getVoices();
+    };
+  }, []);
+
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
