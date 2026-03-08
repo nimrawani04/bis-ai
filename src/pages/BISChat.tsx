@@ -213,7 +213,7 @@ export default function BISChat() {
   const [showHistory, setShowHistory] = useState(false);
   const [selectedLang, setSelectedLang] = useState('en');
   const [isRecording, setIsRecording] = useState(false);
-  const [_showLangPicker, _setShowLangPicker] = useState(false); // unused, kept for compat
+  
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
