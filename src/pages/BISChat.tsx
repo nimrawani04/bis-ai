@@ -186,7 +186,7 @@ function speakText(text: string, lang = 'en', onEnd?: () => void) {
   }, 100);
 }
 
-function ReadAloudButton({ text }: { text: string }) {
+function ReadAloudButton({ text, lang = 'en' }: { text: string; lang?: string }) {
   const [speaking, setSpeaking] = useState(false);
 
   const handleToggle = () => {
@@ -195,7 +195,7 @@ function ReadAloudButton({ text }: { text: string }) {
       setSpeaking(false);
     } else {
       setSpeaking(true);
-      speakText(text, () => setSpeaking(false));
+      speakText(text, lang, () => setSpeaking(false));
     }
   };
 
