@@ -416,7 +416,7 @@ export default function BISChat() {
           }),
         });
 
-        await handleStreamResponse(resp);
+        await handleStreamResponse(resp, isVoiceQuery || autoReadAloud);
       }
     } catch (e) {
       console.error('Chat error:', e);
