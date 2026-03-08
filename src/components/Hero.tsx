@@ -168,15 +168,7 @@ export function Hero() {
         <div className="container py-8">
           <div className="flex flex-col sm:flex-row items-center justify-center gap-8 sm:gap-16 max-w-3xl mx-auto">
             {stats.map((stat) => (
-              <div key={stat.label} className="flex items-center gap-3 text-center sm:text-left">
-                <div className="p-2.5 rounded-xl bg-card shadow-card">
-                  <stat.icon className={`h-6 w-6 ${stat.color}`} />
-                </div>
-                <div>
-                  <div className="text-2xl font-extrabold text-foreground">{stat.value}</div>
-                  <div className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{stat.label}</div>
-                </div>
-              </div>
+              <AnimatedStat key={stat.label} {...stat} />
             ))}
           </div>
         </div>
