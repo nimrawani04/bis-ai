@@ -188,7 +188,7 @@ serve(async (req) => {
   }
 
   try {
-    const { messages, topic_filter, language } = await req.json();
+    const { messages, topic_filter, language, simple_mode } = await req.json();
     if (!messages || !Array.isArray(messages) || messages.length === 0) {
       return new Response(JSON.stringify({ error: "Missing messages" }), {
         status: 400,
@@ -199,10 +199,21 @@ serve(async (req) => {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
-    // Build context-aware system prompt with optional topic filter and language
+    // Build context-aware system prompt with optional topic filter, language, and simple mode
     let finalSystemPrompt = systemPrompt;
     if (topic_filter && topic_filter !== "all") {
       finalSystemPrompt += `\n\nIMPORTANT: The user has selected the "${topic_filter}" topic filter. Prioritize information related to "${topic_filter}" when answering. If the question doesn't relate to this filter, still answer if it's BIS-related.`;
+    }
+
+    if (simple_mode) {
+      finalSystemPrompt += `\n\nIMPORTANT - SIMPLE MODE ACTIVE: The user has enabled Simple Mode designed for rural users, elderly users, and non-technical users. You MUST:
+1. Use very simple, everyday language. Avoid jargon and technical terms.
+2. Explain concepts as if talking to someone with no technical background.
+3. Use short sentences and bullet points.
+4. Give practical, real-life examples.
+5. Instead of "BIS certification ensures conformity with Indian Standards", say "BIS certification means the product has been tested and approved — it is safe and good quality."
+6. Instead of "Compulsory Registration Scheme", say "A rule that says some electronic products must be tested and registered before they can be sold in India."
+7. Use analogies from daily life when possible.`;
     }
 
     const langMap: Record<string, string> = {

@@ -204,6 +204,23 @@ function CitationPreview({ url }: { url: string }) {
   );
 }
 
+// Offline knowledge cache for common BIS questions
+const offlineKnowledge: Record<string, string> = {
+  'what is bis': 'The Bureau of Indian Standards (BIS) is the national standards body of India, established under the BIS Act 2016. It operates under the Ministry of Consumer Affairs, Food and Public Distribution. BIS develops Indian Standards, runs product certification (ISI Mark), hallmarking of precious metals, and the Compulsory Registration Scheme (CRS) for electronics.\n\n---SOURCES---\n- https://www.bis.gov.in/index.php/about-bis/\n\n---SUGGESTIONS---\n- What certification schemes does BIS offer?\n- How to apply for BIS certification?\n- What is ISI mark?',
+  'what is isi mark': 'The ISI Mark is a certification mark issued by BIS for products that conform to Indian Standards. It applies to over 900 products. Manufacturers must apply via manakonline.bis.gov.in, undergo factory inspection and product testing. The ISI Mark assures consumers that the product meets quality and safety standards.\n\n---SOURCES---\n- https://www.bis.gov.in/index.php/certification/product-certification/\n\n---SUGGESTIONS---\n- How to check if ISI mark is genuine?\n- Which products require ISI mark?\n- How to apply for ISI mark?',
+  'what is hallmarking': 'BIS Hallmarking is a purity certification for gold and silver jewelry. Gold jewelry is hallmarked in grades: 14K (585), 18K (750), 20K (833), 22K (916), and 24K (999). Each piece gets a HUID (Hallmark Unique Identification) number. Hallmarking has been mandatory for gold jewelry since June 2021.\n\n---SOURCES---\n- https://www.bis.gov.in/index.php/certification/hallmarking/\n\n---SUGGESTIONS---\n- How to verify hallmark on gold jewelry?\n- What is HUID number?\n- Where are hallmarking centers located?',
+  'how to apply for bis certification': 'Steps to apply for BIS certification:\n1. Visit manakonline.bis.gov.in and create an account\n2. Submit online application with documents (test reports, factory details, quality control plan)\n3. BIS reviews and assigns an officer\n4. Factory/premises inspection\n5. Product samples tested at BIS labs\n6. If compliant, license is granted\n7. Annual surveillance and periodic renewal required\n\n---SOURCES---\n- https://www.bis.gov.in/index.php/certification/product-certification/\n- https://manakonline.bis.gov.in\n\n---SUGGESTIONS---\n- What documents are needed for BIS certification?\n- How long does BIS certification take?\n- What are the fees for BIS certification?',
+  'how to file consumer complaint': 'To file a complaint about sub-standard ISI marked products:\n1. Visit the BIS Consumer Affairs portal\n2. Provide details about the product and the issue\n3. BIS will investigate through market surveillance\n4. You can also contact BIS regional/branch offices\n\nBIS also conducts consumer awareness campaigns and workshops.\n\n---SOURCES---\n- https://www.bis.gov.in/index.php/consumer-affairs/\n\n---SUGGESTIONS---\n- What happens after filing a complaint?\n- How does BIS conduct market surveillance?\n- What are BIS consumer awareness programs?',
+};
+
+function getOfflineAnswer(query: string): string | null {
+  const q = query.toLowerCase().trim().replace(/[?।]/g, '');
+  for (const [key, answer] of Object.entries(offlineKnowledge)) {
+    if (q.includes(key) || key.includes(q)) return answer;
+  }
+  return null;
+}
+
 export default function BISChat() {
   const [searchParams] = useSearchParams();
   const [messages, setMessages] = useState<Message[]>([]);
@@ -213,6 +230,9 @@ export default function BISChat() {
   const [showHistory, setShowHistory] = useState(false);
   const [selectedLang, setSelectedLang] = useState('en');
   const [isRecording, setIsRecording] = useState(false);
+  const [simpleMode, setSimpleMode] = useState(false);
+  const [autoReadAloud, setAutoReadAloud] = useState(false);
+  const lastQueryWasVoice = useRef(false);
   
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
