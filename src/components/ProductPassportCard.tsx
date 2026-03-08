@@ -78,9 +78,8 @@ export function ProductPassportCard({ productId }: ProductPassportCardProps) {
     ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length 
     : 0;
   const complaints = reviews.filter(r => r.is_complaint).length;
-  const certificationValid = product.verified;
-  const validUntil = new Date();
-  validUntil.setFullYear(validUntil.getFullYear() + 2);
+  const certificationValid = product.status === 'verified';
+  const validUntil = product.validUntil ? new Date(product.validUntil) : new Date(Date.now() + 2 * 365 * 24 * 60 * 60 * 1000);
 
   const safetyTips: Record<string, string[]> = {
     'Helmets': [
