@@ -11,6 +11,7 @@ import { KnowledgeHub } from '@/components/KnowledgeHub';
 import { ProductComparison } from '@/components/ProductComparison';
 import { ReportProduct } from '@/components/ReportProduct';
 import { Footer } from '@/components/Footer';
+import { AnimatedSection } from '@/components/AnimatedSection';
 
 const Index = () => {
   return (
@@ -18,16 +19,16 @@ const Index = () => {
       <Header />
       <main>
         <Hero />
-        <SmartSafetyAssistant />
-        <SafetyAlerts />
-        <ProductVerification />
-        <ProductSearch />
-        <HouseholdScanner />
-        <CommunityTrustScore />
-        <MarketRiskMap />
-        <ProductComparison />
-        <ReportProduct />
-        <KnowledgeHub />
+        <AnimatedSection><SmartSafetyAssistant /></AnimatedSection>
+        <AnimatedSection><SafetyAlerts /></AnimatedSection>
+        <AnimatedSection><ProductVerification /></AnimatedSection>
+        <AnimatedSection><ProductSearch /></AnimatedSection>
+        <AnimatedSection><HouseholdScanner /></AnimatedSection>
+        <AnimatedSection><CommunityTrustScore /></AnimatedSection>
+        <AnimatedSection><MarketRiskMap /></AnimatedSection>
+        <AnimatedSection><ProductComparison /></AnimatedSection>
+        <AnimatedSection><ReportProduct /></AnimatedSection>
+        <AnimatedSection><KnowledgeHub /></AnimatedSection>
       </main>
       <Footer />
     </div>
