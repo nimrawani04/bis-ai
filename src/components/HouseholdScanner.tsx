@@ -202,7 +202,7 @@ export function HouseholdScanner() {
     };
 
     // Header
-    addText('ISI Guardian — Home Safety Report', 18, 'bold', [45, 138, 126]);
+    addText('StandardShield — Home Safety Report', 18, 'bold', [30, 58, 138]);
     addText(`Generated on ${new Date().toLocaleDateString('en-IN', { year: 'numeric', month: 'long', day: 'numeric' })}`, 10, 'normal', [120, 120, 120]);
     y += 6;
 
