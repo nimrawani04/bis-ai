@@ -1,8 +1,9 @@
 import { useState } from 'react';
+import jsPDF from 'jspdf';
 import {
   Home, Plus, Trash2, ShieldCheck, ShieldAlert, ShieldX,
   AlertTriangle, CheckCircle2, Search, BarChart3, Zap,
-  Flame, ThermometerSun, Loader2, Sparkles,
+  Flame, ThermometerSun, Loader2, Sparkles, Download,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
