@@ -1,4 +1,5 @@
 import { Shield, Menu, X, Sun, Moon } from 'lucide-react';
+import { OfflineBanner } from '@/components/OfflineBanner';
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
 import { useTheme } from '@/components/ThemeProvider';
