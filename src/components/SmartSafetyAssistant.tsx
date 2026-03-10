@@ -15,8 +15,11 @@ import {
   Baby,
   Microwave,
   Search,
+  WifiOff,
 } from 'lucide-react';
 import { toast } from '@/components/ui/sonner';
+import { useOnlineStatus } from '@/hooks/useOnlineStatus';
+import { OfflineSafetyAssistant } from '@/components/OfflineSafetyAssistant';
 
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/safety-assistant`;
 
@@ -29,6 +32,17 @@ const quickPrompts = [
 ];
 
 export function SmartSafetyAssistant() {
+  const isOnline = useOnlineStatus();
+
+  // If offline, render the offline assistant
+  if (!isOnline) {
+    return <OfflineSafetyAssistant />;
+  }
+
+  return <OnlineSafetyAssistant />;
+}
+
+function OnlineSafetyAssistant() {
   const [query, setQuery] = useState('');
   const [response, setResponse] = useState('');
   const [isLoading, setIsLoading] = useState(false);

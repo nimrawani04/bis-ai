@@ -1,4 +1,5 @@
-import { Shield, Menu, X, Sun, Moon, LogIn, LogOut, HelpCircle } from 'lucide-react';
+import { Shield, Menu, X, Sun, Moon, LogIn, LogOut, HelpCircle, WifiOff } from 'lucide-react';
+import { OfflineBanner } from '@/components/OfflineBanner';
 import { Button } from '@/components/ui/button';
 import { useState, useRef, useEffect } from 'react';
 import { useTheme } from '@/components/ThemeProvider';
@@ -103,6 +104,7 @@ export function BISHeader() {
 
   return (
     <header className="sticky top-0 z-50 w-full">
+      <OfflineBanner />
       <TricolorStrip />
       <GovBanner />
       <div className="border-b border-border/50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">

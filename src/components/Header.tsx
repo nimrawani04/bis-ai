@@ -1,4 +1,5 @@
 import { Shield, Menu, X, Sun, Moon } from 'lucide-react';
+import { OfflineBanner } from '@/components/OfflineBanner';
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
 import { useTheme } from '@/components/ThemeProvider';
@@ -29,6 +30,7 @@ export function Header() {
   const { theme, toggleTheme } = useTheme();
   return (
     <header className="sticky top-0 z-50 w-full">
+      <OfflineBanner />
       <TricolorStrip />
       <GovBanner />
       <div className="border-b border-border/50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
