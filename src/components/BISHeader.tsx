@@ -1,5 +1,6 @@
 import { Shield, Menu, X, Sun, Moon, LogIn, LogOut, HelpCircle, WifiOff } from 'lucide-react';
 import { OfflineBanner } from '@/components/OfflineBanner';
+import { LowBandwidthToggle } from '@/components/LowBandwidthToggle';
 import { Button } from '@/components/ui/button';
 import { useState, useRef, useEffect } from 'react';
 import { useTheme } from '@/components/ThemeProvider';
