@@ -139,6 +139,7 @@ export function BISHeader() {
               </Link>
             ))}
             <div className="w-px h-6 bg-border mx-2" />
+            <LowBandwidthToggle />
             <button
               onClick={toggleTheme}
               className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
