@@ -1,5 +1,6 @@
 import { Shield, Menu, X, Sun, Moon, LogIn, LogOut, HelpCircle, WifiOff } from 'lucide-react';
 import { OfflineBanner } from '@/components/OfflineBanner';
+import { LowBandwidthToggle } from '@/components/LowBandwidthToggle';
 import { Button } from '@/components/ui/button';
 import { useState, useRef, useEffect } from 'react';
 import { useTheme } from '@/components/ThemeProvider';
@@ -138,6 +139,7 @@ export function BISHeader() {
               </Link>
             ))}
             <div className="w-px h-6 bg-border mx-2" />
+            <LowBandwidthToggle />
             <button
               onClick={toggleTheme}
               className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"

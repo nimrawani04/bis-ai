@@ -15,9 +15,20 @@ import {
   Microwave,
   Mic,
   MicOff,
+  Globe,
+  MessageSquare,
+  BookOpen,
+  FileText,
+  AlertTriangle,
 } from 'lucide-react';
 import { searchOfflineKnowledge, type KnowledgeEntry } from '@/data/offlineKnowledgeBase';
+import {
+  searchMultilingualKnowledge,
+  languageLabels,
+  type SupportedLanguage,
+} from '@/data/offlineKnowledgeMultilingual';
 import { DownloadOfflinePack } from '@/components/OfflineBanner';
+import { Link } from 'react-router-dom';
 
 const quickPrompts = [
   { label: 'Helmet', icon: HardHat },
@@ -27,18 +38,34 @@ const quickPrompts = [
   { label: 'Toys', icon: Baby },
 ];
 
+const offlineQuickLinks = [
+  { label: 'About BIS', to: '/about', icon: ShieldCheck },
+  { label: 'Certification Guide', to: '/certification', icon: FileText },
+  { label: 'Standards Explorer', to: '/standards', icon: BookOpen },
+];
+
 export function OfflineSafetyAssistant() {
   const [query, setQuery] = useState('');
-  const [results, setResults] = useState<KnowledgeEntry[]>([]);
+  const [results, setResults] = useState<{ question: string; answer: string; category: string }[]>([]);
   const [hasSearched, setHasSearched] = useState(false);
   const [isListening, setIsListening] = useState(false);
+  const [selectedLang, setSelectedLang] = useState<SupportedLanguage>(() => {
+    return (localStorage.getItem('bis-offline-lang') as SupportedLanguage) || 'en';
+  });
 
   const handleSearch = (searchQuery: string) => {
     const trimmed = searchQuery.trim();
     if (!trimmed) return;
     setHasSearched(true);
-    const found = searchOfflineKnowledge(trimmed);
-    setResults(found);
+
+    // Search multilingual knowledge first, then fallback to original
+    const multiResults = searchMultilingualKnowledge(trimmed, selectedLang);
+    if (multiResults.length > 0) {
+      setResults(multiResults);
+    } else {
+      const fallback = searchOfflineKnowledge(trimmed);
+      setResults(fallback.map(e => ({ question: e.question, answer: e.answer, category: e.category })));
+    }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -46,16 +73,29 @@ export function OfflineSafetyAssistant() {
     handleSearch(query);
   };
 
+  const handleLangChange = (lang: SupportedLanguage) => {
+    setSelectedLang(lang);
+    localStorage.setItem('bis-offline-lang', lang);
+    if (hasSearched && query.trim()) {
+      // Re-search with new language
+      const multiResults = searchMultilingualKnowledge(query.trim(), lang);
+      if (multiResults.length > 0) {
+        setResults(multiResults);
+      }
+    }
+  };
+
   const handleVoice = () => {
     const SpeechRecognition =
       (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-
-    if (!SpeechRecognition) {
-      return;
-    }
+    if (!SpeechRecognition) return;
 
     const recognition = new SpeechRecognition();
-    recognition.lang = 'hi-IN'; // Hindi + English
+    const langMap: Record<string, string> = {
+      en: 'en-IN', hi: 'hi-IN', ur: 'ur-PK', ta: 'ta-IN',
+      te: 'te-IN', bn: 'bn-IN', kn: 'kn-IN', ml: 'ml-IN', ks: 'ks-IN',
+    };
+    recognition.lang = langMap[selectedLang] || 'hi-IN';
     recognition.interimResults = false;
     recognition.maxAlternatives = 1;
 
@@ -92,6 +132,48 @@ export function OfflineSafetyAssistant() {
           </p>
         </div>
 
+        {/* AI Chatbot Offline Notice */}
+        <Card className="mb-6 border-warning/30 bg-warning/5">
+          <CardContent className="p-4 flex items-start gap-3">
+            <AlertTriangle className="h-5 w-5 text-warning shrink-0 mt-0.5" />
+            <div>
+              <p className="text-sm font-medium text-foreground mb-1">
+                AI assistant requires internet connection
+              </p>
+              <p className="text-xs text-muted-foreground mb-3">
+                Please reconnect to ask questions to the AI chatbot. Meanwhile, use offline search below or browse these sections:
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {offlineQuickLinks.map((link) => (
+                  <Link key={link.to} to={link.to}>
+                    <Button variant="outline" size="sm" className="gap-1.5 text-xs">
+                      <link.icon className="h-3 w-3" />
+                      {link.label}
+                    </Button>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Language Selector */}
+        <div className="flex items-center gap-2 mb-4 flex-wrap">
+          <Globe className="h-4 w-4 text-muted-foreground" />
+          <span className="text-sm text-muted-foreground">Language:</span>
+          {(Object.keys(languageLabels) as SupportedLanguage[]).map((lang) => (
+            <Button
+              key={lang}
+              variant={selectedLang === lang ? 'default' : 'outline'}
+              size="sm"
+              className="text-xs px-2 py-1 h-7"
+              onClick={() => handleLangChange(lang)}
+            >
+              {languageLabels[lang]}
+            </Button>
+          ))}
+        </div>
+
         {/* Search Bar */}
         <Card className="mb-6 border-2 border-warning/20 shadow-lg">
           <CardContent className="p-4">
@@ -101,7 +183,7 @@ export function OfflineSafetyAssistant() {
                 <Input
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
-                  placeholder='Search "helmet", "pressure cooker", "complaint"...'
+                  placeholder={selectedLang === 'hi' ? '"हेलमेट", "प्रेशर कुकर", "शिकायत"...' : '"helmet", "pressure cooker", "complaint"...'}
                   className="pl-10 h-12 text-base"
                 />
               </div>
@@ -113,11 +195,7 @@ export function OfflineSafetyAssistant() {
                   className="h-12 w-12 p-0"
                   aria-label="Voice search"
                 >
-                  {isListening ? (
-                    <MicOff className="h-4 w-4" />
-                  ) : (
-                    <Mic className="h-4 w-4" />
-                  )}
+                  {isListening ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
                 </Button>
               )}
               <Button type="submit" disabled={!query.trim()} className="h-12 px-6 gap-2">
@@ -126,22 +204,16 @@ export function OfflineSafetyAssistant() {
               </Button>
             </form>
 
-            {/* Quick Prompts */}
             {!hasSearched && (
               <div className="flex flex-wrap gap-2 mt-4">
-                <span className="text-sm text-muted-foreground self-center mr-1">
-                  Quick search:
-                </span>
+                <span className="text-sm text-muted-foreground self-center mr-1">Quick search:</span>
                 {quickPrompts.map(({ label, icon: Icon }) => (
                   <Button
                     key={label}
                     variant="outline"
                     size="sm"
                     className="gap-1.5 text-sm"
-                    onClick={() => {
-                      setQuery(label);
-                      handleSearch(label);
-                    }}
+                    onClick={() => { setQuery(label); handleSearch(label); }}
                   >
                     <Icon className="h-3.5 w-3.5" />
                     {label}
@@ -156,8 +228,8 @@ export function OfflineSafetyAssistant() {
         {hasSearched && (
           <div className="space-y-4">
             {results.length > 0 ? (
-              results.map((entry) => (
-                <Card key={entry.id} className="overflow-hidden">
+              results.map((entry, i) => (
+                <Card key={i} className="overflow-hidden">
                   <CardHeader className="bg-warning/5 border-b border-border py-3">
                     <CardTitle className="flex items-center gap-2 text-base">
                       <ShieldCheck className="h-5 w-5 text-primary" />
@@ -188,21 +260,15 @@ export function OfflineSafetyAssistant() {
               </Card>
             )}
 
-            {/* Search again */}
             <div className="flex flex-wrap gap-2 justify-center pt-2">
-              <span className="text-sm text-muted-foreground self-center mr-1">
-                Search another:
-              </span>
+              <span className="text-sm text-muted-foreground self-center mr-1">Search another:</span>
               {quickPrompts.map(({ label, icon: Icon }) => (
                 <Button
                   key={label}
                   variant="ghost"
                   size="sm"
                   className="gap-1.5 text-xs"
-                  onClick={() => {
-                    setQuery(label);
-                    handleSearch(label);
-                  }}
+                  onClick={() => { setQuery(label); handleSearch(label); }}
                 >
                   <Icon className="h-3 w-3" />
                   {label}
