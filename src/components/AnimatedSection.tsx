@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion';
 import { ReactNode } from 'react';
+import { useLowBandwidth } from '@/hooks/useLowBandwidth';
 
 interface AnimatedSectionProps {
   children: ReactNode;
@@ -8,6 +9,12 @@ interface AnimatedSectionProps {
 }
 
 export function AnimatedSection({ children, className, delay = 0 }: AnimatedSectionProps) {
+  const { isLowBandwidth } = useLowBandwidth();
+
+  if (isLowBandwidth) {
+    return <div className={className}>{children}</div>;
+  }
+
   return (
     <motion.div
       className={className}
