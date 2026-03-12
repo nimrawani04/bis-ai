@@ -14,6 +14,39 @@ export type Database = {
   }
   public: {
     Tables: {
+      bis_knowledge_chunks: {
+        Row: {
+          chunk_index: number
+          content: string
+          content_type: string
+          created_at: string
+          fts: unknown
+          id: string
+          title: string
+          url: string | null
+        }
+        Insert: {
+          chunk_index?: number
+          content: string
+          content_type?: string
+          created_at?: string
+          fts?: unknown
+          id?: string
+          title: string
+          url?: string | null
+        }
+        Update: {
+          chunk_index?: number
+          content?: string
+          content_type?: string
+          created_at?: string
+          fts?: unknown
+          id?: string
+          title?: string
+          url?: string | null
+        }
+        Relationships: []
+      }
       product_reports: {
         Row: {
           category: string
@@ -172,7 +205,22 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      search_bis_chunks: {
+        Args: {
+          filter_type?: string
+          match_count?: number
+          search_query: string
+        }
+        Returns: {
+          chunk_index: number
+          content: string
+          content_type: string
+          id: string
+          rank: number
+          title: string
+          url: string
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never
