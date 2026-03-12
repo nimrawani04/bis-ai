@@ -96,16 +96,16 @@ BIS Smart Assistant helps Indian consumers verify product safety, check BIS/ISI 
 | **Auth**            | Supabase Auth + OAuth             |
 | **File Storage**    | Supabase Storage                  |
 
-### CI/CD Pipeline
+### RAG Pipeline (Retrieval-Augmented Generation)
 
-| Step            | Tool                               |
-|-----------------|-------------------------------------|
-| **Source**      | GitHub (auto-sync with Lovable)    |
-| **Build**       | Vite → production bundle           |
-| **Deploy**      | Lovable Cloud (auto-deploy)        |
-| **Edge Fns**    | Auto-deployed on push              |
-| **Lint**        | ESLint 9 + TypeScript ESLint       |
-| **Test**        | Vitest + Testing Library           |
+| Stage | Name         | What Happens                                                                                          |
+|-------|--------------|-------------------------------------------------------------------------------------------------------|
+| 1     | **Ingest**   | Recursively crawl all pages across bis.gov.in — standards, certification, labs, publications, news, FAQs, consumer programmes |
+| 2     | **Chunk**    | Split content into ~500-token overlapping passages; preserve headings and structural units             |
+| 3     | **Embed**    | Convert chunks to vector representations using an embedding model (e.g. text-embedding-3-small)       |
+| 4     | **Store**    | Index vectors + metadata (URL, title, content type, timestamp) in a vector database                   |
+| 5     | **Retrieve** | Find the top-K most relevant chunks for any user query via cosine similarity search                   |
+| 6     | **Answer**   | Pass retrieved context to an LLM with a grounding prompt; stream the response to the UI               |
 
 ---
 
