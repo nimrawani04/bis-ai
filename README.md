@@ -1,73 +1,267 @@
-# Welcome to your Lovable project
+# 🛡️ BIS Smart Assistant — Bureau of Indian Standards
 
-## Project info
+> AI-powered product safety verification platform with offline-first design for rural India.
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+![Stack](https://img.shields.io/badge/React-18-blue) ![TypeScript](https://img.shields.io/badge/TypeScript-5-blue) ![PWA](https://img.shields.io/badge/PWA-Offline%20Ready-green) ![Vite](https://img.shields.io/badge/Vite-5-purple)
 
-## How can I edit this code?
+---
 
-There are several ways of editing your application.
+## 📋 Table of Contents
 
-**Use Lovable**
+- [Overview](#overview)
+- [Architecture](#architecture)
+- [Tech Stack & Pipeline](#tech-stack--pipeline)
+- [Features](#features)
+- [Project Structure](#project-structure)
+- [Setup & Installation](#setup--installation)
+- [Environment Variables](#environment-variables)
+- [Deployment](#deployment)
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
+---
 
-Changes made via Lovable will be committed automatically to this repo.
+## Overview
 
-**Use your preferred IDE**
+BIS Smart Assistant helps Indian consumers verify product safety, check BIS/ISI certifications, and access safety standards — even without internet connectivity. Built for the **Smart India Hackathon**, it prioritizes accessibility for rural users on low-bandwidth connections.
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+---
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+## Architecture
 
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
+```
+┌─────────────────────────────────────────────────┐
+│                   Frontend (PWA)                │
+│  React 18 + TypeScript + Vite + Tailwind CSS    │
+│  ┌───────────┐ ┌──────────┐ ┌────────────────┐  │
+│  │  Pages    │ │Components│ │  Offline Data  │  │
+│  │ BISHome   │ │ Hero     │ │ Knowledge Base │  │
+│  │ BISChat   │ │ Scanner  │ │ 9 Languages    │  │
+│  │ Standards │ │ Alerts   │ │ Service Worker │  │
+│  └───────────┘ └──────────┘ └────────────────┘  │
+└────────────────────┬────────────────────────────┘
+                     │ HTTPS / REST
+┌────────────────────▼────────────────────────────┐
+│              Backend (Lovable Cloud)             │
+│          Supabase (PostgreSQL + Auth)            │
+│  ┌─────────────────────────────────────────┐    │
+│  │         Edge Functions (Deno)           │    │
+│  │  • safety-assistant    (AI chat)        │    │
+│  │  • bis-chat            (BIS Q&A)        │    │
+│  │  • analyze-product-image (vision AI)    │    │
+│  │  • home-safety-report  (PDF reports)    │    │
+│  └──────────────┬──────────────────────────┘    │
+│                 │                                │
+│  ┌──────────────▼──────────────────────────┐    │
+│  │    Lovable AI Gateway                   │    │
+│  │    Google Gemini 2.5 Flash              │    │
+│  └─────────────────────────────────────────┘    │
+│                                                  │
+│  ┌─────────────────────────────────────────┐    │
+│  │  Database Tables                        │    │
+│  │  • product_reports    • safety_alerts   │    │
+│  │  • product_reviews    • scan_history    │    │
+│  └─────────────────────────────────────────┘    │
+└──────────────────────────────────────────────────┘
 ```
 
-**Edit a file directly in GitHub**
+---
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+## Tech Stack & Pipeline
 
-**Use GitHub Codespaces**
+### Frontend Pipeline
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+| Layer           | Technology                          |
+|-----------------|-------------------------------------|
+| **Build Tool**  | Vite 5 (ESBuild + Rollup)           |
+| **Framework**   | React 18 with SWC compiler          |
+| **Language**    | TypeScript 5                        |
+| **Styling**     | Tailwind CSS 3 + shadcn/ui          |
+| **Routing**     | React Router DOM v6                 |
+| **State**       | TanStack React Query v5             |
+| **Animations**  | Framer Motion                       |
+| **Forms**       | React Hook Form + Zod validation    |
+| **Charts**      | Recharts                            |
+| **Markdown**    | react-markdown + remark-gfm         |
+| **PDF**         | jsPDF                               |
+| **PWA**         | vite-plugin-pwa (Workbox)           |
 
-## What technologies are used for this project?
+### Backend Pipeline
 
-This project is built with:
+| Layer               | Technology                        |
+|---------------------|-----------------------------------|
+| **Platform**        | Lovable Cloud (Supabase)          |
+| **Database**        | PostgreSQL with Row-Level Security|
+| **Edge Functions**  | Deno (TypeScript)                 |
+| **AI Model**        | Google Gemini 2.5 Flash           |
+| **AI Gateway**      | Lovable AI Gateway                |
+| **Auth**            | Supabase Auth + OAuth             |
+| **File Storage**    | Supabase Storage                  |
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+### CI/CD Pipeline
 
-## How can I deploy this project?
+| Step            | Tool                               |
+|-----------------|-------------------------------------|
+| **Source**      | GitHub (auto-sync with Lovable)    |
+| **Build**       | Vite → production bundle           |
+| **Deploy**      | Lovable Cloud (auto-deploy)        |
+| **Edge Fns**    | Auto-deployed on push              |
+| **Lint**        | ESLint 9 + TypeScript ESLint       |
+| **Test**        | Vitest + Testing Library           |
 
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
+---
 
-## Can I connect a custom domain to my Lovable project?
+## Features
 
-Yes, you can!
+### 🤖 AI-Powered Safety Assistant
+- Real-time streaming AI responses via Gemini 2.5 Flash
+- Product safety guides with certification checks
+- Quick-search prompts for common products
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+### 📸 Product Image Scanner
+- Upload product photos for AI vision analysis
+- Detects ISI/BIS marks, brand, certification numbers
+- Risk level assessment (low/medium/high)
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+### 📴 Offline-First (PWA)
+- Full Progressive Web App with service worker caching
+- Offline knowledge base with BIS standards and safety info
+- Voice input search (Web Speech API) when offline
+- Automatic online/offline detection with UI switching
+
+### 🌐 Multilingual Support (9 Languages)
+- English, Hindi, Urdu, Tamil, Telugu, Bengali, Kannada, Malayalam, Kashmiri
+- Offline-available translations for all safety content
+
+### ⚡ Low Bandwidth Mode
+- Auto-detects 2G/slow-2G connections
+- Disables animations, heavy graphics, backdrop filters
+- Text-focused minimal UI for slow devices
+- Manual toggle via ⚡ icon in header
+
+### 📊 Additional Features
+- Product comparison tool
+- Community trust scores & reviews
+- Safety alerts dashboard
+- Market risk map
+- Household safety scanner
+- Report counterfeit products
+- BIS certification guide
+- Standards explorer
+
+---
+
+## Project Structure
+
+```
+├── public/                     # Static assets, PWA icons
+├── src/
+│   ├── assets/                 # Images (Ashoka Chakra, etc.)
+│   ├── components/             # React components
+│   │   ├── ui/                 # shadcn/ui primitives
+│   │   ├── Header.tsx          # Main navigation
+│   │   ├── Hero.tsx            # Landing hero (low-bandwidth aware)
+│   │   ├── SmartSafetyAssistant.tsx  # AI chat (online/offline)
+│   │   ├── OfflineSafetyAssistant.tsx # Offline search + voice
+│   │   ├── HouseholdScanner.tsx      # Image analysis
+│   │   ├── LowBandwidthToggle.tsx    # ⚡ toggle
+│   │   └── ...
+│   ├── data/
+│   │   ├── products.ts                    # Product database
+│   │   ├── offlineKnowledgeBase.ts        # Offline BIS data
+│   │   └── offlineKnowledgeMultilingual.ts # 9-language translations
+│   ├── hooks/
+│   │   ├── useOnlineStatus.ts   # Network detection
+│   │   ├── useLowBandwidth.tsx  # Bandwidth context provider
+│   │   ├── useAuth.tsx          # Authentication
+│   │   └── use-mobile.tsx       # Responsive detection
+│   ├── integrations/
+│   │   ├── supabase/            # Auto-generated client & types
+│   │   └── lovable/             # OAuth integration
+│   ├── pages/
+│   │   ├── BISHome.tsx          # Main landing page
+│   │   ├── BISChat.tsx          # AI chat page
+│   │   ├── CertificationGuide.tsx
+│   │   ├── StandardsExplorer.tsx
+│   │   └── AboutBIS.tsx
+│   ├── App.tsx                  # Root with providers
+│   ├── main.tsx                 # Entry point
+│   └── index.css                # Design tokens & Tailwind
+├── supabase/
+│   ├── functions/
+│   │   ├── safety-assistant/    # AI streaming chat
+│   │   ├── bis-chat/            # BIS Q&A
+│   │   ├── analyze-product-image/ # Vision AI scanner
+│   │   └── home-safety-report/  # PDF generation
+│   └── config.toml              # Supabase configuration
+├── vite.config.ts               # Vite + PWA config
+├── tailwind.config.ts           # Design system tokens
+└── package.json
+```
+
+---
+
+## Setup & Installation
+
+### Prerequisites
+- Node.js 18+ (recommended: use [nvm](https://github.com/nvm-sh/nvm))
+- npm or bun
+
+### Local Development
+
+```bash
+# 1. Clone the repository
+git clone <YOUR_GIT_URL>
+cd <YOUR_PROJECT_NAME>
+
+# 2. Install dependencies
+npm install
+
+# 3. Start development server
+npm run dev
+# App runs at http://localhost:8080
+```
+
+### Available Scripts
+
+| Command          | Description                        |
+|------------------|------------------------------------|
+| `npm run dev`    | Start dev server (port 8080)       |
+| `npm run build`  | Production build                   |
+| `npm run preview`| Preview production build           |
+| `npm run lint`   | Run ESLint                         |
+| `npm run test`   | Run tests (Vitest)                 |
+| `npm run test:watch` | Run tests in watch mode        |
+
+---
+
+## Environment Variables
+
+The following are auto-configured by Lovable Cloud:
+
+| Variable                          | Description              |
+|-----------------------------------|--------------------------|
+| `VITE_SUPABASE_URL`              | Backend API URL          |
+| `VITE_SUPABASE_PUBLISHABLE_KEY`  | Public API key           |
+| `VITE_SUPABASE_PROJECT_ID`       | Project identifier       |
+
+Edge functions use `LOVABLE_API_KEY` (auto-provisioned) for AI Gateway access.
+
+---
+
+## Deployment
+
+### Via Lovable
+1. Open the project in [Lovable](https://lovable.dev)
+2. Click **Share → Publish**
+3. Optionally connect a custom domain via **Settings → Domains**
+
+### PWA Installation
+Once published, users can install the app on mobile/desktop:
+- **Android**: "Add to Home Screen" prompt
+- **iOS**: Safari → Share → "Add to Home Screen"
+- **Desktop**: Chrome address bar install icon
+
+---
+
+## License
+
+Built for Smart India Hackathon. All BIS standards referenced are property of the Bureau of Indian Standards, Government of India.
