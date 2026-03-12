@@ -16,7 +16,7 @@ import { RiskMeter } from '@/components/RiskMeter';
 import { EverydaySafetyMode } from '@/components/EverydaySafetyMode';
 import { supabase } from '@/integrations/supabase/client';
 
-const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/bis-chat`;
+const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/rag-search`;
 
 type Message = {
   role: 'user' | 'assistant';
