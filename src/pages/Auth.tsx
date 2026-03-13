@@ -6,9 +6,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Shield, Mail, Lock, ArrowRight, Loader2 } from 'lucide-react';
+import { Mail, Lock, ArrowRight, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { motion } from 'framer-motion';
+import { BISLogo } from '@/components/BISLogo';
 
 export default function Auth() {
   const [isLogin, setIsLogin] = useState(true);
@@ -49,11 +50,11 @@ export default function Auth() {
         className="w-full max-w-md"
       >
         <div className="flex flex-col items-center mb-8">
-          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary shadow-lg mb-3">
-            <Shield className="h-6 w-6 text-primary-foreground" />
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-white/95 ring-1 ring-border/40 shadow-lg mb-3">
+            <BISLogo className="h-7 w-7" />
           </div>
           <h1 className="text-2xl font-bold text-foreground" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
-            BIS<span className="text-primary"> Smart</span>
+            BIS<span className="text-primary"> AI</span>
           </h1>
           <p className="text-sm text-muted-foreground mt-1">Product Safety Assistant</p>
         </div>

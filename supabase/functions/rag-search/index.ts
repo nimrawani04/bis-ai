@@ -6,7 +6,7 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-const groundingPrompt = `You are the BIS Smart Assistant — an expert AI grounded in real Bureau of Indian Standards (BIS) website content.
+const groundingPrompt = `You are the BIS AI — an expert AI grounded in real Bureau of Indian Standards (BIS) website content.
 
 ## CRITICAL RULES
 1. Answer ONLY using the retrieved context provided below. If the context doesn't contain enough information, say so honestly.
@@ -157,3 +157,4 @@ serve(async (req) => {
     });
   }
 });
+

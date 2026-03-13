@@ -3,7 +3,8 @@ import { Footer } from '@/components/Footer';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Link } from 'react-router-dom';
-import { MessageSquare, BookOpen, Search, Shield, Sparkles } from 'lucide-react';
+import { MessageSquare, BookOpen, Search, Sparkles } from 'lucide-react';
+import { BISLogo } from '@/components/BISLogo';
 
 const features = [
   {
@@ -42,7 +43,7 @@ export default function BISHome() {
               AI-Powered BIS Knowledge Base
             </div>
             <h1 className="text-4xl md:text-6xl font-bold text-foreground mb-4" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
-              BIS Smart Assistant
+              BIS <span className="text-primary">AI</span>
             </h1>
             <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto mb-10">
               Ask anything about BIS standards, certification and policies. Get instant, accurate answers with source citations.
@@ -103,7 +104,9 @@ export default function BISHome() {
         {/* Trust */}
         <section className="py-16 px-4 bg-secondary/30">
           <div className="max-w-3xl mx-auto text-center">
-            <Shield className="h-12 w-12 text-primary mx-auto mb-4" />
+            <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-white/95 ring-1 ring-border/40 shadow-sm">
+              <BISLogo className="h-8 w-8" />
+            </div>
             <h2 className="text-2xl font-bold text-foreground mb-3">Powered by BIS Knowledge</h2>
             <p className="text-muted-foreground">
               Our AI assistant is trained on official BIS website content from bis.gov.in. Every answer includes source citations so you can verify the information directly.

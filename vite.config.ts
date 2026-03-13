@@ -44,9 +44,9 @@ export default defineConfig(({ mode }) => ({
         ],
       },
       manifest: {
-        name: "BIS Smart Assistant — Bureau of Indian Standards",
-        short_name: "BIS Smart",
-        description: "AI-powered BIS standards, certification, and product safety assistant. Works offline for rural access.",
+        name: "BIS AI \u2014 Bureau of Indian Standards AI Assistant",
+        short_name: "BIS AI",
+        description: "BIS AI helps users explore BIS standards, certification guides, and official BIS knowledge through an intelligent assistant.",
         theme_color: "#1E3A8A",
         background_color: "#F8FAFC",
         display: "standalone",
