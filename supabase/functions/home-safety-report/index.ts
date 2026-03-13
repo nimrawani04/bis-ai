@@ -5,6 +5,61 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+// Convert Gemini SSE stream to OpenAI-compatible format
+async function convertGeminiStreamToOpenAI(geminiStream: ReadableStream) {
+  const reader = geminiStream.getReader();
+  const encoder = new TextEncoder();
+  const decoder = new TextDecoder();
+
+  return new ReadableStream({
+    async start(controller) {
+      let buffer = '';
+      
+      try {
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          
+          buffer += decoder.decode(value, { stream: true });
+          const lines = buffer.split('\n');
+          buffer = lines.pop() || '';
+          
+          for (const line of lines) {
+            if (!line.trim() || line.startsWith(':')) continue;
+            if (!line.startsWith('data: ')) continue;
+            
+            const jsonStr = line.slice(6).trim();
+            if (jsonStr === '[DONE]') continue;
+            
+            try {
+              const geminiData = JSON.parse(jsonStr);
+              const text = geminiData.candidates?.[0]?.content?.parts?.[0]?.text || '';
+              
+              if (text) {
+                const openaiFormat = {
+                  choices: [{
+                    delta: { content: text },
+                    index: 0,
+                    finish_reason: null
+                  }]
+                };
+                controller.enqueue(encoder.encode(`data: ${JSON.stringify(openaiFormat)}\n\n`));
+              }
+            } catch (e) {
+              console.error('Parse error:', e);
+            }
+          }
+        }
+        
+        controller.enqueue(encoder.encode('data: [DONE]\n\n'));
+        controller.close();
+      } catch (error) {
+        controller.error(error);
+      }
+    }
+  });
+}
+
 const systemPrompt = `You are the ISI Guardian Home Safety Analyst. You receive a list of household products with their certification status and safety score.
 
 Generate a personalized home safety analysis in markdown. Be specific about each product. Use this structure:
@@ -39,22 +94,24 @@ serve(async (req) => {
       });
     }
 
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
+    const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
+    if (!GEMINI_API_KEY) throw new Error("GEMINI_API_KEY is not configured");
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:streamGenerateContent?alt=sse&key=${GEMINI_API_KEY}`, {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: `Home Safety Score: ${score}/100\n\nProducts scanned:\n${products}\n\nPlease provide a detailed home safety analysis.` },
+        contents: [
+          { role: "user", parts: [{ text: systemPrompt }] },
+          { role: "model", parts: [{ text: "Understood. I'll provide detailed home safety analysis." }] },
+          { role: "user", parts: [{ text: `Home Safety Score: ${score}/100\n\nProducts scanned:\n${products}\n\nPlease provide a detailed home safety analysis.` }] },
         ],
-        stream: true,
+        generationConfig: {
+          temperature: 0.7,
+          maxOutputTokens: 2048,
+        },
       }),
     });
 
@@ -65,21 +122,17 @@ serve(async (req) => {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
-      if (response.status === 402) {
-        return new Response(JSON.stringify({ error: "AI usage limit reached." }), {
-          status: 402,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
       const text = await response.text();
-      console.error("AI gateway error:", response.status, text);
+      console.error("Gemini API error:", response.status, text);
       return new Response(JSON.stringify({ error: "AI service unavailable" }), {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    return new Response(response.body, {
+    const convertedStream = await convertGeminiStreamToOpenAI(response.body!);
+    
+    return new Response(convertedStream, {
       headers: { ...corsHeaders, "Content-Type": "text/event-stream" },
     });
   } catch (e) {

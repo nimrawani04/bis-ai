@@ -6,6 +6,61 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+// Convert Gemini SSE stream to OpenAI-compatible format
+async function convertGeminiStreamToOpenAI(geminiStream: ReadableStream) {
+  const reader = geminiStream.getReader();
+  const encoder = new TextEncoder();
+  const decoder = new TextDecoder();
+
+  return new ReadableStream({
+    async start(controller) {
+      let buffer = '';
+      
+      try {
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          
+          buffer += decoder.decode(value, { stream: true });
+          const lines = buffer.split('\n');
+          buffer = lines.pop() || '';
+          
+          for (const line of lines) {
+            if (!line.trim() || line.startsWith(':')) continue;
+            if (!line.startsWith('data: ')) continue;
+            
+            const jsonStr = line.slice(6).trim();
+            if (jsonStr === '[DONE]') continue;
+            
+            try {
+              const geminiData = JSON.parse(jsonStr);
+              const text = geminiData.candidates?.[0]?.content?.parts?.[0]?.text || '';
+              
+              if (text) {
+                const openaiFormat = {
+                  choices: [{
+                    delta: { content: text },
+                    index: 0,
+                    finish_reason: null
+                  }]
+                };
+                controller.enqueue(encoder.encode(`data: ${JSON.stringify(openaiFormat)}\n\n`));
+              }
+            } catch (e) {
+              console.error('Parse error:', e);
+            }
+          }
+        }
+        
+        controller.enqueue(encoder.encode('data: [DONE]\n\n'));
+        controller.close();
+      } catch (error) {
+        controller.error(error);
+      }
+    }
+  });
+}
+
 const groundingPrompt = `You are the BIS Smart Assistant — an expert AI grounded in real Bureau of Indian Standards (BIS) website content.
 
 ## CRITICAL RULES
@@ -51,8 +106,14 @@ serve(async (req) => {
       });
     }
 
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
+    const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
+    if (!GEMINI_API_KEY) {
+      console.error("GEMINI_API_KEY is not configured");
+      return new Response(JSON.stringify({ error: "GEMINI_API_KEY is not configured. Please set it in Supabase project settings." }), {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -108,45 +169,54 @@ serve(async (req) => {
       finalPrompt += `\n\nRESPOND IN ${langMap[language]}. Keep technical terms in English.`;
     }
 
+    // Convert messages to Gemini format
+    const geminiContents = [
+      { role: "user", parts: [{ text: finalPrompt }] },
+      { role: "model", parts: [{ text: "Understood. I'll answer based on the BIS context provided." }] },
+    ];
+    
+    for (const msg of messages) {
+      geminiContents.push({
+        role: msg.role === "assistant" ? "model" : "user",
+        parts: [{ text: typeof msg.content === 'string' ? msg.content : JSON.stringify(msg.content) }]
+      });
+    }
+
     // --- ANSWER: Pass context + conversation to LLM ---
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:streamGenerateContent?alt=sse&key=${GEMINI_API_KEY}`, {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
-        messages: [
-          { role: "system", content: finalPrompt },
-          ...messages,
-        ],
-        stream: true,
+        contents: geminiContents,
+        generationConfig: {
+          temperature: 0.7,
+          maxOutputTokens: 2048,
+        },
       }),
     });
 
     if (!response.ok) {
+      const errorText = await response.text();
+      console.error("Gemini API error:", response.status, errorText);
+      
       if (response.status === 429) {
         return new Response(JSON.stringify({ error: "Rate limit reached. Please wait a moment." }), {
           status: 429,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
-      if (response.status === 402) {
-        return new Response(JSON.stringify({ error: "AI usage limit reached." }), {
-          status: 402,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-      const text = await response.text();
-      console.error("AI gateway error:", response.status, text);
-      return new Response(JSON.stringify({ error: "AI service unavailable" }), {
+      
+      return new Response(JSON.stringify({ error: `AI service error: ${response.status} - ${errorText}` }), {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    return new Response(response.body, {
+    const convertedStream = await convertGeminiStreamToOpenAI(response.body!);
+    
+    return new Response(convertedStream, {
       headers: { ...corsHeaders, "Content-Type": "text/event-stream" },
     });
   } catch (e) {

@@ -40,8 +40,8 @@ BIS Smart Assistant helps Indian consumers verify product safety, check BIS/ISI 
 └────────────────────┬────────────────────────────┘
                      │ HTTPS / REST
 ┌────────────────────▼────────────────────────────┐
-│              Backend (Lovable Cloud)             │
-│          Supabase (PostgreSQL + Auth)            │
+│              Backend (Supabase)                 │
+│          Supabase (PostgreSQL + Auth)           │
 │  ┌─────────────────────────────────────────┐    │
 │  │         Edge Functions (Deno)           │    │
 │  │  • safety-assistant    (AI chat)        │    │
@@ -49,18 +49,18 @@ BIS Smart Assistant helps Indian consumers verify product safety, check BIS/ISI 
 │  │  • analyze-product-image (vision AI)    │    │
 │  │  • home-safety-report  (PDF reports)    │    │
 │  └──────────────┬──────────────────────────┘    │
-│                 │                                │
+│                 │                               │
 │  ┌──────────────▼──────────────────────────┐    │
-│  │    Lovable AI Gateway                   │    │
-│  │    Google Gemini 2.5 Flash              │    │
+│  │    Google Gemini API                    │    │
+│  │    Gemini 2.5 Flash                     │    │
 │  └─────────────────────────────────────────┘    │
-│                                                  │
+│                                                 │
 │  ┌─────────────────────────────────────────┐    │
 │  │  Database Tables                        │    │
 │  │  • product_reports    • safety_alerts   │    │
 │  │  • product_reviews    • scan_history    │    │
 │  └─────────────────────────────────────────┘    │
-└──────────────────────────────────────────────────┘
+└─────────────────────────────────────────────────┘
 ```
 
 ---
@@ -88,11 +88,10 @@ BIS Smart Assistant helps Indian consumers verify product safety, check BIS/ISI 
 
 | Layer               | Technology                        |
 |---------------------|-----------------------------------|
-| **Platform**        | Lovable Cloud (Supabase)          |
+| **Platform**        | Supabase                          |
 | **Database**        | PostgreSQL with Row-Level Security|
 | **Edge Functions**  | Deno (TypeScript)                 |
-| **AI Model**        | Google Gemini 2.5 Flash           |
-| **AI Gateway**      | Lovable AI Gateway                |
+| **AI Model**        | Google Gemini 1.5 Flash           |
 | **Auth**            | Supabase Auth + OAuth             |
 | **File Storage**    | Supabase Storage                  |
 
@@ -174,8 +173,7 @@ BIS Smart Assistant helps Indian consumers verify product safety, check BIS/ISI 
 │   │   ├── useAuth.tsx          # Authentication
 │   │   └── use-mobile.tsx       # Responsive detection
 │   ├── integrations/
-│   │   ├── supabase/            # Auto-generated client & types
-│   │   └── lovable/             # OAuth integration
+│   │   └── supabase/            # Auto-generated client & types
 │   ├── pages/
 │   │   ├── BISHome.tsx          # Main landing page
 │   │   ├── BISChat.tsx          # AI chat page
@@ -235,22 +233,59 @@ npm run dev
 
 ## Environment Variables
 
-The following are auto-configured by Lovable Cloud:
+The following environment variables are required:
 
+### Frontend (.env.local)
 | Variable                          | Description              |
 |-----------------------------------|--------------------------|
 | `VITE_SUPABASE_URL`              | Backend API URL          |
 | `VITE_SUPABASE_PUBLISHABLE_KEY`  | Public API key           |
 | `VITE_SUPABASE_PROJECT_ID`       | Project identifier       |
 
-Edge functions use `LOVABLE_API_KEY` (auto-provisioned) for AI Gateway access.
+### Backend (Supabase Edge Functions)
+Set these in Supabase Dashboard → Project Settings → Edge Functions → Secrets:
+
+| Variable                | Description                                      | Get it from                          |
+|-------------------------|--------------------------------------------------|--------------------------------------|
+| `GEMINI_API_KEY`        | Google Gemini API key for AI responses           | https://aistudio.google.com/apikey   |
+| `FIRECRAWL_API_KEY`     | Firecrawl API key for crawling BIS website       | https://firecrawl.dev                |
+
+### Setting up Firecrawl
+
+1. **Get Firecrawl API Key:**
+   - Visit https://firecrawl.dev
+   - Sign up for a free account
+   - Copy your API key from the dashboard
+
+2. **Add to Supabase:**
+   - Go to https://supabase.com/dashboard/project/YOUR_PROJECT_ID/settings/functions
+   - Click "Add new secret"
+   - Name: `FIRECRAWL_API_KEY`
+   - Value: Your Firecrawl API key
+   - Click "Save"
+
+3. **Crawl BIS Website:**
+   - Navigate to `/admin-crawl` in your app
+   - Click "Start Crawl & Ingest"
+   - This will scrape 50+ BIS pages and populate the knowledge base
+   - Takes ~5-10 minutes depending on rate limits
+
+4. **What gets crawled:**
+   - BIS certification schemes (ISI Mark, Hallmarking, CRS, FMCS)
+   - Product standards across all categories
+   - Consumer affairs and complaint procedures
+   - Laboratory services and testing
+   - About BIS organization and structure
 
 ---
 
 ## Deployment
 
-### Via Lovable
-1. Open the project in [Lovable](https://lovable.dev)
+### Manual Deployment
+1. Set up a Supabase project at [supabase.com](https://supabase.com)
+2. Configure environment variables in your deployment platform
+3. Deploy edge functions using Supabase CLI
+4. Build and deploy the frontend
 2. Click **Share → Publish**
 3. Optionally connect a custom domain via **Settings → Domains**
 
