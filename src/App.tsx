@@ -12,6 +12,7 @@ import StandardsExplorer from "./pages/StandardsExplorer";
 import AboutBIS from "./pages/AboutBIS";
 import NotFound from "./pages/NotFound";
 import Auth from "./pages/Auth";
+import AdminCrawl from "./pages/AdminCrawl";
 
 const queryClient = new QueryClient();
 
@@ -30,6 +31,7 @@ const App = () => (
               <Route path="/standards" element={<StandardsExplorer />} />
               <Route path="/about" element={<AboutBIS />} />
               <Route path="/auth" element={<Auth />} />
+              <Route path="/admin/crawl" element={<AdminCrawl />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
