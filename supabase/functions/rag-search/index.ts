@@ -33,6 +33,103 @@ async function generateQueryEmbedding(query: string, apiKey: string): Promise<nu
   return data.embedding.values;
 }
 
+/**
+ * LLM-based re-ranking of retrieved chunks
+ * Uses Gemini to score relevance of each chunk to the query
+ */
+async function rerankChunks(
+  query: string,
+  chunks: any[],
+  apiKey: string,
+  topK: number = 5
+): Promise<any[]> {
+  if (!chunks || chunks.length === 0) {
+    return chunks;
+  }
+
+  console.log(`Re-ranking ${chunks.length} chunks for query: "${query}"`);
+
+  // Build re-ranking prompt
+  const rerankPrompt = `You are a relevance scoring system. Given a user query and a list of document chunks, score each chunk's relevance to the query on a scale of 0-10.
+
+Query: "${query}"
+
+For each chunk below, provide ONLY a relevance score (0-10) where:
+- 10 = Perfectly answers the query
+- 7-9 = Highly relevant, contains key information
+- 4-6 = Somewhat relevant, contains related information
+- 1-3 = Marginally relevant, tangentially related
+- 0 = Not relevant at all
+
+Respond with ONLY a JSON array of scores in the same order as the chunks. Format: [score1, score2, score3, ...]
+
+Chunks to score:
+${chunks.map((chunk, idx) => `
+[${idx + 1}] Title: ${chunk.title}
+Content: ${chunk.content.substring(0, 500)}...
+`).join('\n')}
+
+Respond with ONLY the JSON array of scores, nothing else.`;
+
+  try {
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${apiKey}`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents: [{
+            parts: [{ text: rerankPrompt }]
+          }],
+          generationConfig: {
+            temperature: 0.1,
+            maxOutputTokens: 200,
+          }
+        })
+      }
+    );
+
+    if (!response.ok) {
+      console.error("Re-ranking API error:", response.status);
+      return chunks.slice(0, topK); // Fallback to original order
+    }
+
+    const data = await response.json();
+    const scoresText = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+    
+    // Extract JSON array from response
+    const jsonMatch = scoresText.match(/\[[\d\s,\.]+\]/);
+    if (!jsonMatch) {
+      console.error("Failed to parse re-ranking scores, using original order");
+      return chunks.slice(0, topK);
+    }
+
+    const scores: number[] = JSON.parse(jsonMatch[0]);
+    
+    if (scores.length !== chunks.length) {
+      console.error(`Score count mismatch: ${scores.length} vs ${chunks.length}`);
+      return chunks.slice(0, topK);
+    }
+
+    // Attach scores and sort by relevance
+    const rankedChunks = chunks.map((chunk, idx) => ({
+      ...chunk,
+      rerank_score: scores[idx] || 0
+    })).sort((a, b) => b.rerank_score - a.rerank_score);
+
+    console.log("Re-ranking scores:", scores);
+    console.log("Top ranked chunks:", rankedChunks.slice(0, topK).map(c => ({
+      title: c.title,
+      score: c.rerank_score
+    })));
+
+    return rankedChunks.slice(0, topK);
+  } catch (error) {
+    console.error("Re-ranking error:", error);
+    return chunks.slice(0, topK); // Fallback to original order
+  }
+}
+
 // Convert Gemini SSE stream to OpenAI-compatible format
 async function convertGeminiStreamToOpenAI(geminiStream: ReadableStream, sourceUrls: string[] = []) {
   const reader = geminiStream.getReader();
@@ -193,6 +290,7 @@ serve(async (req) => {
     }
 
     // Perform hybrid search with RRF fusion if embedding is available
+    // Retrieve more chunks initially (12) for re-ranking
     let chunks;
     let searchError;
     
@@ -201,7 +299,7 @@ serve(async (req) => {
       const result = await supabase.rpc('search_bis_chunks_hybrid', {
         search_query: searchQuery,
         query_embedding: queryEmbedding,
-        match_count: 8,
+        match_count: 12, // Retrieve more for re-ranking
         filter_type: topic_filter && topic_filter !== 'all' ? topic_filter : null,
         rrf_k: 60,
       });
@@ -212,7 +310,7 @@ serve(async (req) => {
       // Fallback to FTS-only search
       const result = await supabase.rpc('search_bis_chunks', {
         search_query: searchQuery,
-        match_count: 8,
+        match_count: 12, // Retrieve more for re-ranking
         filter_type: topic_filter && topic_filter !== 'all' ? topic_filter : null,
       });
       chunks = result.data;
@@ -221,6 +319,18 @@ serve(async (req) => {
 
     if (searchError) {
       console.error("Search error:", searchError);
+    }
+
+    // --- RE-RANK: Use LLM to re-rank retrieved chunks for better relevance ---
+    if (chunks && chunks.length > 0) {
+      try {
+        chunks = await rerankChunks(searchQuery, chunks, GEMINI_API_KEY, 6);
+        console.log(`Re-ranked to top ${chunks.length} chunks`);
+      } catch (rerankError) {
+        console.error("Re-ranking failed, using original order:", rerankError);
+        // Continue with original chunks if re-ranking fails
+        chunks = chunks.slice(0, 6);
+      }
     }
 
     // --- BUILD CONTEXT ---
