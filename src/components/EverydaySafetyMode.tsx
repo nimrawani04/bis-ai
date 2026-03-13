@@ -24,7 +24,7 @@ interface EverydaySafetyModeProps {
   disabled?: boolean;
 }
 
-export function EverydaySafetyMode({ onProductClick, disabled }: EverydaySafetyModeProps) {
+function EverydaySafetyMode({ onProductClick, disabled }: EverydaySafetyModeProps) {
   return (
     <Card className="border-2 border-primary/20 overflow-hidden">
       <CardHeader className="pb-3 bg-primary/5">
@@ -58,3 +58,6 @@ export function EverydaySafetyMode({ onProductClick, disabled }: EverydaySafetyM
     </Card>
   );
 }
+
+export { EverydaySafetyMode };
+export default EverydaySafetyMode;

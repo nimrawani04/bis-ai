@@ -5,16 +5,16 @@ import { Input } from '@/components/ui/input';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import {
-  Send, Loader2, MessageSquare, ExternalLink, Lightbulb, Trash2, Shield,
-  Copy, Share2, Check, ThumbsUp, ThumbsDown, History, Filter, ChevronDown, ChevronUp, Quote,
-  Mic, MicOff, Volume2, VolumeX, ImagePlus, Globe, X, FileText
+  Send, Loader2, ExternalLink, Lightbulb, Trash2, Shield,
+  Copy, Share2, Check, ThumbsUp, ThumbsDown, ChevronDown, ChevronUp,
+  Mic, MicOff, Volume2, VolumeX, ImagePlus, X, FileText
 } from 'lucide-react';
 import { toast } from '@/components/ui/sonner';
-import { Badge } from '@/components/ui/badge';
 import { useSearchParams } from 'react-router-dom';
 import { RiskMeter } from '@/components/RiskMeter';
-import { EverydaySafetyMode } from '@/components/EverydaySafetyMode';
+import EverydaySafetyMode from '@/components/EverydaySafetyMode';
 import { supabase } from '@/integrations/supabase/client';
+import { BISLogo } from '@/components/BISLogo';
 
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/rag-search`;
 
@@ -288,11 +288,13 @@ export default function BISChat() {
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [activeFilter, setActiveFilter] = useState('all');
-  const [showHistory, setShowHistory] = useState(false);
   const [selectedLang, setSelectedLang] = useState('en');
   const [isRecording, setIsRecording] = useState(false);
   const [simpleMode, setSimpleMode] = useState(false);
   const [autoReadAloud, setAutoReadAloud] = useState(false);
+  const [questionHistory, setQuestionHistory] = useState<string[]>(() => {
+    try { return JSON.parse(localStorage.getItem('bis-question-history') || '[]'); } catch { return []; }
+  });
   const lastQueryWasVoice = useRef(false);
   
   // Pre-load voices (Chrome loads them asynchronously)
@@ -308,10 +310,6 @@ export default function BISChat() {
   const scrollRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const initialQueryHandled = useRef(false);
-
-  const [questionHistory, setQuestionHistory] = useState<string[]>(() => {
-    try { return JSON.parse(localStorage.getItem('bis-question-history') || '[]'); } catch { return []; }
-  });
 
   useEffect(() => {
     if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
@@ -411,7 +409,7 @@ export default function BISChat() {
     if (!trimmed || isLoading) return;
 
     setQuestionHistory(prev => {
-      const updated = [trimmed, ...prev.filter(q => q !== trimmed)].slice(0, 20);
+      const updated = [trimmed, ...prev.filter(q => q !== trimmed)].slice(0, 10);
       return updated;
     });
 
@@ -570,101 +568,64 @@ export default function BISChat() {
     <div className="min-h-screen bg-background flex flex-col">
       <BISHeader />
 
-      {/* Topic Filters */}
-      <div className="border-b border-border bg-card/50 backdrop-blur px-2 sm:px-4 py-2">
-        <div className="max-w-7xl mx-auto flex items-center gap-1.5 sm:gap-2 overflow-x-auto scrollbar-none">
-          <Filter className="h-4 w-4 text-muted-foreground shrink-0" />
-          {topicFilters.map(f => (
-            <Badge key={f.id} variant={activeFilter === f.id ? 'default' : 'outline'}
-              className={`cursor-pointer shrink-0 text-[10px] sm:text-xs transition-all ${activeFilter === f.id ? 'bg-primary text-primary-foreground hover:bg-primary/90' : 'hover:bg-secondary'}`}
-              onClick={() => setActiveFilter(f.id)}>
-              {f.label}
-            </Badge>
-          ))}
-        </div>
-      </div>
+      {/* Secondary controls */}
+      <div className="border-b border-border bg-background/80">
+        <div className="max-w-6xl mx-auto flex flex-wrap items-center justify-between gap-3 px-4 py-2">
+          <div className="flex items-center gap-2 text-sm">
+            <span className="text-muted-foreground">Topics</span>
+            <select
+              value={activeFilter}
+              onChange={(e) => setActiveFilter(e.target.value)}
+              className="text-sm text-foreground bg-transparent border border-border rounded-md px-2 py-1 focus:outline-none focus:ring-2 focus:ring-primary/40"
+            >
+              {topicFilters.map((topic) => (
+                <option key={topic.id} value={topic.id}>{topic.label}</option>
+              ))}
+            </select>
+          </div>
 
-      {/* Language Selector */}
-      <div className="border-b border-border bg-secondary/20 px-2 sm:px-4 py-1.5 sm:py-2">
-        <div className="max-w-7xl mx-auto flex items-center gap-1.5 sm:gap-2 overflow-x-auto scrollbar-none">
-          <Globe className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-primary shrink-0" />
-          <span className="text-[10px] sm:text-xs font-medium text-muted-foreground shrink-0">Lang:</span>
-          {languages.map(lang => (
-            <button key={lang.code}
-              onClick={() => setSelectedLang(lang.code)}
-              className={`shrink-0 text-[10px] sm:text-xs px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full border transition-all ${
-                selectedLang === lang.code
-                  ? 'bg-primary text-primary-foreground border-primary font-medium'
-                  : 'border-border text-muted-foreground hover:text-foreground hover:bg-secondary hover:border-foreground/20'
-              }`}>
-              {lang.label}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Mode toggles */}
-      <div className="border-b border-border bg-card/30 px-2 sm:px-4 py-1.5 sm:py-2">
-        <div className="max-w-7xl mx-auto flex items-center gap-2 sm:gap-4 flex-wrap">
-          <button
-            onClick={() => setSimpleMode(!simpleMode)}
-            className={`flex items-center gap-1.5 text-[10px] sm:text-xs px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full border transition-all ${
-              simpleMode
-                ? 'bg-accent text-accent-foreground border-accent font-medium'
-                : 'border-border text-muted-foreground hover:text-foreground hover:bg-secondary'
-            }`}
-          >
-            <span className="text-sm">🧑‍🌾</span>
-            {simpleMode ? 'Simple ON' : 'Simple'}
-          </button>
-          <button
-            onClick={() => setAutoReadAloud(!autoReadAloud)}
-            className={`flex items-center gap-1.5 text-[10px] sm:text-xs px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full border transition-all ${
-              autoReadAloud
-                ? 'bg-primary text-primary-foreground border-primary font-medium'
-                : 'border-border text-muted-foreground hover:text-foreground hover:bg-secondary'
-            }`}
-          >
-            <Volume2 className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
-            {autoReadAloud ? 'Auto Read ON' : 'Auto Read'}
-          </button>
-          {simpleMode && (
-            <span className="text-[10px] sm:text-xs text-muted-foreground italic hidden sm:inline">
-              Answers will use simple, easy-to-understand language
-            </span>
-          )}
+          <div className="flex items-center gap-2 text-sm">
+            <span className="text-muted-foreground">Language</span>
+            <select
+              value={selectedLang}
+              onChange={(e) => setSelectedLang(e.target.value)}
+              className="text-sm text-foreground bg-transparent border border-border rounded-md px-2 py-1 focus:outline-none focus:ring-2 focus:ring-primary/40"
+            >
+              {languages.map((lang) => (
+                <option key={lang.code} value={lang.code}>{lang.label}</option>
+              ))}
+            </select>
+          </div>
         </div>
       </div>
 
       {/* Chat header bar */}
       {messages.length > 0 && (
-        <div className="border-b border-border bg-card/50 backdrop-blur px-4 py-2 flex items-center justify-between max-w-7xl mx-auto w-full animate-fade-in">
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <MessageSquare className="h-4 w-4" />
-            <span>{userQuestions.length} question{userQuestions.length !== 1 ? 's' : ''}</span>
+        <div className="border-b border-border bg-card/50 backdrop-blur px-4 py-2 flex items-center justify-between max-w-6xl mx-auto w-full animate-fade-in">
+          <div className="text-sm text-muted-foreground">
+            {userQuestions.length} question{userQuestions.length !== 1 ? 's' : ''}
           </div>
-          <div className="flex items-center gap-2">
-            <Button variant="ghost" size="sm" onClick={() => setShowHistory(!showHistory)} className="gap-1.5 text-xs text-muted-foreground hover:text-foreground lg:hidden">
-              <History className="h-3.5 w-3.5" /> History
-            </Button>
-            <Button variant="ghost" size="sm" onClick={clearConversation} className="gap-1.5 text-xs text-muted-foreground hover:text-destructive" disabled={isLoading}>
-              <Trash2 className="h-3.5 w-3.5" /> Clear
-            </Button>
-          </div>
+          <Button variant="ghost" size="sm" onClick={clearConversation} className="gap-1.5 text-xs text-muted-foreground hover:text-destructive" disabled={isLoading}>
+            <Trash2 className="h-3.5 w-3.5" /> Clear
+          </Button>
         </div>
       )}
 
-      <div className="flex-1 flex max-w-7xl mx-auto w-full overflow-hidden">
-        {/* Sidebar */}
-        <aside className="hidden lg:flex w-72 border-r border-border p-6 flex-col gap-6 shrink-0 overflow-y-auto">
+      <div className="flex-1 flex max-w-6xl mx-auto w-full overflow-hidden">
+        {/* Support sidebar */}
+        <aside className="hidden lg:flex w-64 border-r border-border/60 px-5 py-6 flex-col gap-6 shrink-0">
           <div>
-            <h3 className="text-sm font-semibold text-foreground mb-1 flex items-center gap-2">
-              <Lightbulb className="h-4 w-4 text-primary" /> Try asking:
+            <h3 className="text-xs font-semibold text-foreground uppercase tracking-wide mb-2">
+              Try Asking
             </h3>
-            <div className="flex flex-col gap-2 mt-3">
-              {exampleQuestions.map(q => (
-                <button key={q} onClick={() => sendMessage(q)} disabled={isLoading}
-                  className="text-left text-sm text-muted-foreground hover:text-foreground hover:bg-secondary/50 px-3 py-2 rounded-lg transition-colors border border-transparent hover:border-border">
+            <div className="flex flex-col gap-1.5">
+              {exampleQuestions.slice(0, 4).map(q => (
+                <button
+                  key={q}
+                  onClick={() => sendMessage(q)}
+                  disabled={isLoading}
+                  className="text-left text-xs text-muted-foreground hover:text-foreground hover:bg-secondary/50 px-2.5 py-2 rounded-md transition-colors"
+                >
                   {q}
                 </button>
               ))}
@@ -672,13 +633,18 @@ export default function BISChat() {
           </div>
           {questionHistory.length > 0 && (
             <div>
-              <h3 className="text-sm font-semibold text-foreground mb-1 flex items-center gap-2">
-                <History className="h-4 w-4 text-primary" /> Recent Questions
+              <h3 className="text-xs font-semibold text-foreground uppercase tracking-wide mb-2">
+                Recent Questions
               </h3>
-              <div className="flex flex-col gap-1 mt-3">
-                {questionHistory.slice(0, 10).map((q, i) => (
-                  <button key={i} onClick={() => sendMessage(q)} disabled={isLoading}
-                    className="text-left text-xs text-muted-foreground hover:text-foreground hover:bg-secondary/50 px-3 py-1.5 rounded-lg transition-colors truncate" title={q}>
+              <div className="flex flex-col gap-1.5">
+                {questionHistory.slice(0, 6).map((q, i) => (
+                  <button
+                    key={i}
+                    onClick={() => sendMessage(q)}
+                    disabled={isLoading}
+                    className="text-left text-xs text-muted-foreground hover:text-foreground hover:bg-secondary/50 px-2.5 py-2 rounded-md transition-colors truncate"
+                    title={q}
+                  >
                     {q}
                   </button>
                 ))}
@@ -687,115 +653,116 @@ export default function BISChat() {
           )}
         </aside>
 
-        {/* Mobile history panel */}
-        {showHistory && (
-          <div className="lg:hidden absolute inset-x-0 top-auto z-40 bg-background border-b border-border p-4 animate-fade-in shadow-lg">
-            <h3 className="text-sm font-semibold text-foreground mb-2 flex items-center gap-2">
-              <History className="h-4 w-4 text-primary" /> Recent Questions
-            </h3>
-            <div className="flex flex-col gap-1 max-h-48 overflow-y-auto">
-              {questionHistory.length === 0 && <p className="text-xs text-muted-foreground">No questions yet.</p>}
-              {questionHistory.slice(0, 10).map((q, i) => (
-                <button key={i} onClick={() => { sendMessage(q); setShowHistory(false); }}
-                  className="text-left text-sm text-muted-foreground hover:text-foreground hover:bg-secondary/50 px-3 py-2 rounded-lg transition-colors">
-                  {q}
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
-
         {/* Chat area */}
         <div className="flex-1 flex flex-col min-w-0">
-          <div ref={scrollRef} className="flex-1 overflow-y-auto p-3 sm:p-4 md:p-6 space-y-4 md:space-y-6">
+          <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6">
             {messages.length === 0 && (
-              <div className="flex flex-col items-center justify-center h-full text-center py-12 sm:py-20 px-4 animate-fade-in">
-                <div className="bg-primary/10 rounded-full p-4 mb-4">
-                  <Shield className="h-10 w-10 text-primary" />
-                </div>
-                <h2 className="text-xl sm:text-2xl font-bold text-foreground mb-2">Ask BIS AI</h2>
-                <p className="text-muted-foreground max-w-md mb-3 text-sm sm:text-base">
-                  Ask anything about BIS standards, certification, hallmarking, or policies. Get instant answers with source citations.
-                </p>
-                <div className="flex flex-wrap gap-2 justify-center mb-6 text-xs text-muted-foreground">
-                  <span className="flex items-center gap-1"><Mic className="h-3 w-3" /> Voice input</span>
-                  <span>•</span>
-                  <span className="flex items-center gap-1"><ImagePlus className="h-3 w-3" /> Image upload</span>
-                  <span>•</span>
-                  <span className="flex items-center gap-1"><Globe className="h-3 w-3" /> 12 languages</span>
-                  <span>•</span>
-                  <span className="flex items-center gap-1"><Volume2 className="h-3 w-3" /> Read aloud</span>
-                </div>
-
-                {/* Quick Help Buttons */}
-                <div className="flex flex-wrap gap-1.5 sm:gap-2 justify-center mb-6">
-                  <button onClick={() => sendMessage('How to check if ISI mark is genuine?')} disabled={isLoading}
-                    className="flex items-center gap-1 sm:gap-1.5 text-[10px] sm:text-xs bg-primary/10 text-primary hover:bg-primary/20 px-2 sm:px-3 py-1.5 sm:py-2 rounded-full transition-colors font-medium">
-                    ✅ Check ISI Mark
-                  </button>
-                  <button onClick={() => sendMessage('How to apply for BIS certification?')} disabled={isLoading}
-                    className="flex items-center gap-1 sm:gap-1.5 text-[10px] sm:text-xs bg-primary/10 text-primary hover:bg-primary/20 px-2 sm:px-3 py-1.5 sm:py-2 rounded-full transition-colors font-medium">
-                    📋 Apply for Certification
-                  </button>
-                  <button onClick={() => sendMessage('How to file a consumer complaint about fake products?')} disabled={isLoading}
-                    className="flex items-center gap-1 sm:gap-1.5 text-[10px] sm:text-xs bg-primary/10 text-primary hover:bg-primary/20 px-2 sm:px-3 py-1.5 sm:py-2 rounded-full transition-colors font-medium">
-                    🛡️ File Complaint
-                  </button>
-                  <button onClick={() => sendMessage('What are BIS standards and why are they important?')} disabled={isLoading}
-                    className="flex items-center gap-1 sm:gap-1.5 text-[10px] sm:text-xs bg-primary/10 text-primary hover:bg-primary/20 px-2 sm:px-3 py-1.5 sm:py-2 rounded-full transition-colors font-medium">
-                    📖 Standards
-                  </button>
-                  <button onClick={() => sendMessage('Compare BIS hallmarking and product certification schemes')} disabled={isLoading}
-                    className="flex items-center gap-1 sm:gap-1.5 text-[10px] sm:text-xs bg-primary/10 text-primary hover:bg-primary/20 px-2 sm:px-3 py-1.5 sm:py-2 rounded-full transition-colors font-medium">
-                    ⚖️ Compare
-                  </button>
-                </div>
-
-                {/* Risk Meter & Everyday Safety Mode */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 w-full max-w-lg mb-6 px-1">
-                  <RiskMeter />
-                  <EverydaySafetyMode onProductClick={sendMessage} disabled={isLoading} />
-                </div>
-
-                {/* Check My Product - prominent CTA */}
-                <div className="w-full max-w-lg bg-card border-2 border-primary/20 rounded-2xl p-4 mb-6">
-                  <h3 className="text-sm font-bold text-foreground mb-1 flex items-center gap-2">
-                    📦 Check My Product
-                  </h3>
-                  <p className="text-xs text-muted-foreground mb-3">
-                    Type a product name or upload a photo to check if it needs BIS certification
+              <div className="w-full py-10 sm:py-14 animate-fade-in">
+                <div className="flex flex-col items-center text-center max-w-3xl mx-auto">
+                  <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-white/95 ring-1 ring-border/40 shadow-sm">
+                    <BISLogo className="h-7 w-7" />
+                  </div>
+                  <h2 className="text-3xl sm:text-4xl font-bold text-foreground">Ask BIS AI</h2>
+                  <p className="text-sm sm:text-base text-muted-foreground mt-2">
+                    Ask anything about BIS standards, certification, or product safety. Get instant answers with source citations.
                   </p>
-                  <div className="flex flex-wrap gap-2">
-                    <button onClick={() => sendMessage('Is BIS certification required for electric heaters? What should I check before buying?')} disabled={isLoading}
-                      className="text-xs bg-secondary hover:bg-secondary/80 text-foreground px-3 py-1.5 rounded-lg transition-colors">
-                      🔌 Electric Heater
+                </div>
+
+                <div className="mt-6 max-w-3xl mx-auto">
+                  <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-2 items-stretch">
+                    <Input
+                      value={input}
+                      onChange={(e) => setInput(e.target.value)}
+                      placeholder={selectedLang === 'hi' ? 'BIS के बारे में पूछें...' : 'Ask anything about BIS standards...'}
+                      className="h-12 sm:h-14 text-base flex-1"
+                      disabled={isLoading}
+                    />
+                    <Button type="submit" disabled={isLoading || (!input.trim() && !imagePreview)} className="h-12 sm:h-14 px-6">
+                      {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                      <span className="ml-2">Send</span>
+                    </Button>
+                  </form>
+                  <div className="mt-3 flex flex-wrap items-center justify-center gap-3 text-xs text-muted-foreground">
+                    <button
+                      type="button"
+                      onClick={toggleRecording}
+                      disabled={isLoading}
+                      className={`px-2 py-1 rounded-md border border-border transition-colors ${
+                        isRecording ? 'text-danger border-danger/40' : 'hover:text-foreground hover:border-foreground/30'
+                      }`}
+                    >
+                      {isRecording ? 'Stop voice' : 'Voice input'}
                     </button>
-                    <button onClick={() => sendMessage('Is BIS certification required for phone chargers? What should I check before buying?')} disabled={isLoading}
-                      className="text-xs bg-secondary hover:bg-secondary/80 text-foreground px-3 py-1.5 rounded-lg transition-colors">
-                      🔋 Phone Charger
-                    </button>
-                    <button onClick={() => sendMessage('Is BIS certification required for helmets? What should I check before buying?')} disabled={isLoading}
-                      className="text-xs bg-secondary hover:bg-secondary/80 text-foreground px-3 py-1.5 rounded-lg transition-colors">
-                      ⛑️ Helmet
-                    </button>
-                    <button onClick={() => sendMessage('Is BIS certification required for water purifiers? What should I check before buying?')} disabled={isLoading}
-                      className="text-xs bg-secondary hover:bg-secondary/80 text-foreground px-3 py-1.5 rounded-lg transition-colors">
-                      💧 Water Purifier
-                    </button>
-                    <button onClick={() => fileInputRef.current?.click()} disabled={isLoading}
-                      className="text-xs bg-primary/10 text-primary hover:bg-primary/20 px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1">
-                      <ImagePlus className="h-3 w-3" /> Upload Product Photo
+                    <button
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={isLoading || isUploadingImage}
+                      className="px-2 py-1 rounded-md border border-border hover:text-foreground hover:border-foreground/30 transition-colors"
+                    >
+                      Upload product
                     </button>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 w-full max-w-lg">
-                  {exampleQuestions.map(q => (
-                    <button key={q} onClick={() => sendMessage(q)} disabled={isLoading}
-                      className="text-left text-sm text-muted-foreground hover:text-foreground bg-card hover:bg-secondary/50 border border-border hover:border-primary/30 px-4 py-3 rounded-xl transition-all hover:shadow-sm">
-                      <span className="text-primary mr-2">→</span>{q}
-                    </button>
-                  ))}
+                <div className="mt-12 space-y-12">
+                  <div>
+                    <h3 className="text-[22px] font-semibold text-foreground mb-4">Product Safety Insights</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <RiskMeter />
+                      <EverydaySafetyMode onProductClick={sendMessage} disabled={isLoading} />
+                    </div>
+                  </div>
+
+                  <div>
+                    <h3 className="text-[22px] font-semibold text-foreground mb-4">Check My Product</h3>
+                    <div className="bg-card border border-border rounded-xl p-5 space-y-4">
+                      <ol className="text-sm text-muted-foreground list-decimal list-inside space-y-1">
+                        <li>Type a product name</li>
+                        <li>Upload a product photo</li>
+                        <li>Select a common product below</li>
+                      </ol>
+                      <div className="flex flex-wrap gap-2">
+                        {[
+                          'Electric Heater',
+                          'Phone Charger',
+                          'Helmet',
+                          'Water Purifier',
+                        ].map((label) => (
+                          <button
+                            key={label}
+                            onClick={() => sendMessage(`Is BIS certification required for ${label.toLowerCase()}? What should I check before buying?`)}
+                            disabled={isLoading}
+                            className="text-sm text-foreground bg-secondary/40 hover:bg-secondary/70 border border-border rounded-lg px-3 py-2 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md active:scale-[0.98]"
+                          >
+                            {label}
+                          </button>
+                        ))}
+                        <button
+                          onClick={() => fileInputRef.current?.click()}
+                          disabled={isLoading || isUploadingImage}
+                          className="text-sm text-foreground bg-secondary/40 hover:bg-secondary/70 border border-border rounded-lg px-3 py-2 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md active:scale-[0.98]"
+                        >
+                          Upload product photo
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <h3 className="text-[22px] font-semibold text-foreground mb-4">Popular Questions</h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      {exampleQuestions.map((q) => (
+                        <button
+                          key={q}
+                          onClick={() => sendMessage(q)}
+                          disabled={isLoading}
+                          className="text-left text-sm text-foreground bg-card border border-border rounded-lg px-4 py-3 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md active:scale-[0.98]"
+                        >
+                          {q}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
                 </div>
               </div>
             )}
@@ -893,7 +860,7 @@ export default function BISChat() {
 
           {/* Input area */}
           <div className="border-t border-border p-3 sm:p-4 bg-background/80 backdrop-blur">
-            <form onSubmit={handleSubmit} className="flex gap-2 max-w-3xl mx-auto items-center">
+            <form onSubmit={handleSubmit} className="flex gap-2 max-w-6xl mx-auto items-center">
               {/* Image upload */}
               <input ref={fileInputRef} type="file" accept="image/*,.pdf" className="hidden" onChange={handleImageUpload} />
               <button type="button" onClick={() => fileInputRef.current?.click()} disabled={isLoading || isUploadingImage}
@@ -909,14 +876,37 @@ export default function BISChat() {
               </button>
 
               <Input value={input} onChange={(e) => setInput(e.target.value)}
-                placeholder={selectedLang === 'hi' ? 'BIS के बारे में पूछें...' : 'Ask about BIS standards, certification...'}
-                className="h-11 sm:h-12 text-sm sm:text-base flex-1" disabled={isLoading} />
+                placeholder={selectedLang === 'hi' ? 'BIS के बारे में पूछें...' : 'Ask anything about BIS standards...'}
+                className="h-12 sm:h-14 text-base flex-1" disabled={isLoading} />
 
-              <Button type="submit" disabled={isLoading || (!input.trim() && !imagePreview)} className="h-11 sm:h-12 px-4 sm:px-6 gap-2 shrink-0">
+              <Button type="submit" disabled={isLoading || (!input.trim() && !imagePreview)} className="h-12 sm:h-14 px-4 sm:px-6 gap-2 shrink-0">
                 {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
                 <span className="hidden sm:inline">Send</span>
               </Button>
             </form>
+            <div className="max-w-6xl mx-auto mt-2 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+              <button
+                onClick={() => setSimpleMode(!simpleMode)}
+                className={`px-2 py-1 rounded-md border transition-colors ${
+                  simpleMode ? 'border-primary text-foreground' : 'border-border hover:text-foreground'
+                }`}
+              >
+                {simpleMode ? 'Simple ON' : 'Simple'}
+              </button>
+              <button
+                onClick={() => setAutoReadAloud(!autoReadAloud)}
+                className={`px-2 py-1 rounded-md border transition-colors ${
+                  autoReadAloud ? 'border-primary text-foreground' : 'border-border hover:text-foreground'
+                }`}
+              >
+                {autoReadAloud ? 'Auto Read ON' : 'Auto Read'}
+              </button>
+              {simpleMode && (
+                <span className="text-[11px] text-muted-foreground">
+                  Answers will use simpler language
+                </span>
+              )}
+            </div>
           </div>
         </div>
       </div>
