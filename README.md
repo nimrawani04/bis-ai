@@ -21,7 +21,25 @@
 
 ## Overview
 
-BIS AI helps Indian consumers verify product safety, check BIS/ISI certifications, and access safety standards — even without internet connectivity. Built for the **Smart India Hackathon**, it prioritizes accessibility for rural users on low-bandwidth connections.
+BIS AI Smart Assistant is an AI-powered chatbot that helps users quickly find information from the Bureau of Indian Standards website.
+
+The system uses a Retrieval-Augmented Generation (RAG) pipeline to crawl and index BIS website content such as certification schemes, standards, laboratories, consumer programs, and publications. When a user asks a question, the chatbot retrieves the most relevant information and generates a clear answer with source citations from the BIS website.
+
+Key Features
+
+AI Chatbot Assistant to answer BIS-related queries
+
+Source-cited answers based on official BIS website content
+
+Multi-turn conversation support for follow-up questions
+
+Multilingual support for accessibility across India
+
+Offline information access for users in low-connectivity rural areas
+
+Goal
+
+To make BIS information easier to access, understand, and navigate, improving awareness of standards, certification processes, and consumer safety.
 
 ---
 
@@ -97,14 +115,25 @@ BIS AI helps Indian consumers verify product safety, check BIS/ISI certification
 
 ### RAG Pipeline (Retrieval-Augmented Generation)
 
-| Stage | Name         | What Happens                                                                                          |
-|-------|--------------|-------------------------------------------------------------------------------------------------------|
-| 1     | **Ingest**   | Recursively crawl all pages across bis.gov.in — standards, certification, labs, publications, news, FAQs, consumer programmes |
-| 2     | **Chunk**    | Split content into ~500-token overlapping passages; preserve headings and structural units             |
-| 3     | **Embed**    | Convert chunks to 768-dimensional vectors using Gemini `text-embedding-004` model                     |
-| 4     | **Store**    | Index vectors + metadata (URL, title, content type, timestamp) in PostgreSQL with pgvector extension  |
-| 5     | **Retrieve** | Hybrid search combining Full-Text Search (FTS) + semantic search with RRF (Reciprocal Rank Fusion)   |
-| 6     | **Answer**   | Pass retrieved context to Gemini 2.5 Flash with grounding prompt; stream the response to the UI      |
+The system uses a RAG pipeline to answer questions accurately using content from the Bureau of Indian Standards website.
+
+First, the platform crawls and collects information from BIS website pages such as certification schemes, standards, laboratories, and consumer programs.
+
+Next, the content is split into smaller sections (chunks) and converted into embeddings, which are numerical representations that capture the meaning of the text.
+
+These embeddings are stored in a vector database, allowing the system to perform semantic search.
+
+When a user asks a question, the system:
+
+converts the question into an embedding
+
+retrieves the most relevant content from the database
+
+sends that content to an AI model.
+
+The AI then generates an answer using only the retrieved information, ensuring the response is accurate and grounded in BIS website data, while also providing source citations.
+
+This process allows the chatbot to provide reliable, context-aware answers instead of simple keyword search results
 
 #### Hybrid Search with RRF Fusion
 
@@ -116,7 +145,6 @@ The system uses a sophisticated hybrid retrieval approach:
 - **Benefits**: Better recall (semantic) + better precision (FTS) = optimal results
 - **Fallback**: Gracefully falls back to FTS-only if embedding generation fails
 
-See [supabase/HYBRID_SEARCH.md](supabase/HYBRID_SEARCH.md) for detailed documentation.
 
 ---
 
@@ -219,7 +247,7 @@ See [supabase/HYBRID_SEARCH.md](supabase/HYBRID_SEARCH.md) for detailed document
 
 ```bash
 # 1. Clone the repository
-git clone <YOUR_GIT_URL>
+git clone (https://github.com/nimrawani04/bis-ai.git)
 cd <YOUR_PROJECT_NAME>
 
 # 2. Install dependencies
@@ -311,5 +339,8 @@ Once published, users can install the app on mobile/desktop:
 
 ## License
 
-Built for Smart India Hackathon. All BIS standards referenced are property of the Bureau of Indian Standards, Government of India.
+### 👩‍💻 Developers
+
+- 🔹 **Nimra Wani** — [Portfolio](https://nimrawani.vercel.app/)
+- 🔹 **Milad Ajaz Bhat** — [Portfolio](https://m4milaad.github.io/)
 
