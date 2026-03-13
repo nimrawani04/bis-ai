@@ -1,10 +1,8 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
-import { componentTagger } from "lovable-tagger";
 import { VitePWA } from "vite-plugin-pwa";
 
-// https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
   server: {
     host: "::",
@@ -15,7 +13,6 @@ export default defineConfig(({ mode }) => ({
   },
   plugins: [
     react(),
-    mode === "development" && componentTagger(),
     VitePWA({
       registerType: "autoUpdate",
       includeAssets: ["favicon.ico", "robots.txt", "placeholder.svg"],
@@ -44,9 +41,10 @@ export default defineConfig(({ mode }) => ({
         ],
       },
       manifest: {
-        name: "BIS AI \u2014 Bureau of Indian Standards AI Assistant",
-        short_name: "BIS AI",
-        description: "BIS AI helps users explore BIS standards, certification guides, and official BIS knowledge through an intelligent assistant.",
+        name: "BIS Smart Assistant — Bureau of Indian Standards",
+        short_name: "BIS Smart",
+        description:
+          "AI-powered BIS standards, certification, and product safety assistant. Works offline for rural access.",
         theme_color: "#1E3A8A",
         background_color: "#F8FAFC",
         display: "standalone",
@@ -60,7 +58,7 @@ export default defineConfig(({ mode }) => ({
         ],
       },
     }),
-  ].filter(Boolean),
+  ],
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),

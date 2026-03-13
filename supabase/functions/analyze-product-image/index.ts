@@ -21,23 +21,22 @@ serve(async (req) => {
       });
     }
 
-    const apiKey = Deno.env.get("LOVABLE_API_KEY");
+    const apiKey = Deno.env.get("GEMINI_API_KEY");
     if (!apiKey) {
-      throw new Error("LOVABLE_API_KEY not configured");
+      throw new Error("GEMINI_API_KEY not configured");
     }
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
       method: "POST",
       headers: {
-        "Authorization": `Bearer ${apiKey}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
-        messages: [
+        contents: [
           {
-            role: "system",
-            content: `You are a product safety analysis assistant for Indian consumers. Analyze the product image and provide:
+            role: "user",
+            parts: [
+              { text: `You are a product safety analysis assistant for Indian consumers. Analyze the product image and provide:
 1. Product name/type identified
 2. Any visible ISI/BIS marks or certification numbers
 3. Brand name if visible
@@ -56,27 +55,32 @@ Respond in JSON format:
   "riskLevel": "low|medium|high",
   "summary": "Brief 2-sentence summary",
   "recommendation": "What the consumer should do next"
-}`
-          },
-          {
-            role: "user",
-            content: [
-              { type: "text", text: "Analyze this product image for safety verification:" },
-              { type: "image_url", image_url: { url: imageUrl } }
+}
+
+Analyze this product image for safety verification:` },
+              { 
+                inlineData: {
+                  mimeType: imageUrl.startsWith('data:') ? imageUrl.split(';')[0].split(':')[1] : 'image/jpeg',
+                  data: imageUrl.startsWith('data:') ? imageUrl.split(',')[1] : await (await fetch(imageUrl)).arrayBuffer().then(buf => btoa(String.fromCharCode(...new Uint8Array(buf))))
+                }
+              }
             ]
           }
         ],
-        max_tokens: 1024,
+        generationConfig: {
+          temperature: 0.4,
+          maxOutputTokens: 1024,
+        },
       }),
     });
 
     if (!response.ok) {
       const errorText = await response.text();
-      throw new Error(`AI Gateway error: ${response.status} ${errorText}`);
+      throw new Error(`Gemini API error: ${response.status} ${errorText}`);
     }
 
     const data = await response.json();
-    const content = data.choices?.[0]?.message?.content || "";
+    const content = data.candidates?.[0]?.content?.parts?.[0]?.text || "";
 
     // Try to parse JSON from the response
     let analysis;
