@@ -73,10 +73,10 @@ const BIS_URLS = [
 function getContentType(url: string): string {
   if (url.includes("hallmark")) return "hallmarking";
   if (url.includes("product-certification") || url.includes("isi-mark") || url.includes("fmcs") || url.includes("eco-mark") || url.includes("mandatory-certification")) return "certification";
-  if (url.includes("standard")) return "standards";
+  if (url.includes("standard") || url.includes("technical-department") || url.includes("knowyourstandards") || url.includes("is-10500")) return "standards";
   if (url.includes("consumer") || url.includes("complaint") || url.includes("bis-care")) return "consumer";
   if (url.includes("laboratory")) return "laboratory";
-  if (url.includes("management-system")) return "management";
+  if (url.includes("management-system") || url.includes("management-and-systems")) return "management";
   if (url.includes("about-bis") || url.includes("organization") || url.includes("vision")) return "about";
   return "general";
 }
