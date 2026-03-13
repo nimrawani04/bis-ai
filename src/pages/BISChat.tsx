@@ -292,6 +292,7 @@ export default function BISChat() {
   const [isRecording, setIsRecording] = useState(false);
   const [simpleMode, setSimpleMode] = useState(false);
   const [autoReadAloud, setAutoReadAloud] = useState(false);
+  const [filtersOpen, setFiltersOpen] = useState(false);
   const [questionHistory, setQuestionHistory] = useState<string[]>(() => {
     try { return JSON.parse(localStorage.getItem('bis-question-history') || '[]'); } catch { return []; }
   });
@@ -571,18 +572,12 @@ export default function BISChat() {
       {/* Secondary controls */}
       <div className="border-b border-border bg-background/80">
         <div className="max-w-6xl mx-auto flex flex-wrap items-center justify-between gap-3 px-4 py-2">
-          <div className="flex items-center gap-2 text-sm">
-            <span className="text-muted-foreground">Topics</span>
-            <select
-              value={activeFilter}
-              onChange={(e) => setActiveFilter(e.target.value)}
-              className="text-sm text-foreground bg-transparent border border-border rounded-md px-2 py-1 focus:outline-none focus:ring-2 focus:ring-primary/40"
-            >
-              {topicFilters.map((topic) => (
-                <option key={topic.id} value={topic.id}>{topic.label}</option>
-              ))}
-            </select>
-          </div>
+          <button
+            onClick={() => setFiltersOpen(!filtersOpen)}
+            className="text-sm text-muted-foreground hover:text-foreground border border-border rounded-md px-2 py-1 transition-colors"
+          >
+            Topics {filtersOpen ? '▲' : '▼'}
+          </button>
 
           <div className="flex items-center gap-2 text-sm">
             <span className="text-muted-foreground">Language</span>
@@ -598,6 +593,23 @@ export default function BISChat() {
           </div>
         </div>
       </div>
+
+      {filtersOpen && (
+        <div className="border-b border-border bg-card/40">
+          <div className="max-w-6xl mx-auto flex items-center gap-2 px-4 py-2 text-sm">
+            <span className="text-muted-foreground">Topics</span>
+            <select
+              value={activeFilter}
+              onChange={(e) => setActiveFilter(e.target.value)}
+              className="text-sm text-foreground bg-transparent border border-border rounded-md px-2 py-1 focus:outline-none focus:ring-2 focus:ring-primary/40"
+            >
+              {topicFilters.map((topic) => (
+                <option key={topic.id} value={topic.id}>{topic.label}</option>
+              ))}
+            </select>
+          </div>
+        </div>
+      )}
 
       {/* Chat header bar */}
       {messages.length > 0 && (

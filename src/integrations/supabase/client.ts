@@ -4,14 +4,64 @@ import type { Database } from './types';
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+const SUPABASE_CONFIGURED = Boolean(SUPABASE_URL && SUPABASE_PUBLISHABLE_KEY);
+
+const createStubError = () => ({
+  data: null,
+  error: new Error('Supabase is not configured. Set VITE_SUPABASE_URL and VITE_SUPABASE_PUBLISHABLE_KEY.'),
+});
+
+const createStubQuery = () => {
+  const handler: ProxyHandler<any> = {
+    get: (_target, prop) => {
+      if (prop === 'then') {
+        return (resolve: (value: any) => void) => Promise.resolve(createStubError()).then(resolve);
+      }
+      if (prop === 'single' || prop === 'maybeSingle') {
+        return () => Promise.resolve(createStubError());
+      }
+      if (prop === 'select' || prop === 'insert' || prop === 'update' || prop === 'delete' || prop === 'upsert') {
+        return () => createStubQuery();
+      }
+      if (prop === 'eq' || prop === 'not' || prop === 'order' || prop === 'limit' || prop === 'in') {
+        return () => createStubQuery();
+      }
+      return () => createStubQuery();
+    },
+  };
+  return new Proxy({}, handler);
+};
+
+const createStubClient = () => ({
+  from: () => createStubQuery(),
+  storage: {
+    from: () => ({
+      upload: async () => createStubError(),
+      getPublicUrl: () => ({ data: { publicUrl: '' } }),
+    }),
+  },
+  functions: {
+    invoke: async () => createStubError(),
+  },
+  auth: {
+    onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => {} } } }),
+    getSession: async () => ({ data: { session: null }, error: createStubError().error }),
+    signOut: async () => createStubError(),
+    signInWithPassword: async () => createStubError(),
+    signUp: async () => createStubError(),
+    signInWithOAuth: async () => createStubError(),
+  },
+});
 
 // Import the supabase client like this:
 // import { supabase } from "@/integrations/supabase/client";
 
-export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
-  auth: {
-    storage: localStorage,
-    persistSession: true,
-    autoRefreshToken: true,
-  }
-});
+export const supabase = SUPABASE_CONFIGURED
+  ? createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
+      auth: {
+        storage: localStorage,
+        persistSession: true,
+        autoRefreshToken: true,
+      },
+    })
+  : (createStubClient() as any);
