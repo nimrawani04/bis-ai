@@ -1,4 +1,4 @@
-# 🛡️ BIS Smart Assistant — Bureau of Indian Standards
+# 🛡️ BIS AI — Bureau of Indian Standards
 
 > AI-powered product safety verification platform with offline-first design for rural India.
 
@@ -21,7 +21,7 @@
 
 ## Overview
 
-BIS Smart Assistant helps Indian consumers verify product safety, check BIS/ISI certifications, and access safety standards — even without internet connectivity. Built for the **Smart India Hackathon**, it prioritizes accessibility for rural users on low-bandwidth connections.
+BIS AI helps Indian consumers verify product safety, check BIS/ISI certifications, and access safety standards — even without internet connectivity. Built for the **Smart India Hackathon**, it prioritizes accessibility for rural users on low-bandwidth connections.
 
 ---
 
@@ -300,3 +300,4 @@ Once published, users can install the app on mobile/desktop:
 ## License
 
 Built for Smart India Hackathon. All BIS standards referenced are property of the Bureau of Indian Standards, Government of India.
+

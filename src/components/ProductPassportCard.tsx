@@ -212,7 +212,7 @@ export function ProductPassportCard({ productId }: { productId?: string }) {
       )}
 
       <div className="text-center text-sm text-muted-foreground py-4">
-        <p>Digital Product Passport by StandardShield</p>
+        <p>Digital Product Passport by BIS AI</p>
         <p className="flex items-center justify-center gap-1 mt-1"><Clock className="h-3 w-3" />Last updated: {new Date().toLocaleDateString('en-IN')}</p>
       </div>
     </div>

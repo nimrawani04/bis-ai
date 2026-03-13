@@ -1,9 +1,10 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
-import { Shield, Search, AlertTriangle, BookOpen, ShoppingCart, CheckCircle2, FileWarning, Award } from 'lucide-react';
+import { Search, AlertTriangle, BookOpen, ShoppingCart, CheckCircle2, FileWarning, Award } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { useLowBandwidth } from '@/hooks/useLowBandwidth';
+import { BISLogo } from '@/components/BISLogo';
 
 const actionCards = [
   { icon: Search, title: 'Scan Product', description: 'Verify ISI/BIS certification by product name or certificate number', href: '#verify', color: 'text-primary', bg: 'bg-primary/10', border: 'hover:border-primary/30' },
@@ -100,7 +101,7 @@ export function Hero() {
           <div className="container">
             <div className="mx-auto max-w-4xl text-center">
               <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-white/10 border border-white/10 px-4 py-2 text-sm font-medium text-white/90">
-                <Shield className="h-4 w-4" />
+                <BISLogo className="h-4 w-4" />
                 Bureau of Indian Standards
               </div>
               <h1 className="mb-4 text-3xl font-extrabold tracking-tight text-white sm:text-4xl lg:text-5xl">
@@ -145,14 +146,14 @@ export function Hero() {
         <motion.div className="container relative" style={{ y: textY, opacity }}>
           <div className="mx-auto max-w-4xl text-center">
             <div className="mb-6 inline-flex items-center gap-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/10 px-4 py-2 text-sm font-medium text-white/90 animate-fade-in">
-              <Shield className="h-4 w-4" /> Bureau of Indian Standards Verification
+              <BISLogo className="h-4 w-4" /> Bureau of Indian Standards Verification
             </div>
             <h1 className="mb-6 text-4xl font-extrabold tracking-tight text-white sm:text-5xl lg:text-6xl animate-fade-in">
               Verify Product Safety.
               <span className="block mt-2 text-accent">Protect Consumers.</span>
             </h1>
             <p className="mb-10 text-lg text-white/70 max-w-2xl mx-auto animate-fade-in">
-              StandardShield helps you verify ISI/BIS certifications, detect fake products, and make informed purchasing decisions. Protect your family from unsafe products.
+              BIS AI helps you verify ISI/BIS certifications, detect fake products, and make informed purchasing decisions. Protect your family from unsafe products.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center animate-fade-in">
               <Button size="xl" className="bg-accent hover:bg-accent/90 text-accent-foreground shadow-lg shadow-accent/25" asChild>

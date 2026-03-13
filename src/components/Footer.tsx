@@ -1,4 +1,4 @@
-import { Shield } from 'lucide-react';
+import { BISLogo } from '@/components/BISLogo';
 
 export function Footer() {
   return (
@@ -6,16 +6,16 @@ export function Footer() {
       <div className="container px-4">
         <div className="flex flex-col items-center gap-6 text-center md:text-left md:flex-row md:justify-between">
           <div className="flex items-center gap-2">
-            <div className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-lg gradient-hero">
-              <Shield className="h-4 w-4 sm:h-5 sm:w-5 text-primary-foreground" />
+            <div className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-lg bg-white/95 ring-1 ring-border/40 shadow-sm">
+              <BISLogo className="h-5 w-5 sm:h-6 sm:w-6" />
             </div>
             <span className="text-lg sm:text-xl font-bold text-foreground" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
-              Standard<span className="text-primary">Shield</span>
+              BIS<span className="text-primary"> AI</span>
             </span>
           </div>
-          
+
           <p className="text-xs sm:text-sm text-muted-foreground max-w-xs sm:max-w-none">
-            Empowering consumers with product safety information. 
+            Empowering consumers with product safety information.
             Aligned with Bureau of Indian Standards initiatives.
           </p>
 
@@ -34,8 +34,25 @@ export function Footer() {
 
         <div className="mt-6 sm:mt-8 pt-6 sm:pt-8 border-t border-border text-center">
           <p className="text-[10px] sm:text-xs text-muted-foreground">
-            © 2024 StandardShield. Built for Smart India Hackathon.
-            This is a demonstration project.
+            Developed by{" "}
+            <a
+              href="https://m4milaad.github.io/"
+              target="_blank"
+              rel="noreferrer"
+              className="font-semibold text-foreground hover:text-primary transition-colors"
+            >
+              Milad Ajaz Bhat
+            </a>{" "}
+            and{" "}
+            <a
+              href="https://nimrawani.vercel.app/"
+              target="_blank"
+              rel="noreferrer"
+              className="font-semibold text-foreground hover:text-primary transition-colors"
+            >
+              Nimra Wani
+            </a>
+            . This is a <strong>demonstration project</strong>.
           </p>
         </div>
       </div>

@@ -1,10 +1,11 @@
-import { Shield, Menu, X, Sun, Moon } from 'lucide-react';
+import { Menu, X, Sun, Moon } from 'lucide-react';
 import { OfflineBanner } from '@/components/OfflineBanner';
 import { LowBandwidthToggle } from '@/components/LowBandwidthToggle';
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
 import { useTheme } from '@/components/ThemeProvider';
 import ashokaChakra from '@/assets/ashoka-chakra.png';
+import { BISLogo } from '@/components/BISLogo';
 
 function TricolorStrip() {
   return <div className="tricolor-strip w-full" />;
@@ -37,12 +38,12 @@ export function Header() {
       <div className="border-b border-border/50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container flex h-14 items-center justify-between">
           <a href="/" className="flex items-center gap-2.5">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg gradient-hero shadow-sm">
-              <Shield className="h-5 w-5 text-primary-foreground" />
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-white/95 ring-1 ring-border/40 shadow-sm">
+              <BISLogo className="h-6 w-6" />
             </div>
             <div className="flex flex-col leading-none">
               <span className="text-base font-bold text-foreground tracking-tight" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
-                Standard<span className="text-primary">Shield</span>
+                BIS<span className="text-primary"> AI</span>
               </span>
               <span className="text-[9px] font-medium text-muted-foreground tracking-wider uppercase">
                 Product Safety

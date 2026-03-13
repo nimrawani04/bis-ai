@@ -1,4 +1,4 @@
-import { Shield, Menu, X, Sun, Moon, LogIn, LogOut, HelpCircle, WifiOff } from 'lucide-react';
+import { Menu, X, Sun, Moon, LogIn, LogOut, HelpCircle, WifiOff } from 'lucide-react';
 import { OfflineBanner } from '@/components/OfflineBanner';
 import { LowBandwidthToggle } from '@/components/LowBandwidthToggle';
 import { Button } from '@/components/ui/button';
@@ -7,6 +7,7 @@ import { useTheme } from '@/components/ThemeProvider';
 import { Link, useLocation } from 'react-router-dom';
 import ashokaChakra from '@/assets/ashoka-chakra.png';
 import { useAuth } from '@/hooks/useAuth';
+import { BISLogo } from '@/components/BISLogo';
 
 const navLinks = [
   { to: '/', label: 'Home' },
@@ -111,15 +112,15 @@ export function BISHeader() {
       <div className="border-b border-border/50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container flex h-14 items-center justify-between">
           <Link to="/" className="flex items-center gap-2.5">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary shadow-sm">
-              <Shield className="h-5 w-5 text-primary-foreground" />
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-white/95 ring-1 ring-border/40 shadow-sm">
+              <BISLogo className="h-6 w-6" />
             </div>
             <div className="flex flex-col leading-none">
               <span className="text-base font-bold text-foreground tracking-tight" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
-                BIS<span className="text-primary"> Smart</span>
+                BIS<span className="text-primary"> AI</span>
               </span>
               <span className="text-[9px] font-medium text-muted-foreground tracking-wider uppercase">
-                Assistant
+                AI Assistant
               </span>
             </div>
           </Link>
