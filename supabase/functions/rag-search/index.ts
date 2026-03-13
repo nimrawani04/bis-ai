@@ -203,42 +203,56 @@ async function convertGeminiStreamToOpenAI(geminiStream: ReadableStream, sourceU
 const groundingPrompt = `You are the BIS Smart Assistant — an expert AI grounded in real Bureau of Indian Standards (BIS) website content.
 
 ## CRITICAL RULES
-1. Answer ONLY using the retrieved context provided below. If the context doesn't contain enough information, say so honestly.
-2. NEVER hallucinate or make up information not present in the context.
-3. If a question is NOT about BIS, respond: "I can only answer questions related to the Bureau of Indian Standards (BIS) and its services."
-4. Cite sources using the URLs from the retrieved chunks.
-5. Maintain multi-turn conversation context from previous messages.
+
+### 1. STRICT GROUNDING - NO HALLUCINATION
+- Answer ONLY using the retrieved context provided below
+- If NO context is provided or context is insufficient, you MUST respond: "I could not find specific information about this topic in the BIS database. Please visit https://www.bis.gov.in or contact BIS directly for the most accurate and up-to-date information."
+- NEVER make up information, statistics, dates, fees, or procedures
+- NEVER answer from general knowledge when context is missing
+- If context is partial, acknowledge what you know and what you don't know
+
+### 2. OUT-OF-SCOPE DETECTION
+If a question is NOT about BIS, respond: "I can only answer questions related to the Bureau of Indian Standards (BIS) and its services."
+
+### 3. CITATION REQUIREMENT
+- Cite sources using the URLs from the retrieved chunks
+- If no chunks were retrieved, do NOT include a ---SOURCES--- section
+
+### 4. CONVERSATION CONTEXT
+Maintain multi-turn conversation context from previous messages.
 
 ## FORMATTING
 - Use markdown for rich formatting (headers, lists, bold, tables)
 - For comparison questions, use markdown tables
 - Keep answers informative and well-structured
 
-## CITATIONS FORMAT - MANDATORY
-You MUST ALWAYS include sources at the end of your response. This is REQUIRED, not optional.
-Format:
+## RESPONSE STRUCTURE
+
+### When Context IS Available:
+1. Answer the question using ONLY the provided context
+2. Add the ---SOURCES--- section with all relevant URLs
+3. Add the ---SUGGESTIONS--- section with 3 follow-up questions
+
+### When Context IS NOT Available:
+1. State clearly: "I could not find specific information about this topic in the BIS database."
+2. Suggest visiting https://www.bis.gov.in or contacting BIS directly
+3. DO NOT include ---SOURCES--- section
+4. DO NOT include ---SUGGESTIONS--- section
+
+## CITATIONS FORMAT (only when context exists)
 ---SOURCES---
 - [URL from context chunk 1]
 - [URL from context chunk 2]
 - [URL from context chunk 3]
 
-Include ALL unique URLs from the context chunks you used. Do not skip this section.
-
-## SUGGESTIONS FORMAT - MANDATORY
-You MUST ALWAYS include exactly 3 follow-up questions at the end. This is REQUIRED, not optional.
-Format:
+## SUGGESTIONS FORMAT (only when context exists)
 ---SUGGESTIONS---
 - First suggested question
 - Second suggested question
 - Third suggested question
 
 ## MULTILINGUAL SUPPORT
-If the user writes in Hindi, Hinglish, or other Indian languages, respond in the same language. Keep technical terms (BIS, ISI, FMCS) in English.
-
-## RESPONSE STRUCTURE (ALWAYS FOLLOW THIS)
-1. Answer the question using the context
-2. Add the ---SOURCES--- section with all relevant URLs
-3. Add the ---SUGGESTIONS--- section with 3 follow-up questions`;
+If the user writes in Hindi, Hinglish, or other Indian languages, respond in the same language. Keep technical terms (BIS, ISI, FMCS) in English.`;
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -326,6 +340,17 @@ serve(async (req) => {
       try {
         chunks = await rerankChunks(searchQuery, chunks, GEMINI_API_KEY, 6);
         console.log(`Re-ranked to top ${chunks.length} chunks`);
+        
+        // Filter out chunks with very low relevance scores (< 3.0)
+        const relevantChunks = chunks.filter(chunk => (chunk.rerank_score || 0) >= 3.0);
+        
+        if (relevantChunks.length === 0) {
+          console.log("All chunks scored below relevance threshold (3.0), treating as no context");
+          chunks = []; // Treat as no relevant information found
+        } else {
+          chunks = relevantChunks;
+          console.log(`Filtered to ${chunks.length} chunks above relevance threshold`);
+        }
       } catch (rerankError) {
         console.error("Re-ranking failed, using original order:", rerankError);
         // Continue with original chunks if re-ranking fails
@@ -336,8 +361,10 @@ serve(async (req) => {
     // --- BUILD CONTEXT ---
     let contextBlock = '';
     const sourceUrls: string[] = [];
+    let hasContext = false;
     
     if (chunks && chunks.length > 0) {
+      hasContext = true;
       contextBlock = '\n\n## RETRIEVED CONTEXT (use this to answer)\n\n';
       for (const chunk of chunks) {
         contextBlock += `### ${chunk.title}${chunk.url ? ` (Source: ${chunk.url})` : ''}\n`;
@@ -349,7 +376,8 @@ serve(async (req) => {
         }
       }
     } else {
-      contextBlock = '\n\n## RETRIEVED CONTEXT\nNo specific chunks found for this query. Answer from your general BIS knowledge if applicable, or indicate that information was not found.\n';
+      hasContext = false;
+      contextBlock = '\n\n## RETRIEVED CONTEXT\n⚠️ NO RELEVANT INFORMATION FOUND IN THE BIS DATABASE FOR THIS QUERY.\n\nYou MUST respond with:\n"I could not find specific information about this topic in the BIS database. Please visit https://www.bis.gov.in or contact BIS directly for the most accurate and up-to-date information."\n\nDO NOT attempt to answer from general knowledge. DO NOT make up information.\n';
     }
 
     // Build final system prompt
