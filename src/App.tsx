@@ -12,6 +12,7 @@ import StandardsExplorer from "./pages/StandardsExplorer";
 import AboutBIS from "./pages/AboutBIS";
 import NotFound from "./pages/NotFound";
 import Auth from "./pages/Auth";
+import AdminCrawl from "./pages/AdminCrawl";
 
 const queryClient = new QueryClient();
 
