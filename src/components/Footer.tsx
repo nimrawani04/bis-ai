@@ -34,8 +34,25 @@ export function Footer() {
 
         <div className="mt-6 sm:mt-8 pt-6 sm:pt-8 border-t border-border text-center">
           <p className="text-[10px] sm:text-xs text-muted-foreground">
-            Developed by <strong>Milad Ajaz Bhat</strong> and <strong>Nimra Wani</strong>.
-            This is a <strong>demonstration project</strong>.
+            Developed by{" "}
+            <a
+              href="https://m4milaad.github.io/"
+              target="_blank"
+              rel="noreferrer"
+              className="font-semibold text-foreground hover:text-primary transition-colors"
+            >
+              Milad Ajaz Bhat
+            </a>{" "}
+            and{" "}
+            <a
+              href="https://nimrawani.vercel.app/"
+              target="_blank"
+              rel="noreferrer"
+              className="font-semibold text-foreground hover:text-primary transition-colors"
+            >
+              Nimra Wani
+            </a>
+            . This is a <strong>demonstration project</strong>.
           </p>
         </div>
       </div>
