@@ -8,30 +8,65 @@ const corsHeaders = {
 
 // Key BIS pages to scrape for the knowledge base
 const BIS_URLS = [
+  // About BIS
   "https://www.bis.gov.in/about-bis/",
   "https://www.bis.gov.in/about-bis/organization/",
   "https://www.bis.gov.in/about-bis/vision-mission/",
+  // Product Certification
   "https://www.bis.gov.in/product-certification/",
   "https://www.bis.gov.in/product-certification/isi-mark-scheme/",
   "https://www.bis.gov.in/product-certification/compulsory-registration-scheme/",
   "https://www.bis.gov.in/product-certification/foreign-manufacturers-certification-scheme-fmcs/",
   "https://www.bis.gov.in/product-certification/eco-mark-scheme/",
+  "https://www.bis.gov.in/product-certification/mandatory-certification/",
+  // Hallmarking
   "https://www.bis.gov.in/hallmarking/",
   "https://www.bis.gov.in/hallmarking/hallmarking-overview/",
   "https://www.bis.gov.in/hallmarking/hallmarking-of-gold-jewellery/",
   "https://www.bis.gov.in/hallmarking/hallmarking-of-silver-jewellery/",
   "https://www.bis.gov.in/hallmarking/huid/",
+  // Standardization
   "https://www.bis.gov.in/standardization/",
   "https://www.bis.gov.in/standardization/how-standards-are-formulated/",
   "https://www.bis.gov.in/standardization/national-standards-body/",
+  "https://www.bis.gov.in/standardization/indian-standards/",
+  // Management & Labs
   "https://www.bis.gov.in/management-system-certification/",
   "https://www.bis.gov.in/laboratory-services/",
+  // Consumer Affairs
   "https://www.bis.gov.in/consumer-affairs/",
   "https://www.bis.gov.in/consumer-affairs/lodge-complaint/",
   "https://www.bis.gov.in/consumer-affairs/consumer-engagement/",
   "https://www.bis.gov.in/bis-care-app/",
-  "https://www.bis.gov.in/standardization/indian-standards/",
-  "https://www.bis.gov.in/product-certification/mandatory-certification/",
+  // === PRODUCT STANDARDS (NEW) ===
+  // Drinking Water
+  "https://www.bis.gov.in/index.php/standards/bis-standards/is-10500-drinking-water/",
+  "https://www.services.bis.gov.in/php/BIS_2.0/bisconnect/knowyourstandards/Indian_Standard_Search",
+  // Steel & Construction
+  "https://www.bis.gov.in/index.php/standards/technical-department/civil-engineering/",
+  "https://www.bis.gov.in/index.php/standards/technical-department/metallurgical-engineering/",
+  // Food Safety
+  "https://www.bis.gov.in/index.php/standards/technical-department/food-and-agriculture/",
+  // Electrical & Electronics
+  "https://www.bis.gov.in/index.php/standards/technical-department/electrotechnical/",
+  "https://www.bis.gov.in/index.php/standards/technical-department/electronics-and-information-technology/",
+  // Chemical & Textiles
+  "https://www.bis.gov.in/index.php/standards/technical-department/chemical/",
+  "https://www.bis.gov.in/index.php/standards/technical-department/textile/",
+  // Mechanical Engineering
+  "https://www.bis.gov.in/index.php/standards/technical-department/mechanical-engineering/",
+  // Petroleum & Energy
+  "https://www.bis.gov.in/index.php/standards/technical-department/petroleum-coal-and-related-products/",
+  // Medical & Healthcare
+  "https://www.bis.gov.in/index.php/standards/technical-department/medical-equipment-and-hospital-planning/",
+  // Water Resources
+  "https://www.bis.gov.in/index.php/standards/technical-department/water-resources/",
+  // Transport Engineering
+  "https://www.bis.gov.in/index.php/standards/technical-department/transport-engineering/",
+  // Production & General Engineering
+  "https://www.bis.gov.in/index.php/standards/technical-department/production-and-general-engineering/",
+  // Management Systems
+  "https://www.bis.gov.in/index.php/standards/technical-department/management-and-systems/",
 ];
 
 // Map URL to content_type for categorization
