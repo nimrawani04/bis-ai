@@ -101,10 +101,22 @@ BIS AI helps Indian consumers verify product safety, check BIS/ISI certification
 |-------|--------------|-------------------------------------------------------------------------------------------------------|
 | 1     | **Ingest**   | Recursively crawl all pages across bis.gov.in — standards, certification, labs, publications, news, FAQs, consumer programmes |
 | 2     | **Chunk**    | Split content into ~500-token overlapping passages; preserve headings and structural units             |
-| 3     | **Embed**    | Convert chunks to vector representations using an embedding model (e.g. text-embedding-3-small)       |
-| 4     | **Store**    | Index vectors + metadata (URL, title, content type, timestamp) in a vector database                   |
-| 5     | **Retrieve** | Find the top-K most relevant chunks for any user query via cosine similarity search                   |
-| 6     | **Answer**   | Pass retrieved context to an LLM with a grounding prompt; stream the response to the UI               |
+| 3     | **Embed**    | Convert chunks to 768-dimensional vectors using Gemini `text-embedding-004` model                     |
+| 4     | **Store**    | Index vectors + metadata (URL, title, content type, timestamp) in PostgreSQL with pgvector extension  |
+| 5     | **Retrieve** | Hybrid search combining Full-Text Search (FTS) + semantic search with RRF (Reciprocal Rank Fusion)   |
+| 6     | **Answer**   | Pass retrieved context to Gemini 2.5 Flash with grounding prompt; stream the response to the UI      |
+
+#### Hybrid Search with RRF Fusion
+
+The system uses a sophisticated hybrid retrieval approach:
+
+- **Full-Text Search (FTS)**: PostgreSQL's built-in text search for exact keyword matching
+- **Semantic Search**: pgvector with cosine similarity for conceptual matching
+- **RRF Fusion**: Combines both rankings using `score = 1/(k + rank_position)` formula
+- **Benefits**: Better recall (semantic) + better precision (FTS) = optimal results
+- **Fallback**: Gracefully falls back to FTS-only if embedding generation fails
+
+See [supabase/HYBRID_SEARCH.md](supabase/HYBRID_SEARCH.md) for detailed documentation.
 
 ---
 

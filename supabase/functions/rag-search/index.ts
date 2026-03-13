@@ -6,6 +6,33 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+/**
+ * Generate query embedding using Gemini
+ */
+async function generateQueryEmbedding(query: string, apiKey: string): Promise<number[]> {
+  const response = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/text-embedding-004:embedContent?key=${apiKey}`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "models/text-embedding-004",
+        content: {
+          parts: [{ text: query }]
+        }
+      })
+    }
+  );
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Gemini embedding API error: ${response.status} - ${errorText}`);
+  }
+
+  const data = await response.json();
+  return data.embedding.values;
+}
+
 // Convert Gemini SSE stream to OpenAI-compatible format
 async function convertGeminiStreamToOpenAI(geminiStream: ReadableStream, sourceUrls: string[] = []) {
   const reader = geminiStream.getReader();
@@ -155,12 +182,42 @@ serve(async (req) => {
         ? query.find((c: any) => c.type === 'text')?.text || ''
         : '';
 
-    // Full-text search for top-K relevant chunks
-    const { data: chunks, error: searchError } = await supabase.rpc('search_bis_chunks', {
-      search_query: searchQuery,
-      match_count: 8,
-      filter_type: topic_filter && topic_filter !== 'all' ? topic_filter : null,
-    });
+    // Generate query embedding for semantic search
+    let queryEmbedding: number[] | null = null;
+    try {
+      queryEmbedding = await generateQueryEmbedding(searchQuery, GEMINI_API_KEY);
+      console.log("Generated query embedding");
+    } catch (embeddingError) {
+      console.error("Error generating query embedding:", embeddingError);
+      // Fall back to FTS-only search if embedding generation fails
+    }
+
+    // Perform hybrid search with RRF fusion if embedding is available
+    let chunks;
+    let searchError;
+    
+    if (queryEmbedding) {
+      console.log("Using hybrid search (FTS + Semantic with RRF)");
+      const result = await supabase.rpc('search_bis_chunks_hybrid', {
+        search_query: searchQuery,
+        query_embedding: queryEmbedding,
+        match_count: 8,
+        filter_type: topic_filter && topic_filter !== 'all' ? topic_filter : null,
+        rrf_k: 60,
+      });
+      chunks = result.data;
+      searchError = result.error;
+    } else {
+      console.log("Using FTS-only search (fallback)");
+      // Fallback to FTS-only search
+      const result = await supabase.rpc('search_bis_chunks', {
+        search_query: searchQuery,
+        match_count: 8,
+        filter_type: topic_filter && topic_filter !== 'all' ? topic_filter : null,
+      });
+      chunks = result.data;
+      searchError = result.error;
+    }
 
     if (searchError) {
       console.error("Search error:", searchError);

@@ -54,6 +54,59 @@ function chunkText(text: string, maxTokens = 500, overlap = 50): string[] {
   return chunks;
 }
 
+/**
+ * Generate embeddings using Gemini embedding model
+ */
+async function generateEmbedding(text: string, apiKey: string): Promise<number[]> {
+  const response = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/text-embedding-004:embedContent?key=${apiKey}`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "models/text-embedding-004",
+        content: {
+          parts: [{ text }]
+        }
+      })
+    }
+  );
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Gemini embedding API error: ${response.status} - ${errorText}`);
+  }
+
+  const data = await response.json();
+  return data.embedding.values;
+}
+
+/**
+ * Generate embeddings in batches to avoid rate limits
+ */
+async function generateEmbeddingsBatch(
+  texts: string[],
+  apiKey: string,
+  batchSize = 5
+): Promise<number[][]> {
+  const embeddings: number[][] = [];
+  
+  for (let i = 0; i < texts.length; i += batchSize) {
+    const batch = texts.slice(i, i + batchSize);
+    const batchEmbeddings = await Promise.all(
+      batch.map(text => generateEmbedding(text, apiKey))
+    );
+    embeddings.push(...batchEmbeddings);
+    
+    // Small delay to avoid rate limits
+    if (i + batchSize < texts.length) {
+      await new Promise(resolve => setTimeout(resolve, 100));
+    }
+  }
+  
+  return embeddings;
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -62,6 +115,7 @@ serve(async (req) => {
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const geminiApiKey = Deno.env.get("GEMINI_API_KEY");
     const supabase = createClient(supabaseUrl, serviceRoleKey);
 
     const { documents } = await req.json();
@@ -81,12 +135,26 @@ serve(async (req) => {
 
       const chunks = chunkText(content);
 
+      // Generate embeddings if Gemini API key is available
+      let embeddings: number[][] = [];
+      if (geminiApiKey) {
+        try {
+          console.log(`Generating embeddings for ${chunks.length} chunks...`);
+          embeddings = await generateEmbeddingsBatch(chunks, geminiApiKey);
+          console.log(`Generated ${embeddings.length} embeddings`);
+        } catch (embeddingError) {
+          console.error("Error generating embeddings:", embeddingError);
+          // Continue without embeddings if generation fails
+        }
+      }
+
       const rows = chunks.map((chunk, index) => ({
         url: url || null,
         title,
         content_type: content_type || 'general',
         content: chunk,
         chunk_index: index,
+        embedding: embeddings[index] || null,
       }));
 
       const { error } = await supabase
@@ -101,7 +169,11 @@ serve(async (req) => {
       totalChunks += chunks.length;
     }
 
-    return new Response(JSON.stringify({ success: true, chunks_created: totalChunks }), {
+    return new Response(JSON.stringify({ 
+      success: true, 
+      chunks_created: totalChunks,
+      embeddings_generated: geminiApiKey ? true : false
+    }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (e) {
