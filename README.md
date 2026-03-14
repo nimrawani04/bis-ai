@@ -247,8 +247,8 @@ The system uses a sophisticated hybrid retrieval approach:
 
 ```bash
 # 1. Clone the repository
-git clone (https://github.com/nimrawani04/bis-ai.git)
-cd <YOUR_PROJECT_NAME>
+git clone https://github.com/nimrawani04/bis-ai.git
+cd BIS-AI
 
 # 2. Install dependencies
 npm install
@@ -338,7 +338,7 @@ Once published, users can install the app on mobile/desktop:
 ---
 
 ## License
-
+- MIT
 ### 👩‍💻 Developers
 
 - 🔹 **Nimra Wani** — [Portfolio](https://nimrawani.vercel.app/)
