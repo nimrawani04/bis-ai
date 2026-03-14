@@ -6,130 +6,6 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-/**
- * Generate query embedding using Gemini
- */
-async function generateQueryEmbedding(query: string, apiKey: string): Promise<number[]> {
-  const response = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/text-embedding-004:embedContent?key=${apiKey}`,
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        model: "models/text-embedding-004",
-        content: {
-          parts: [{ text: query }]
-        }
-      })
-    }
-  );
-
-  if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(`Gemini embedding API error: ${response.status} - ${errorText}`);
-  }
-
-  const data = await response.json();
-  return data.embedding.values;
-}
-
-/**
- * LLM-based re-ranking of retrieved chunks
- * Uses Gemini to score relevance of each chunk to the query
- */
-async function rerankChunks(
-  query: string,
-  chunks: any[],
-  apiKey: string,
-  topK: number = 5
-): Promise<any[]> {
-  if (!chunks || chunks.length === 0) {
-    return chunks;
-  }
-
-  console.log(`Re-ranking ${chunks.length} chunks for query: "${query}"`);
-
-  // Build re-ranking prompt
-  const rerankPrompt = `You are a relevance scoring system. Given a user query and a list of document chunks, score each chunk's relevance to the query on a scale of 0-10.
-
-Query: "${query}"
-
-For each chunk below, provide ONLY a relevance score (0-10) where:
-- 10 = Perfectly answers the query
-- 7-9 = Highly relevant, contains key information
-- 4-6 = Somewhat relevant, contains related information
-- 1-3 = Marginally relevant, tangentially related
-- 0 = Not relevant at all
-
-Respond with ONLY a JSON array of scores in the same order as the chunks. Format: [score1, score2, score3, ...]
-
-Chunks to score:
-${chunks.map((chunk, idx) => `
-[${idx + 1}] Title: ${chunk.title}
-Content: ${chunk.content.substring(0, 500)}...
-`).join('\n')}
-
-Respond with ONLY the JSON array of scores, nothing else.`;
-
-  try {
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${apiKey}`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          contents: [{
-            parts: [{ text: rerankPrompt }]
-          }],
-          generationConfig: {
-            temperature: 0.1,
-            maxOutputTokens: 200,
-          }
-        })
-      }
-    );
-
-    if (!response.ok) {
-      console.error("Re-ranking API error:", response.status);
-      return chunks.slice(0, topK); // Fallback to original order
-    }
-
-    const data = await response.json();
-    const scoresText = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
-    
-    // Extract JSON array from response
-    const jsonMatch = scoresText.match(/\[[\d\s,\.]+\]/);
-    if (!jsonMatch) {
-      console.error("Failed to parse re-ranking scores, using original order");
-      return chunks.slice(0, topK);
-    }
-
-    const scores: number[] = JSON.parse(jsonMatch[0]);
-    
-    if (scores.length !== chunks.length) {
-      console.error(`Score count mismatch: ${scores.length} vs ${chunks.length}`);
-      return chunks.slice(0, topK);
-    }
-
-    // Attach scores and sort by relevance
-    const rankedChunks = chunks.map((chunk, idx) => ({
-      ...chunk,
-      rerank_score: scores[idx] || 0
-    })).sort((a, b) => b.rerank_score - a.rerank_score);
-
-    console.log("Re-ranking scores:", scores);
-    console.log("Top ranked chunks:", rankedChunks.slice(0, topK).map(c => ({
-      title: c.title,
-      score: c.rerank_score
-    })));
-
-    return rankedChunks.slice(0, topK);
-  } catch (error) {
-    console.error("Re-ranking error:", error);
-    return chunks.slice(0, topK); // Fallback to original order
-  }
-}
-
 type ChunkMeta = { url: string; title: string; snippet: string; content_type: 'webpage' | 'pdf' | 'table' };
 
 // Convert Gemini SSE stream to OpenAI-compatible format
@@ -180,8 +56,11 @@ async function convertGeminiStreamToOpenAI(geminiStream: ReadableStream, sourceU
           }
         }
         
-        // Append sources if not already included and we have source URLs
-        if (sourceUrls.length > 0 && !fullResponse.includes('---SOURCES---')) {
+        // Always append our structured sources block from DB chunk URLs.
+        // Gemini may write its own ---SOURCES--- inline; we ignore that and
+        // always emit the canonical block so parseSources() on the frontend
+        // reliably finds bare "- https://..." lines.
+        if (sourceUrls.length > 0) {
           const sourcesSection = '\n\n---SOURCES---\n' + sourceUrls.map(url => `- ${url}`).join('\n');
           const openaiFormat = {
             choices: [{
@@ -215,59 +94,137 @@ async function convertGeminiStreamToOpenAI(geminiStream: ReadableStream, sourceU
   });
 }
 
-const groundingPrompt = `You are the BIS Smart Assistant — an expert AI grounded in real Bureau of Indian Standards (BIS) website content.
+const groundingPrompt = `You are the BIS Smart Assistant — an expert AI on the Bureau of Indian Standards (BIS).
+
+## PRIORITY ORDER FOR ANSWERING
+1. FIRST: Use the RETRIEVED CONTEXT section below if it contains relevant information
+2. SECOND: Use the BUILT-IN BIS KNOWLEDGE BASE below for common BIS topics
+3. LAST RESORT: If neither has relevant info, say you couldn't find it
 
 ## CRITICAL RULES
 
-### 1. STRICT GROUNDING - NO HALLUCINATION
-- Answer ONLY using the retrieved context provided below
-- If NO context is provided or context is insufficient, you MUST respond: "I could not find specific information about this topic in the BIS database. Please visit https://www.bis.gov.in or contact BIS directly for the most accurate and up-to-date information."
-- NEVER make up information, statistics, dates, fees, or procedures
-- NEVER answer from general knowledge when context is missing
-- If context is partial, acknowledge what you know and what you don't know
-
-### 2. OUT-OF-SCOPE DETECTION
+### 1. OUT-OF-SCOPE DETECTION
 If a question is NOT about BIS, respond: "I can only answer questions related to the Bureau of Indian Standards (BIS) and its services."
 
-### 3. CITATION REQUIREMENT
-- Cite sources using the URLs from the retrieved chunks
-- If no chunks were retrieved, do NOT include a ---SOURCES--- section
+### 2. CITATION REQUIREMENT
+- When answering from RETRIEVED CONTEXT, cite the source URLs from those chunks
+- When answering from BUILT-IN KNOWLEDGE, cite the relevant bis.gov.in URL from the knowledge base
+- Only say "I could not find information" if BOTH the retrieved context AND built-in knowledge lack the answer
 
-### 4. CONVERSATION CONTEXT
+### 3. CONVERSATION CONTEXT
 Maintain multi-turn conversation context from previous messages.
+
+### 4. NO HALLUCINATION
+Never make up fees, dates, or procedures not present in the context or knowledge base.
 
 ## FORMATTING
 - Use markdown for rich formatting (headers, lists, bold, tables)
 - For comparison questions, use markdown tables
-- Keep answers informative and well-structured
 
 ## RESPONSE STRUCTURE
+1. Answer using retrieved context (preferred) or built-in knowledge
+2. Add ---SOURCES--- with relevant URLs
+3. Add ---SUGGESTIONS--- with 3 follow-up questions
 
-### When Context IS Available:
-1. Answer the question using ONLY the provided context
-2. Add the ---SOURCES--- section with all relevant URLs
-3. Add the ---SUGGESTIONS--- section with 3 follow-up questions
-
-### When Context IS NOT Available:
-1. State clearly: "I could not find specific information about this topic in the BIS database."
-2. Suggest visiting https://www.bis.gov.in or contacting BIS directly
-3. DO NOT include ---SOURCES--- section
-4. DO NOT include ---SUGGESTIONS--- section
-
-## CITATIONS FORMAT (only when context exists)
+## CITATIONS FORMAT
 ---SOURCES---
-- [URL from context chunk 1]
-- [URL from context chunk 2]
-- [URL from context chunk 3]
+- [relevant URL]
 
-## SUGGESTIONS FORMAT (only when context exists)
+## SUGGESTIONS FORMAT
 ---SUGGESTIONS---
 - First suggested question
 - Second suggested question
 - Third suggested question
 
 ## MULTILINGUAL SUPPORT
-If the user writes in Hindi, Hinglish, or other Indian languages, respond in the same language. Keep technical terms (BIS, ISI, FMCS) in English.`;
+If the user writes in Hindi, Hinglish, or other Indian languages, respond in the same language. Keep technical terms (BIS, ISI, FMCS) in English.
+
+---
+
+## BUILT-IN BIS KNOWLEDGE BASE
+
+### About BIS
+The Bureau of Indian Standards (BIS) is the national standards body of India established under the BIS Act, 2016. It operates under the Ministry of Consumer Affairs, Food and Public Distribution, Government of India. BIS was formerly known as the Indian Standards Institution (ISI), established in 1947. BIS headquarters is in New Delhi with 5 Regional Offices (Delhi, Mumbai, Kolkata, Chennai, Chandigarh) and 21 Branch Offices across India.
+
+### BIS Functions
+1. Development of Indian Standards
+2. Product Certification (ISI Mark)
+3. Hallmarking of precious metals
+4. Compulsory Registration Scheme (CRS) for electronics
+5. Laboratory testing and calibration
+6. Training and consumer awareness
+7. International cooperation (ISO, IEC membership)
+
+### BIS Certification Schemes
+
+**Product Certification (ISI Mark)**
+- For products conforming to Indian Standards; applies to 900+ products
+- Application via manakonline.bis.gov.in
+- Process: Application → Document review → Factory inspection → Product testing → License grant
+- Surveillance audits conducted regularly
+- Source: https://www.bis.gov.in/index.php/certification/product-certification/
+
+**Hallmarking Scheme**
+- For gold and silver jewelry purity certification
+- Gold grades: 14K (585), 18K (750), 20K (833), 22K (916), 24K (999)
+- Each piece gets a HUID (Hallmark Unique Identification) number
+- Mandatory for gold jewelry since June 2021
+- Source: https://www.bis.gov.in/index.php/certification/hallmarking/
+
+**Compulsory Registration Scheme (CRS)**
+- For electronic and IT goods (adapters, LED lights, laptops, mobile phones, smart watches, etc.)
+- Self-declaration with testing at BIS-recognized labs
+- Source: https://www.bis.gov.in/index.php/certification/scheme-for-compulsory-registration/
+
+**Foreign Manufacturers Certification Scheme (FMCS)**
+- For foreign manufacturers wanting to sell in India
+- Requires liaison office or authorized Indian representative
+- Source: https://www.bis.gov.in/index.php/certification/foreign-manufacturers-certification-scheme-fmcs/
+
+**ECO Mark Scheme**
+- For environment-friendly products (soaps, paints, paper, plastics, textiles)
+
+### How to Apply for BIS Certification
+1. Visit manakonline.bis.gov.in and create an account
+2. Submit online application with documents (test reports, factory details, quality control plan)
+3. BIS reviews and assigns an officer
+4. Factory/premises inspection by BIS officer
+5. Product samples tested at BIS-recognized laboratories
+6. If compliant, BIS grants the license/certificate
+7. Annual surveillance and periodic renewal required
+- Source: https://manakonline.bis.gov.in
+
+### Consumer Affairs & Complaints
+- Consumers can file complaints about sub-standard ISI marked products via the BIS Consumer Affairs portal
+- Visit: https://www.bis.gov.in/index.php/consumer-affairs/
+- BIS conducts market surveillance to check compliance
+- Consumer awareness campaigns, workshops, and publications
+- Collaboration with consumer organizations
+- World Standards Day celebrations annually
+- Complaint process: Visit portal → Provide product details and issue → BIS investigates
+
+### BIS Standards
+- 22,000+ Indian Standards published
+- Covers: Food, Electronics, Textiles, Civil Engineering, Chemicals, Mechanical, Medical, etc.
+- Developed through Technical Committees with industry, government, and consumer representation
+- Designated as "IS" followed by a number (e.g., IS 10500 for drinking water)
+- Can be purchased from bis.gov.in or read at BIS library
+- Source: https://www.bis.gov.in/index.php/standards/bis-standards/
+
+### BIS Laboratories
+- Operates labs in: Mumbai, Kolkata, Chandigarh, Chennai, and Sahibabad
+- Testing for: Gold/silver, electronics, chemicals, food, textiles, mechanical products
+- NABL accredited laboratories
+- Source: https://www.bis.gov.in/index.php/laboratory-services/
+
+### Manak Online Portal
+- manakonline.bis.gov.in — for all certification applications, status tracking, fee payment, certificate download, and license renewal
+
+### BIS Act 2016
+- Replaced the Bureau of Indian Standards Act, 1986
+- Provides for mandatory standards and certification
+- Penalties for misuse of BIS marks
+- Enables hallmarking regulation`;
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -301,94 +258,58 @@ serve(async (req) => {
     const lastUserMsg = [...messages].reverse().find(m => m.role === 'user');
     const query = lastUserMsg?.content || '';
 
-    // Extract text query (ignore image content)
+    // --- RETRIEVE: FTS search ---
     const searchQuery = typeof query === 'string'
       ? query
       : Array.isArray(query)
-        ? query.find((c: any) => c.type === 'text')?.text || ''
+        ? (query as any[]).find((c) => c.type === 'text')?.text || ''
         : '';
 
-    // Generate query embedding for semantic search
-    let queryEmbedding: number[] | null = null;
-    try {
-      queryEmbedding = await generateQueryEmbedding(searchQuery, GEMINI_API_KEY);
-      console.log("Generated query embedding");
-    } catch (embeddingError) {
-      console.error("Error generating query embedding:", embeddingError);
-      // Fall back to FTS-only search if embedding generation fails
+    let chunks: any[] = [];
+
+    // 1. Try FTS via RPC
+    const { data: ftsData, error: ftsError } = await supabase.rpc('search_bis_chunks', {
+      search_query: searchQuery,
+      match_count: 10,
+      filter_type: topic_filter && topic_filter !== 'all' ? topic_filter : null,
+    });
+
+    if (ftsError) {
+      console.error("FTS search error:", ftsError);
+    } else if (ftsData && ftsData.length > 0) {
+      chunks = ftsData;
+      console.log(`FTS returned ${chunks.length} chunks`);
     }
 
-    // Perform hybrid search with RRF fusion if embedding is available
-    // Retrieve more chunks initially (12) for re-ranking
-    let chunks;
-    let searchError;
-    
-    if (queryEmbedding) {
-      console.log("Using hybrid search (FTS + Semantic with RRF)");
-      const result = await supabase.rpc('search_bis_chunks_hybrid', {
-        search_query: searchQuery,
-        query_embedding: queryEmbedding,
-        match_count: 12, // Retrieve more for re-ranking
-        filter_type: topic_filter && topic_filter !== 'all' ? topic_filter : null,
-        rrf_k: 60,
-      });
-      chunks = result.data;
-      searchError = result.error;
-    } else {
-      console.log("Using FTS-only search (fallback)");
-      // Fallback to FTS-only search
-      const result = await supabase.rpc('search_bis_chunks', {
-        search_query: searchQuery,
-        match_count: 12,
-        filter_type: topic_filter && topic_filter !== 'all' ? topic_filter : null,
-      });
-      chunks = result.data;
-      searchError = result.error;
-    }
+    // 2. Fallback: ILIKE scan on meaningful keywords
+    if (chunks.length === 0) {
+      console.log("FTS returned nothing, trying ILIKE fallback...");
+      const keywords = searchQuery
+        .toLowerCase()
+        .split(/\s+/)
+        .filter((w: string) => w.length > 3)
+        .slice(0, 4);
 
-    if (searchError) {
-      console.error("Search error:", searchError);
-    }
-
-    // If FTS/hybrid returned nothing, do a broad keyword scan as last resort
-    if (!chunks || chunks.length === 0) {
-      console.log("No chunks from search, trying broad keyword scan...");
-      const keywords = searchQuery.toLowerCase().split(/\s+/).filter(w => w.length > 3).slice(0, 3);
       if (keywords.length > 0) {
-        const likeConditions = keywords.map(k => `content ILIKE '%${k.replace(/'/g, "''")}%'`).join(' OR ');
-        const { data: broadChunks } = await supabase
+        // Build individual ILIKE filters and OR them via multiple .select calls
+        let q = supabase
           .from('bis_knowledge_chunks')
-          .select('id, url, title, content_type, content, chunk_index')
-          .or(likeConditions)
-          .limit(6);
-        if (broadChunks && broadChunks.length > 0) {
-          console.log(`Broad scan found ${broadChunks.length} chunks`);
-          chunks = broadChunks;
-        }
-      }
-    }
+          .select('id, url, title, content_type, content, chunk_index');
 
-    // --- RE-RANK: Use LLM to re-rank retrieved chunks for better relevance ---
-    if (chunks && chunks.length > 0) {
-      const rawChunks = chunks; // keep original in case re-ranking wipes everything
-      try {
-        chunks = await rerankChunks(searchQuery, chunks, GEMINI_API_KEY, 6);
-        console.log(`Re-ranked to top ${chunks.length} chunks`);
-        
-        // Filter out chunks with very low relevance scores (< 2.0)
-        const relevantChunks = chunks.filter(chunk => (chunk.rerank_score || 0) >= 2.0);
-        
-        if (relevantChunks.length === 0) {
-          // Re-ranker was too aggressive — fall back to raw FTS results
-          console.log("Re-ranker filtered everything out, falling back to raw FTS results");
-          chunks = rawChunks.slice(0, 6);
-        } else {
-          chunks = relevantChunks;
-          console.log(`Filtered to ${chunks.length} chunks above relevance threshold`);
+        // Use the first keyword as primary filter, then filter in JS for others
+        q = q.ilike('content', `%${keywords[0]}%`);
+
+        const { data: likeData } = await q.limit(20);
+        if (likeData && likeData.length > 0) {
+          // Score by how many keywords appear in the content
+          const scored = likeData.map((row: any) => ({
+            ...row,
+            _score: keywords.filter((k: string) => row.content.toLowerCase().includes(k)).length,
+          }));
+          scored.sort((a: any, b: any) => b._score - a._score);
+          chunks = scored.slice(0, 8);
+          console.log(`ILIKE fallback found ${chunks.length} chunks`);
         }
-      } catch (rerankError) {
-        console.error("Re-ranking failed, using original order:", rerankError);
-        chunks = rawChunks.slice(0, 6);
       }
     }
 
@@ -396,10 +317,8 @@ serve(async (req) => {
     let contextBlock = '';
     const sourceUrls: string[] = [];
     const chunkMeta: ChunkMeta[] = [];
-    let hasContext = false;
     
     if (chunks && chunks.length > 0) {
-      hasContext = true;
       contextBlock = '\n\n## RETRIEVED CONTEXT (use this to answer)\n\n';
       for (const chunk of chunks) {
         contextBlock += `### ${chunk.title}${chunk.url ? ` (Source: ${chunk.url})` : ''}\n`;
@@ -421,8 +340,7 @@ serve(async (req) => {
         }
       }
     } else {
-      hasContext = false;
-      contextBlock = '\n\n## RETRIEVED CONTEXT\n⚠️ NO RELEVANT INFORMATION FOUND IN THE BIS DATABASE FOR THIS QUERY.\n\nYou MUST respond with:\n"I could not find specific information about this topic in the BIS database. Please visit https://www.bis.gov.in or contact BIS directly for the most accurate and up-to-date information."\n\nDO NOT attempt to answer from general knowledge. DO NOT make up information.\n';
+      contextBlock = '\n\n## RETRIEVED CONTEXT\nNo specific chunks were retrieved from the database for this query. Use the BUILT-IN BIS KNOWLEDGE BASE above to answer if the topic is covered there. If the topic is not covered in either source, then say you could not find the information.\n';
     }
 
     // Build final system prompt

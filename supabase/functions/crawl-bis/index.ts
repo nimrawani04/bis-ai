@@ -82,6 +82,46 @@ function getContentType(url: string): string {
 }
 
 /**
+ * Generate embedding using Gemini text-embedding-004
+ */
+async function generateEmbedding(text: string, apiKey: string): Promise<number[] | null> {
+  try {
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/text-embedding-004:embedContent?key=${apiKey}`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model: "models/text-embedding-004",
+          content: { parts: [{ text }] },
+        }),
+      }
+    );
+    if (!response.ok) return null;
+    const data = await response.json();
+    return data.embedding?.values ?? null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Generate embeddings in small batches to respect rate limits
+ */
+async function generateEmbeddingsBatch(texts: string[], apiKey: string, batchSize = 5): Promise<(number[] | null)[]> {
+  const results: (number[] | null)[] = [];
+  for (let i = 0; i < texts.length; i += batchSize) {
+    const batch = texts.slice(i, i + batchSize);
+    const batchResults = await Promise.all(batch.map(t => generateEmbedding(t, apiKey)));
+    results.push(...batchResults);
+    if (i + batchSize < texts.length) {
+      await new Promise(r => setTimeout(r, 200));
+    }
+  }
+  return results;
+}
+
+/**
  * Chunk text into ~500-token overlapping passages.
  */
 function chunkText(text: string, maxTokens = 500, overlap = 50): string[] {
@@ -140,6 +180,8 @@ serve(async (req) => {
       });
     }
 
+    const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
+
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, serviceRoleKey);
@@ -196,12 +238,24 @@ serve(async (req) => {
         const chunks = chunkText(markdown);
         const contentType = getContentType(url);
 
+        // Generate embeddings if Gemini API key is available
+        let embeddings: (number[] | null)[] = chunks.map(() => null);
+        if (GEMINI_API_KEY) {
+          try {
+            console.log(`Generating embeddings for ${chunks.length} chunks from ${url}`);
+            embeddings = await generateEmbeddingsBatch(chunks, GEMINI_API_KEY);
+          } catch (embErr) {
+            console.error(`Embedding error for ${url}:`, embErr);
+          }
+        }
+
         const rows = chunks.map((chunk, index) => ({
           url,
           title,
           content_type: contentType,
           content: chunk,
           chunk_index: index,
+          embedding: embeddings[index] ?? null,
         }));
 
         // Delete existing chunks for this URL to avoid duplicates

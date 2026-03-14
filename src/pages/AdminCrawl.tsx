@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
-import { Loader2, CheckCircle2, XCircle, Database, Globe } from 'lucide-react';
+import { Loader2, CheckCircle2, XCircle, Database, Globe, Zap } from 'lucide-react';
 import { toast } from 'sonner';
 
 type CrawlResult = {
@@ -25,6 +25,8 @@ type CrawlResponse = {
 
 const AdminCrawl = () => {
   const [loading, setLoading] = useState(false);
+  const [embeddingLoading, setEmbeddingLoading] = useState(false);
+  const [embeddingProgress, setEmbeddingProgress] = useState<{ processed: number; failed: number } | null>(null);
   const [response, setResponse] = useState<CrawlResponse | null>(null);
 
   const handleCrawl = async () => {
@@ -48,6 +50,42 @@ const AdminCrawl = () => {
     }
   };
 
+  const handleRegenerateEmbeddings = async () => {
+    setEmbeddingLoading(true);
+    setEmbeddingProgress({ processed: 0, failed: 0 });
+    let totalProcessed = 0;
+    let totalFailed = 0;
+    let offset = 0;
+    const batchSize = 10;
+
+    try {
+      while (true) {
+        const { data, error } = await supabase.functions.invoke('regenerate-embeddings', {
+          body: { batch_size: batchSize, offset },
+        });
+
+        if (error) {
+          toast.error('Embedding generation failed: ' + error.message);
+          break;
+        }
+
+        if (data.processed === 0 && data.total_found === 0) {
+          toast.success(`All embeddings generated! ${totalProcessed} chunks processed.`);
+          break;
+        }
+
+        totalProcessed += data.processed ?? 0;
+        totalFailed += data.failed ?? 0;
+        offset += batchSize;
+        setEmbeddingProgress({ processed: totalProcessed, failed: totalFailed });
+      }
+    } catch (err) {
+      toast.error('Unexpected error during embedding generation');
+    } finally {
+      setEmbeddingLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <BISHeader />
@@ -67,7 +105,7 @@ const AdminCrawl = () => {
           <CardContent className="space-y-4">
             <p className="text-sm text-muted-foreground">
               This will scrape 24+ key BIS pages (certification, hallmarking, standards, consumer affairs),
-              chunk them into ~500-token passages, and store them in the knowledge base for RAG retrieval.
+              chunk them into ~500-token passages, generate embeddings, and store them in the knowledge base for RAG retrieval.
             </p>
             <Button onClick={handleCrawl} disabled={loading} size="lg">
               {loading ? (
@@ -82,6 +120,41 @@ const AdminCrawl = () => {
                 </>
               )}
             </Button>
+          </CardContent>
+        </Card>
+
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Zap className="h-5 w-5" />
+              Backfill Embeddings
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              Generate Gemini embeddings for any existing chunks that are missing them. Run this if you crawled before embeddings were supported.
+            </p>
+            <div className="flex items-center gap-4">
+              <Button onClick={handleRegenerateEmbeddings} disabled={embeddingLoading} variant="outline" size="lg">
+                {embeddingLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Generating embeddings...
+                  </>
+                ) : (
+                  <>
+                    <Zap className="mr-2 h-4 w-4" />
+                    Regenerate Embeddings
+                  </>
+                )}
+              </Button>
+              {embeddingProgress && (
+                <span className="text-sm text-muted-foreground">
+                  {embeddingProgress.processed} processed
+                  {embeddingProgress.failed > 0 && `, ${embeddingProgress.failed} failed`}
+                </span>
+              )}
+            </div>
           </CardContent>
         </Card>
 
