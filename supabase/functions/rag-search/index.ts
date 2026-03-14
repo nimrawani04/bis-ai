@@ -339,7 +339,7 @@ serve(async (req) => {
       // Fallback to FTS-only search
       const result = await supabase.rpc('search_bis_chunks', {
         search_query: searchQuery,
-        match_count: 12, // Retrieve more for re-ranking
+        match_count: 12,
         filter_type: topic_filter && topic_filter !== 'all' ? topic_filter : null,
       });
       chunks = result.data;
@@ -350,26 +350,45 @@ serve(async (req) => {
       console.error("Search error:", searchError);
     }
 
+    // If FTS/hybrid returned nothing, do a broad keyword scan as last resort
+    if (!chunks || chunks.length === 0) {
+      console.log("No chunks from search, trying broad keyword scan...");
+      const keywords = searchQuery.toLowerCase().split(/\s+/).filter(w => w.length > 3).slice(0, 3);
+      if (keywords.length > 0) {
+        const likeConditions = keywords.map(k => `content ILIKE '%${k.replace(/'/g, "''")}%'`).join(' OR ');
+        const { data: broadChunks } = await supabase
+          .from('bis_knowledge_chunks')
+          .select('id, url, title, content_type, content, chunk_index')
+          .or(likeConditions)
+          .limit(6);
+        if (broadChunks && broadChunks.length > 0) {
+          console.log(`Broad scan found ${broadChunks.length} chunks`);
+          chunks = broadChunks;
+        }
+      }
+    }
+
     // --- RE-RANK: Use LLM to re-rank retrieved chunks for better relevance ---
     if (chunks && chunks.length > 0) {
+      const rawChunks = chunks; // keep original in case re-ranking wipes everything
       try {
         chunks = await rerankChunks(searchQuery, chunks, GEMINI_API_KEY, 6);
         console.log(`Re-ranked to top ${chunks.length} chunks`);
         
-        // Filter out chunks with very low relevance scores (< 3.0)
-        const relevantChunks = chunks.filter(chunk => (chunk.rerank_score || 0) >= 3.0);
+        // Filter out chunks with very low relevance scores (< 2.0)
+        const relevantChunks = chunks.filter(chunk => (chunk.rerank_score || 0) >= 2.0);
         
         if (relevantChunks.length === 0) {
-          console.log("All chunks scored below relevance threshold (3.0), treating as no context");
-          chunks = []; // Treat as no relevant information found
+          // Re-ranker was too aggressive — fall back to raw FTS results
+          console.log("Re-ranker filtered everything out, falling back to raw FTS results");
+          chunks = rawChunks.slice(0, 6);
         } else {
           chunks = relevantChunks;
           console.log(`Filtered to ${chunks.length} chunks above relevance threshold`);
         }
       } catch (rerankError) {
         console.error("Re-ranking failed, using original order:", rerankError);
-        // Continue with original chunks if re-ranking fails
-        chunks = chunks.slice(0, 6);
+        chunks = rawChunks.slice(0, 6);
       }
     }
 
