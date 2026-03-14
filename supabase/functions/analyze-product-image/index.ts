@@ -36,28 +36,34 @@ serve(async (req) => {
           {
             role: "user",
             parts: [
-              { text: `You are a product safety analysis assistant for Indian consumers. Analyze the product image and provide:
-1. Product name/type identified
-2. Any visible ISI/BIS marks or certification numbers
+              { text: `You are a BIS (Bureau of Indian Standards) product safety analysis assistant for Indian consumers. Analyze the product image and provide a detailed BIS-focused safety assessment.
+
+Identify the specific product type (e.g., "LPG gas cylinder", "electric heater", "phone charger") — be as specific as possible, not generic.
+
+Provide:
+1. Exact product name/type (be specific — e.g. "LPG domestic gas cylinder" not just "cylinder")
+2. Any visible ISI/BIS marks, certification numbers, or safety labels
 3. Brand name if visible
-4. Category (electronics, food, toys, etc.)
-5. Safety observations (packaging condition, visible warnings, label quality)
-6. Risk assessment (low/medium/high) based on visual inspection
+4. Product category for BIS purposes (e.g., "LPG equipment", "electrical appliance", "electronics")
+5. BIS/IS standard that applies to this product (e.g., IS 3196 for LPG cylinders)
+6. Specific safety risks associated with THIS product type
+7. Risk assessment (low/medium/high) based on visual inspection and product type
 
 Respond in JSON format:
 {
-  "productName": "string",
+  "productName": "specific product name",
   "brand": "string or null",
   "category": "string",
+  "applicableStandard": "IS XXXX or null",
   "certificationMarks": ["list of visible marks"],
   "certificationNumber": "string or null",
-  "safetyObservations": ["list of observations"],
+  "safetyObservations": ["list of specific observations for this product"],
   "riskLevel": "low|medium|high",
-  "summary": "Brief 2-sentence summary",
-  "recommendation": "What the consumer should do next"
+  "summary": "Brief 2-sentence summary specific to this product",
+  "recommendation": "Specific BIS safety recommendation for this product type"
 }
 
-Analyze this product image for safety verification:` },
+Analyze this product image for BIS safety verification:` },
               { 
                 inlineData: {
                   mimeType: imageUrl.startsWith('data:') ? imageUrl.split(';')[0].split(':')[1] : 'image/jpeg',

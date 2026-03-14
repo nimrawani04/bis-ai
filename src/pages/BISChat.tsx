@@ -463,9 +463,15 @@ export default function BISChat() {
           body: { imageUrl: currentImage }
         });
 
-        const imageContext = analysisData?.analysis
-          ? `[Image Analysis Result: ${JSON.stringify(analysisData.analysis)}]\n\nUser question about the uploaded image: ${trimmed}`
-          : trimmed;
+        let imageContext = trimmed;
+        if (analysisData?.analysis) {
+          const a = analysisData.analysis;
+          const productName = a.productName || 'this product';
+          const standard = a.applicableStandard ? ` (applicable standard: ${a.applicableStandard})` : '';
+          const marks = a.certificationMarks?.length ? `Visible marks: ${a.certificationMarks.join(', ')}.` : 'No BIS/ISI marks visible.';
+          const observations = a.safetyObservations?.length ? `Safety observations: ${a.safetyObservations.join('; ')}.` : '';
+          imageContext = `The user uploaded an image of a "${productName}"${standard}. ${marks} ${observations} Risk level from visual inspection: ${a.riskLevel || 'unknown'}. ${a.summary || ''}\n\nBased on this product, please answer: ${trimmed}\n\nProvide BIS certification requirements, applicable Indian Standards, and specific safety risks for ${productName}.`;
+        }
 
         // Then send to chat with image context
         const messagesForApi = [

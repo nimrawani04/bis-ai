@@ -82,6 +82,7 @@
   If a user asks about ANYTHING not related to BIS — stock prices, weather, sports, politics, other organizations, general knowledge, coding, math, or any non-BIS topic — you MUST respond ONLY with:
   "I can only answer questions related to the Bureau of Indian Standards (BIS) and its services. Please ask me about BIS standards, certification, hallmarking, or related topics."
   Do NOT attempt to answer. Do NOT provide partial answers. Do NOT say "I think" or speculate.
+  EXCEPTION: If the message contains image analysis data (starts with "The user uploaded an image of") or mentions a specific product for safety checking, always answer — product safety is within BIS scope.
 
   ### 2. ANSWER ONLY FROM PROVIDED KNOWLEDGE
   Answer using ONLY the BIS knowledge provided below and general publicly known BIS facts from bis.gov.in. If you are unsure or the information is not in your knowledge, say: "I could not find specific information on this topic in the BIS website. You may want to visit https://www.bis.gov.in for the latest details."
@@ -94,7 +95,7 @@
   If a user's question is vague (e.g., "How do I get approval?"), internally rewrite it to be more specific (e.g., "How do I apply for BIS product certification?") before answering. Do not tell the user you rewrote their query.
 
   ### 5. MULTILINGUAL SUPPORT
-  Users may ask questions in Hindi, Hinglish, or mixed languages (e.g., "BIS hallmarking kya hai?", "ISI mark kaise milta hai?"). Understand and answer in the same language or in English if the user switches. Always be helpful regardless of language.
+  Users may ask questions in Hindi, Hinglish, or mixed languages (e.g., "BIS hallmarking kya hai?", "ISI mark kaise milta hai?"). Understand and answer in the same language or in   if the user switches. Always be helpful regardless of language.
 
   ### 6. CROSS-PAGE SYNTHESIS
   Some questions require combining information from multiple BIS pages/topics. When answering broad questions (e.g., "What is BIS doing for consumer awareness?"), synthesize information from consumer programs, publications, press releases, and awareness campaigns.
@@ -275,15 +276,18 @@
 
       // Product Safety Checker enhancement
       finalSystemPrompt += `\n\n### PRODUCT SAFETY CHECKER
-  When a user mentions a specific product (like "electric heater", "charger", "helmet", "water purifier", etc.) or asks about product safety:
-  1. Identify if BIS certification is required (mandatory vs voluntary)
-  2. List what marks/certifications to look for: ✔ ISI mark, ✔ certification number (CM/L-XXXXXXX), ✔ manufacturer name and address
-  3. Explain safety risks of using uncertified products
-  4. Provide a simple checklist the consumer can use while buying
-  5. If the user uploaded an image, analyze visible marks and labels
+  When a user mentions a specific product (like "electric heater", "charger", "helmet", "water purifier", "LPG gas cylinder", etc.) or asks about product safety, OR when an image analysis result is provided:
+  1. Identify the SPECIFIC product — use the exact product name from the image analysis if provided
+  2. State whether BIS certification is mandatory or voluntary for that product
+  3. List the applicable Indian Standard (IS number) if known
+  4. List what marks/certifications to look for: ✔ ISI mark, ✔ certification number (CM/L-XXXXXXX), ✔ manufacturer name and address
+  5. Explain the SPECIFIC safety risks of using uncertified versions of THAT product (not generic risks)
+  6. Provide a simple checklist the consumer can use while buying
+
+  IMPORTANT: When image analysis data is provided in the message, use it to give product-specific answers. Do NOT give generic answers — always tailor to the specific product identified.
 
   Format the checklist clearly:
-  **🔍 What to check on your [product]:**
+  **🔍 What to check on your [specific product name]:**
   ✔ ISI mark (look for the ISI logo)
   ✔ Certification number (starts with CM/L-)
   ✔ Manufacturer name & address
@@ -300,7 +304,12 @@
         ml: "Malayalam", pa: "Punjabi"
       };
       if (language && language !== "en" && langMap[language]) {
-        finalSystemPrompt += `\n\nIMPORTANT LANGUAGE INSTRUCTION: The user has selected ${langMap[language]} as their preferred language. You MUST respond in ${langMap[language]} script/language. Keep technical terms (like BIS, ISI, FMCS, CRS) in English but write the explanation in ${langMap[language]}. The ---SOURCES--- and ---SUGGESTIONS--- section markers must remain in English, but suggestion text should be in ${langMap[language]}.`;
+        finalSystemPrompt += `\n\nLANGUAGE INSTRUCTION: The user has selected ${langMap[language]} as their preferred language. Follow these rules strictly:
+1. If the user's message is written in English, ALWAYS respond in English — do NOT switch to ${langMap[language]}.
+2. If the user's message is written in ${langMap[language]} or a mix of ${langMap[language]} and English (Hinglish etc.), respond in ${langMap[language]}.
+3. Always match the language the user is actually typing in. Never override their input language.
+4. Keep technical terms (BIS, ISI, FMCS, CRS, IS numbers) in English regardless of response language.
+5. The ---SOURCES--- and ---SUGGESTIONS--- section markers must always remain in English.`;
       }
 
       // Convert messages to Gemini format
@@ -357,16 +366,5 @@
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
-
-    return new Response(response.body, {
-      headers: { ...corsHeaders, "Content-Type": "text/event-stream" },
-    });
-  } catch (e) {
-    console.error("bis-chat error:", e);
-    return new Response(JSON.stringify({ error: e instanceof Error ? e.message : "Unknown error" }), {
-      status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
-  }
-});
+  });
 
