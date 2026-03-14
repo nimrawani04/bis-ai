@@ -1,4 +1,4 @@
-# 🛡️ BIS AI — Bureau of Indian Standards
+#  <img src="./public/favicon.ico" height=25 style="border-radius:50%;"> BIS AI — Bureau of Indian Standards
 
 > AI-powered product safety verification platform with offline-first design for rural India.
 
