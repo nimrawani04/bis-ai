@@ -130,8 +130,10 @@ Respond with ONLY the JSON array of scores, nothing else.`;
   }
 }
 
+type ChunkMeta = { url: string; title: string; snippet: string; content_type: 'webpage' | 'pdf' | 'table' };
+
 // Convert Gemini SSE stream to OpenAI-compatible format
-async function convertGeminiStreamToOpenAI(geminiStream: ReadableStream, sourceUrls: string[] = []) {
+async function convertGeminiStreamToOpenAI(geminiStream: ReadableStream, sourceUrls: string[] = [], chunkMeta: ChunkMeta[] = []) {
   const reader = geminiStream.getReader();
   const encoder = new TextEncoder();
   const decoder = new TextDecoder();
@@ -184,6 +186,19 @@ async function convertGeminiStreamToOpenAI(geminiStream: ReadableStream, sourceU
           const openaiFormat = {
             choices: [{
               delta: { content: sourcesSection },
+              index: 0,
+              finish_reason: null
+            }]
+          };
+          controller.enqueue(encoder.encode(`data: ${JSON.stringify(openaiFormat)}\n\n`));
+        }
+
+        // Append chunk metadata for dynamic citation previews
+        if (chunkMeta.length > 0) {
+          const metaSection = '\n\n---CHUNK_META---\n' + JSON.stringify(chunkMeta);
+          const openaiFormat = {
+            choices: [{
+              delta: { content: metaSection },
               index: 0,
               finish_reason: null
             }]
@@ -361,6 +376,7 @@ serve(async (req) => {
     // --- BUILD CONTEXT ---
     let contextBlock = '';
     const sourceUrls: string[] = [];
+    const chunkMeta: ChunkMeta[] = [];
     let hasContext = false;
     
     if (chunks && chunks.length > 0) {
@@ -373,6 +389,16 @@ serve(async (req) => {
         // Collect unique source URLs
         if (chunk.url && !sourceUrls.includes(chunk.url)) {
           sourceUrls.push(chunk.url);
+          // Detect content type from URL and content
+          let content_type: 'webpage' | 'pdf' | 'table' = 'webpage';
+          if (chunk.url.toLowerCase().includes('.pdf') || chunk.content_type === 'pdf') {
+            content_type = 'pdf';
+          } else if (chunk.content_type === 'table' || (chunk.content && chunk.content.includes('|') && chunk.content.includes('---'))) {
+            content_type = 'table';
+          }
+          // Use first 300 chars of chunk content as snippet
+          const snippet = chunk.content ? chunk.content.replace(/\s+/g, ' ').trim().slice(0, 300) : '';
+          chunkMeta.push({ url: chunk.url, title: chunk.title || chunk.url, snippet, content_type });
         }
       }
     } else {
@@ -441,7 +467,7 @@ serve(async (req) => {
       });
     }
 
-    const convertedStream = await convertGeminiStreamToOpenAI(response.body!, sourceUrls);
+    const convertedStream = await convertGeminiStreamToOpenAI(response.body!, sourceUrls, chunkMeta);
     
     return new Response(convertedStream, {
       headers: { ...corsHeaders, "Content-Type": "text/event-stream" },

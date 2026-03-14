@@ -59,10 +59,24 @@ const languages = [
   { code: 'pa', label: 'ਪੰਜਾਬੀ (Punjabi)' },
 ];
 
-function parseSources(text: string): { body: string; sources: string[]; suggestions: string[] } {
+type ChunkMeta = { url: string; title: string; snippet: string; content_type: 'webpage' | 'pdf' | 'table' };
+
+function parseSources(text: string): { body: string; sources: string[]; suggestions: string[]; chunkMeta: ChunkMeta[] } {
   let body = text;
   let sources: string[] = [];
   let suggestions: string[] = [];
+  let chunkMeta: ChunkMeta[] = [];
+
+  // Extract chunk metadata first (before other parsing)
+  const metaIdx = text.indexOf('---CHUNK_META---');
+  if (metaIdx !== -1) {
+    try {
+      const metaStr = text.slice(metaIdx + 16).trim();
+      chunkMeta = JSON.parse(metaStr);
+    } catch {}
+    text = text.slice(0, metaIdx).trim();
+    body = text;
+  }
 
   const srcIdx = text.indexOf('---SOURCES---');
   const sugIdx = text.indexOf('---SUGGESTIONS---');
@@ -80,7 +94,7 @@ function parseSources(text: string): { body: string; sources: string[]; suggesti
     suggestions = sugBlock.split('\n').map(l => l.replace(/^-\s*/, '').trim()).filter(Boolean);
   }
 
-  return { body, sources, suggestions };
+  return { body, sources, suggestions, chunkMeta };
 }
 
 function TypingIndicator() {
@@ -227,35 +241,37 @@ function FeedbackButtons({ feedback, onFeedback }: { feedback?: 'up' | 'down'; o
   );
 }
 
-function CitationPreview({ url }: { url: string }) {
-  const [expanded, setExpanded] = useState(false);
-  const getDescription = (u: string): { title: string; quote: string } => {
-    if (u.includes('certification/product-certification')) return { title: '📋 BIS Product Certification', quote: 'The product certification scheme allows manufacturers to obtain ISI Mark by submitting application, undergoing factory inspection, and product testing at BIS-recognized laboratories.' };
-    if (u.includes('certification/hallmarking')) return { title: '💎 BIS Hallmarking', quote: 'BIS Hallmarking certifies purity of gold and silver jewelry. Each piece receives a HUID (Hallmark Unique Identification) number. Mandatory for gold jewelry since June 2021.' };
-    if (u.includes('certification/scheme-for-compulsory-registration') || u.includes('crs')) return { title: '🔌 Compulsory Registration Scheme', quote: 'The CRS applies to electronic and IT goods across 15 product categories. Manufacturers must get self-declaration with testing at BIS-recognized labs before selling in India.' };
-    if (u.includes('certification/foreign-manufacturers')) return { title: '🌍 FMCS', quote: 'Foreign Manufacturers Certification Scheme enables overseas manufacturers to obtain BIS certification. Requires factory inspection by BIS officers and an authorized Indian representative.' };
-    if (u.includes('consumer-affairs')) return { title: '🛡️ Consumer Affairs', quote: 'Consumers can file complaints about sub-standard ISI marked products through the BIS portal. BIS conducts market surveillance and consumer awareness campaigns.' };
-    if (u.includes('standards')) return { title: '📐 BIS Standards', quote: 'BIS has published over 22,000 Indian Standards covering food, electronics, textiles, civil engineering, chemicals, and mechanical sectors. Developed through Technical Committees.' };
-    if (u.includes('laboratory')) return { title: '🔬 BIS Laboratories', quote: 'BIS operates NABL-accredited testing laboratories in Mumbai, Kolkata, Chandigarh, Chennai, and Sahibabad for gold/silver, electronics, chemicals, food, and textiles.' };
-    if (u.includes('about-bis')) return { title: '🏛️ About BIS', quote: 'The Bureau of Indian Standards is India\'s national standards body, established under BIS Act 2016. Headquarters in New Delhi with 5 Regional and 21 Branch Offices.' };
-    if (u.includes('manakonline')) return { title: '💻 Manak Online Portal', quote: 'BIS Manak Online is the official portal for all certification applications, tracking status, paying fees, downloading certificates, and license renewal.' };
-    return { title: '🔗 BIS Official', quote: 'Official BIS website page with relevant information about Bureau of Indian Standards services and certifications.' };
-  };
+const CONTENT_TYPE_BADGE: Record<string, { label: string; className: string }> = {
+  pdf:     { label: 'PDF',     className: 'bg-red-500/10 text-red-600 border-red-500/20' },
+  table:   { label: 'Table',   className: 'bg-blue-500/10 text-blue-600 border-blue-500/20' },
+  webpage: { label: 'Webpage', className: 'bg-green-500/10 text-green-600 border-green-500/20' },
+};
 
-  const { title, quote } = getDescription(url);
+function CitationPreview({ url, meta }: { url: string; meta?: ChunkMeta }) {
+  const [expanded, setExpanded] = useState(false);
+
+  const title = meta?.title || url;
+  const snippet = meta?.snippet || '';
+  const contentType = meta?.content_type || 'webpage';
+  const badge = CONTENT_TYPE_BADGE[contentType] || CONTENT_TYPE_BADGE.webpage;
 
   return (
     <div className="group border border-border/50 rounded-lg overflow-hidden hover:border-primary/30 transition-colors">
       <button onClick={() => setExpanded(!expanded)} className="w-full text-left px-3 py-2 flex items-center gap-2 hover:bg-secondary/30 transition-colors">
         <ExternalLink className="h-3 w-3 text-primary shrink-0" />
         <span className="text-xs font-medium text-foreground flex-1 truncate">{title}</span>
+        <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded border shrink-0 ${badge.className}`}>
+          {badge.label}
+        </span>
         {expanded ? <ChevronUp className="h-3 w-3 text-muted-foreground shrink-0" /> : <ChevronDown className="h-3 w-3 text-muted-foreground shrink-0" />}
       </button>
       {expanded && (
         <div className="px-3 pb-2 animate-fade-in">
-          <div className="bg-secondary/40 border-l-2 border-primary/50 rounded px-3 py-2 text-xs text-muted-foreground italic mb-2">
-            "{quote}"
-          </div>
+          {snippet ? (
+            <div className="bg-secondary/40 border-l-2 border-primary/50 rounded px-3 py-2 text-xs text-muted-foreground italic mb-2">
+              "{snippet}{snippet.length >= 300 ? '…' : ''}"
+            </div>
+          ) : null}
           <a href={url} target="_blank" rel="noopener noreferrer" className="text-[10px] text-primary hover:underline flex items-center gap-1">
             <ExternalLink className="h-2.5 w-2.5" /> {url}
           </a>
@@ -793,7 +809,7 @@ export default function BISChat() {
                 );
               }
 
-              const { body, sources, suggestions } = parseSources(msg.content);
+              const { body, sources, suggestions, chunkMeta } = parseSources(msg.content);
               const isLast = i === messages.length - 1;
               const isEmpty = !msg.content;
               if (isEmpty && isLoading) return null;
@@ -821,7 +837,7 @@ export default function BISChat() {
                           <ExternalLink className="h-3 w-3" /> Sources
                         </p>
                         <div className="flex flex-col gap-2">
-                          {sources.map((src, j) => <CitationPreview key={j} url={src} />)}
+                          {sources.map((src, j) => <CitationPreview key={j} url={src} meta={chunkMeta.find(m => m.url === src)} />)}
                         </div>
                       </div>
                     )}
