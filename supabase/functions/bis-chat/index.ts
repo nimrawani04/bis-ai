@@ -107,8 +107,16 @@
   ALWAYS include source citations at the end of your response in this EXACT format:
   ---SOURCES---
   - https://www.bis.gov.in/relevant-page-url
-  - https://www.bis.gov.in/another-relevant-page-url
-  Include 1-3 relevant and real BIS website URLs. Use actual BIS page paths like:
+  - https://manakonline.bis.gov.in
+
+  MANDATORY RULE: If your answer involves ANY of the following topics, you MUST include https://manakonline.bis.gov.in as a source — no exceptions:
+  - Applying for BIS certification (ISI Mark, CRS, FMCS, ECO Mark, Hallmarking)
+  - How to get a license or certificate from BIS
+  - Application process, fees, renewal, or status tracking
+  - Registering as a manufacturer or hallmarking centre
+  - Any step-by-step process involving BIS online portal
+
+  Use these actual BIS page paths:
   - https://www.bis.gov.in/ (homepage)
   - https://www.bis.gov.in/index.php/standards/bis-standards/ (standards)
   - https://www.bis.gov.in/index.php/certification/product-certification/ (product certification)
@@ -118,7 +126,7 @@
   - https://www.bis.gov.in/index.php/certification/foreign-manufacturers-certification-scheme-fmcs/ (FMCS)
   - https://www.bis.gov.in/index.php/about-bis/ (about BIS)
   - https://www.bis.gov.in/index.php/laboratory-services/ (laboratories)
-  - https://manakonline.bis.gov.in (online portal)
+  - https://manakonline.bis.gov.in (BIS online portal for all applications)
 
   ### 9. SUGGESTIONS FORMAT
   ALWAYS include exactly 3 suggested follow-up questions at the end:
@@ -186,7 +194,7 @@
   - Based on cradle-to-grave environmental impact
 
   ### How to Apply for BIS Certification (Step by Step)
-  1. Visit manakonline.bis.gov.in and create an account
+  1. Visit https://manakonline.bis.gov.in and create an account
   2. Submit online application with required documents (test reports, factory details, quality control plan)
   3. BIS reviews the application and assigns an officer
   4. Factory/premises inspection by BIS officer
@@ -194,6 +202,7 @@
   6. If compliant, BIS grants the license/certificate
   7. Annual surveillance and periodic renewal required
   8. License can be suspended/cancelled for non-compliance
+  Note: ALL BIS certification applications (ISI Mark, CRS, FMCS, Hallmarking centres) are submitted through https://manakonline.bis.gov.in
 
   ### BIS Standards
   - Over 22,000+ Indian Standards published
@@ -236,6 +245,69 @@
   - Provisions for mandatory standards and certification
   - Penalties for misuse of BIS marks
   - Enables hallmarking regulation
+
+  ### BIS Contact Directory
+
+  **BIS Headquarters (New Delhi)**
+  - Address: Manak Bhavan, 9 Bahadur Shah Zafar Marg, New Delhi – 110002
+  - Phone: +91-11-41413939 (100 lines), +91-11-23230131
+  - General Email: info@bis.gov.in
+  - Website: https://www.bis.gov.in
+
+  **BIS Helpdesk / Support**
+  - Phone: 0120-4670232
+  - Portal support: https://manakonline.bis.gov.in
+
+  **BIS Laboratory (LRMD) – New Delhi**
+  - Phone: 011-23238211
+  - Email: lrmd-bis@bis.gov.in
+
+  **Regional Offices**
+  - Northern Regional Office (Chandigarh): Plot No. 4-A, Sector 27-B, Madhya Marg, Chandigarh – 160019
+  - Southern Regional Office (Chennai): C.I.T. Campus, IV Cross Road, Chennai – 600113
+  - Eastern Regional Office (Kolkata): Plot No 7/7 & 7/8, CP Block, Sector V, Salt Lake, Kolkata – 700091
+  - Western Regional Office (Mumbai): 5th Floor, MTNL CETTM, Technology Street, Hiranandani Gardens, Powai, Mumbai – 400076
+  - Central Regional Office (Bhopal): Commercial cum Office Complex Manakalya, Opp. Dushera Maidan, E-5 Area Colony, Bittan Market, Bhopal – 462016
+
+  **Branch Offices (Phone & Email)**
+  - Ahmedabad (I & II): 079-27540314 | bo-ahmedabad@bis.gov.in
+  - Bengaluru: 080-28395604 | bo-bengaluru@bis.gov.in
+  - Bhopal: 0755-2423453 / 2443449 | bo-bhopal@bis.gov.in
+  - Bhubaneswar: 0674-2390847 | bo-bhubaneswar@bis.gov.in
+  - Chandigarh (I & II): 0172-2659072 | bo-chandigarh@bis.gov.in
+  - Chennai (I): 044-22541220 | bo-chennai1@bis.gov.in
+  - Chennai (II): 044-22541076 | bo-chennai2@bis.gov.in
+  - Coimbatore: 0422-2248892 | bo-coimbatore@bis.gov.in
+  - Dehradun: 7617777281 | bo-dehradun@bis.gov.in
+  - Delhi (DLBO-I): 011-23237401 | bo-delhi1@bis.gov.in
+  - Delhi (DLBO-II): 011-23232922 | bo-delhi2@bis.gov.in
+  - Faridabad: 0129-2292173 | bo-faridabad@bis.gov.in
+  - Ghaziabad: 0120-2861174 | bo-ghaziabad@bis.gov.in
+  - Guwahati: 0361-2525937 | bo-guwahati@bis.gov.in
+  - Haryana (HRBO): 0172-2659065 | bo-haryana@bis.gov.in
+  - Himachal Pradesh: 01792-235436 | bo-himachal@bis.gov.in
+  - Hubli: 0836-2957898 | bo-hubli@bis.gov.in
+  - Hyderabad: bo-hyderabad@bis.gov.in / bo-hyderabad1@bis.gov.in
+  - Jaipur: 0141-2223286 | bo-jaipur@bis.gov.in
+  - Jammu & Kashmir: 01923-222690 / 222696 | bo-jammu@bis.gov.in
+  - Jamshedpur: bo-jamshedpur@bis.gov.in
+  - Kochi: 0484-2207366 | bo-kochi@bis.gov.in
+  - Kolkata (I): 033-23670017 | bo-kolkata1@bis.gov.in
+  - Kolkata (II): 033-23670016 | bo-kolkata2@bis.gov.in
+  - Lucknow: 0522-2728808 | bo-lucknow@bis.gov.in
+  - Madurai: 8939148480 | bo-madurai@bis.gov.in
+  - Mumbai (MUBO-I): 022-25702721 | bo-mumbai1@bis.gov.in
+  - Mumbai (MUBO-II): 022-25702722 | bo-mumbai2@bis.gov.in
+  - Nagpur: 0712-2540807 | bo-nagpur@bis.gov.in
+  - Noida: 0120-2979004
+  - Panipat: bo-panipat@bis.gov.in
+  - Patna: 0612-2275342 | bo-patna@bis.gov.in
+  - Pune: 020-24264911 | bo-pune@bis.gov.in
+  - Raipur: 0771-2412236 | bo-raipur@bis.gov.in
+  - Rajkot (I): 0281-2563978 | bo-rajkot1@bis.gov.in
+  - Rajkot (II): 0281-2563979 | bo-rajkot2@bis.gov.in
+  - Surat: 0261-2990071 | bo-surat@bis.gov.in
+  - Vijayawada: 7382492833 | bo-vijayawada@bis.gov.in
   `;
 
   serve(async (req) => {
