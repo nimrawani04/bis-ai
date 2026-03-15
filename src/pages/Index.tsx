@@ -6,7 +6,7 @@ import { ProductSearch } from '@/components/ProductSearch';
 import { HouseholdScanner } from '@/components/HouseholdScanner';
 import { CommunityTrustScore } from '@/components/CommunityTrustScore';
 import { SafetyAlerts } from '@/components/SafetyAlerts';
-import { MarketRiskMap } from '@/components/MarketRiskMap';
+import { IndiaRiskMap } from '@/components/IndiaRiskMap';
 import { KnowledgeHub } from '@/components/KnowledgeHub';
 import { ProductComparison } from '@/components/ProductComparison';
 import { ReportProduct } from '@/components/ReportProduct';
@@ -25,7 +25,7 @@ const Index = () => {
         <AnimatedSection><ProductSearch /></AnimatedSection>
         <AnimatedSection><HouseholdScanner /></AnimatedSection>
         <AnimatedSection><CommunityTrustScore /></AnimatedSection>
-        <AnimatedSection><MarketRiskMap /></AnimatedSection>
+        <AnimatedSection><IndiaRiskMap /></AnimatedSection>
         <AnimatedSection><ProductComparison /></AnimatedSection>
         <AnimatedSection><ReportProduct /></AnimatedSection>
         <AnimatedSection><KnowledgeHub /></AnimatedSection>

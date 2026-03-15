@@ -1,4 +1,4 @@
-import { Menu, X, Sun, Moon } from 'lucide-react';
+import { Menu, X, Sun, Moon, Phone, Mail, Globe } from 'lucide-react';
 import { OfflineBanner } from '@/components/OfflineBanner';
 import { LowBandwidthToggle } from '@/components/LowBandwidthToggle';
 import { Button } from '@/components/ui/button';
@@ -11,113 +11,152 @@ function TricolorStrip() {
   return <div className="tricolor-strip w-full" />;
 }
 
-function GovBanner() {
+// Top utility bar — like NIC portals
+function GovUtilityBar() {
   return (
-    <div className="w-full bg-[hsl(var(--flag-navy))] text-white/90 text-[9px] sm:text-xs py-1 px-2 sm:px-4 text-center tracking-wide flex items-center justify-center gap-1.5 sm:gap-2">
-      <img src={ashokaChakra} alt="Ashoka Chakra" className="h-3.5 w-3.5 sm:h-5 sm:w-5 invert brightness-200 shrink-0" />
-      <span className="truncate">
-        <span className="font-medium">भारतीय मानक ब्यूरो</span>
-        <span className="mx-1 sm:mx-2 opacity-40">|</span>
-        <span className="hidden xs:inline">Bureau of Indian Standards — </span>
-        <span className="xs:hidden">BIS — </span>
-        <span className="hidden sm:inline">Ministry of Consumer Affairs, Govt. of India</span>
-        <span className="sm:hidden">Govt. of India</span>
-      </span>
+    <div className="w-full bg-[hsl(var(--flag-navy))] text-white/80 text-[10px] py-1 px-4 hidden sm:flex items-center justify-between">
+      <div className="flex items-center gap-4">
+        <span className="flex items-center gap-1"><Phone className="h-2.5 w-2.5" /> 1800-11-4000 (Toll Free)</span>
+        <span className="flex items-center gap-1"><Mail className="h-2.5 w-2.5" /> info@bis.gov.in</span>
+      </div>
+      <div className="flex items-center gap-3">
+        <a href="https://www.bis.gov.in" target="_blank" rel="noreferrer" className="flex items-center gap-1 hover:text-white transition-colors">
+          <Globe className="h-2.5 w-2.5" /> bis.gov.in
+        </a>
+        <span className="opacity-40">|</span>
+        <span>Skip to Main Content</span>
+        <span className="opacity-40">|</span>
+        <span>Screen Reader Access</span>
+      </div>
     </div>
   );
 }
 
+// Main GoI identity banner
+function GovBanner() {
+  return (
+    <div className="w-full bg-white border-b-2 border-primary/20 py-2 px-4">
+      <div className="max-w-7xl mx-auto flex items-center gap-4">
+        {/* Emblem */}
+        <div className="flex items-center gap-3 shrink-0">
+          <img
+            src={ashokaChakra}
+            alt="Government of India Emblem"
+            className="h-10 w-10 sm:h-12 sm:w-12 object-contain"
+          />
+          <div className="hidden sm:block border-l border-border pl-3">
+            <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-widest">Government of India</p>
+            <p className="text-[10px] text-muted-foreground">Ministry of Consumer Affairs, Food &amp; Public Distribution</p>
+          </div>
+        </div>
+
+        {/* Portal identity */}
+        <div className="flex-1 flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4">
+          <div>
+            <h1 className="text-base sm:text-lg font-bold text-primary leading-tight" style={{ fontFamily: "'Noto Sans', sans-serif" }}>
+              Bureau of Indian Standards
+            </h1>
+            <p className="text-[10px] sm:text-xs text-muted-foreground font-medium tracking-wide">
+              भारतीय मानक ब्यूरो &nbsp;|&nbsp; BIS AI Consumer Safety Portal
+            </p>
+          </div>
+        </div>
+
+        {/* BIS logo badge */}
+        <div className="shrink-0 flex items-center gap-2">
+          <div className="flex h-10 w-10 items-center justify-center rounded bg-primary/5 border border-primary/20">
+            <BISLogo className="h-6 w-6" />
+          </div>
+          <div className="hidden md:block text-right">
+            <p className="text-xs font-bold text-primary">BIS AI</p>
+            <p className="text-[10px] text-muted-foreground">Product Safety</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+const navLinks = [
+  { href: '#alerts', label: 'Safety Alerts' },
+  { href: '#verify', label: 'Verify Product' },
+  { href: '#safety-assistant', label: 'AI Guide' },
+  { href: '#scanner', label: 'Home Scanner' },
+  { href: '#riskmap', label: 'Risk Map' },
+  { href: '#knowledge', label: 'Knowledge Hub' },
+];
+
 export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { theme, toggleTheme } = useTheme();
+
   return (
     <header className="sticky top-0 z-50 w-full">
       <OfflineBanner />
       <TricolorStrip />
+      <GovUtilityBar />
       <GovBanner />
-      <div className="border-b border-border/50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container flex h-14 items-center justify-between">
-          <a href="/" className="flex items-center gap-2.5">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-white/95 ring-1 ring-border/40 shadow-sm">
-              <BISLogo className="h-6 w-6" />
-            </div>
-            <div className="flex flex-col leading-none">
-              <span className="text-base font-bold text-foreground tracking-tight" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
-                BIS<span className="text-primary"> AI</span>
-              </span>
-              <span className="text-[9px] font-medium text-muted-foreground tracking-wider uppercase">
-                Product Safety
-              </span>
-            </div>
-          </a>
 
-          <nav className="hidden md:flex items-center gap-1">
-            {[
-              { href: '#alerts', label: 'Alerts' },
-              { href: '#verify', label: 'Verify' },
-              { href: '#safety-assistant', label: 'AI Guide' },
-              { href: '#scanner', label: 'Scanner' },
-              { href: '#community', label: 'Community' },
-              { href: '#knowledge', label: 'Knowledge' },
-            ].map(link => (
+      {/* Navigation bar */}
+      <nav className="w-full bg-primary border-b border-primary/80">
+        <div className="max-w-7xl mx-auto px-4 flex items-center justify-between h-10">
+          {/* Desktop nav */}
+          <div className="hidden md:flex items-center">
+            {navLinks.map((link, i) => (
               <a
                 key={link.href}
                 href={link.href}
-                className="px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-secondary/50 rounded-lg transition-all"
+                className={`px-4 h-10 flex items-center text-xs font-medium text-white/85 hover:text-white hover:bg-white/10 transition-colors border-r border-white/10 ${i === 0 ? 'border-l border-white/10' : ''}`}
               >
                 {link.label}
               </a>
             ))}
-            <div className="w-px h-6 bg-border mx-2" />
+          </div>
+
+          <div className="flex items-center gap-2 ml-auto">
             <LowBandwidthToggle />
             <button
               onClick={toggleTheme}
-              className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
+              className="p-1.5 rounded text-white/70 hover:text-white hover:bg-white/10 transition-colors"
               aria-label="Toggle theme"
             >
-              {theme === 'light' ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
+              {theme === 'light' ? <Moon className="h-3.5 w-3.5" /> : <Sun className="h-3.5 w-3.5" />}
             </button>
             <a href="#report">
-              <Button size="sm" className="ml-1 bg-danger hover:bg-danger/90 text-danger-foreground">
+              <Button size="sm" className="h-7 text-xs bg-[hsl(var(--flag-saffron))] hover:bg-[hsl(var(--flag-saffron))/90] text-white border-0 rounded-sm px-3">
                 Report Unsafe
               </Button>
             </a>
-          </nav>
-
-          <button
-            className="md:hidden p-2"
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          >
-            {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-          </button>
+            <button
+              className="md:hidden p-1.5 text-white"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            >
+              {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            </button>
+          </div>
         </div>
-      </div>
+      </nav>
 
       {mobileMenuOpen && (
-        <div className="md:hidden border-t border-border bg-background p-4 animate-fade-in">
-          <nav className="flex flex-col gap-1">
-            {[
-              { href: '#alerts', label: 'Safety Alerts' },
-              { href: '#verify', label: 'Verify Product' },
-              { href: '#safety-assistant', label: 'AI Safety Guide' },
-              { href: '#scanner', label: 'Home Scanner' },
-              { href: '#community', label: 'Community' },
-              { href: '#knowledge', label: 'Knowledge Hub' },
-            ].map(link => (
+        <div className="md:hidden border-b border-border bg-white dark:bg-card shadow-lg animate-fade-in">
+          <nav className="flex flex-col">
+            {navLinks.map(link => (
               <a
                 key={link.href}
                 href={link.href}
-                className="px-3 py-2.5 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-secondary rounded-lg transition-colors"
+                className="px-4 py-3 text-sm font-medium text-foreground hover:bg-primary/5 border-b border-border/50 transition-colors"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 {link.label}
               </a>
             ))}
-            <a href="#report" onClick={() => setMobileMenuOpen(false)}>
-              <Button size="sm" className="w-full mt-2 bg-danger hover:bg-danger/90 text-danger-foreground">
-                Report Unsafe Product
-              </Button>
-            </a>
+            <div className="p-3">
+              <a href="#report" onClick={() => setMobileMenuOpen(false)}>
+                <Button size="sm" className="w-full bg-[hsl(var(--flag-saffron))] hover:bg-[hsl(var(--flag-saffron))/90] text-white rounded-sm">
+                  Report Unsafe Product
+                </Button>
+              </a>
+            </div>
           </nav>
         </div>
       )}

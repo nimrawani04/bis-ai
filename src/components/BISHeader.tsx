@@ -23,16 +23,12 @@ function TricolorStrip() {
 
 function GovBanner() {
   return (
-    <div className="w-full bg-[hsl(var(--flag-navy))] text-white/90 text-[9px] sm:text-xs py-1 px-2 sm:px-4 text-center tracking-wide flex items-center justify-center gap-1.5 sm:gap-2">
-      <img src={ashokaChakra} alt="Ashoka Chakra" className="h-3.5 w-3.5 sm:h-5 sm:w-5 invert brightness-200 shrink-0" />
-      <span className="truncate">
-        <span className="font-medium">भारतीय मानक ब्यूरो</span>
-        <span className="mx-1 sm:mx-2 opacity-40">|</span>
-        <span className="hidden xs:inline">Bureau of Indian Standards — </span>
-        <span className="xs:hidden">BIS — </span>
-        <span className="hidden sm:inline">Ministry of Consumer Affairs, Govt. of India</span>
-        <span className="sm:hidden">Govt. of India</span>
-      </span>
+    <div className="w-full bg-white border-b border-border/50 py-2 px-4 hidden sm:flex items-center gap-4">
+      <img src={ashokaChakra} alt="Government of India Emblem" className="h-9 w-9 object-contain shrink-0" />
+      <div className="border-l border-border pl-3">
+        <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-widest">Government of India</p>
+        <p className="text-xs font-bold text-primary leading-tight">Bureau of Indian Standards — भारतीय मानक ब्यूरो</p>
+      </div>
     </div>
   );
 }
@@ -109,105 +105,84 @@ export function BISHeader() {
       <OfflineBanner />
       <TricolorStrip />
       <GovBanner />
-      <div className="border-b border-border/50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container flex h-14 items-center justify-between">
-          <Link to="/" className="flex items-center gap-2.5">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-white/95 ring-1 ring-border/40 shadow-sm">
-              <BISLogo className="h-6 w-6" />
+      <div className="border-b border-border/50 bg-primary">
+        <div className="container flex h-10 items-center justify-between">
+          <Link to="/" className="flex items-center gap-2 shrink-0">
+            <div className="flex h-7 w-7 items-center justify-center rounded bg-white/10 border border-white/20">
+              <BISLogo className="h-4 w-4" />
             </div>
-            <div className="flex flex-col leading-none">
-              <span className="text-base font-bold text-foreground tracking-tight" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
-                BIS<span className="text-primary"> AI</span>
-              </span>
-              <span className="text-[9px] font-medium text-muted-foreground tracking-wider uppercase">
-                AI Assistant
-              </span>
-            </div>
+            <span className="text-sm font-bold text-white hidden sm:block">BIS AI</span>
           </Link>
 
-          <nav className="hidden md:flex items-center gap-1">
+          <nav className="hidden md:flex items-center flex-1 ml-4">
             {navLinks.map(link => (
               <Link
                 key={link.to}
                 to={link.to}
-                className={`px-3 py-2 text-sm font-medium rounded-lg transition-all ${
+                className={`px-4 h-10 flex items-center text-xs font-medium border-r border-white/10 transition-colors ${
                   location.pathname === link.to
-                    ? 'text-primary bg-primary/10'
-                    : 'text-muted-foreground hover:text-foreground hover:bg-secondary/50'
+                    ? 'text-white bg-white/15'
+                    : 'text-white/80 hover:text-white hover:bg-white/10'
                 }`}
               >
                 {link.label}
               </Link>
             ))}
-            <div className="w-px h-6 bg-border mx-2" />
+          </nav>
+
+          <div className="flex items-center gap-2 ml-auto">
             <LowBandwidthToggle />
             <button
               onClick={toggleTheme}
-              className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
+              className="p-1.5 rounded text-white/70 hover:text-white hover:bg-white/10 transition-colors"
               aria-label="Toggle theme"
             >
-              {theme === 'light' ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
+              {theme === 'light' ? <Moon className="h-3.5 w-3.5" /> : <Sun className="h-3.5 w-3.5" />}
             </button>
             {user ? (
               <UserAvatarDropdown user={user} signOut={signOut} />
             ) : (
               <Link to="/auth">
-                <Button size="sm" className="ml-1">
-                  <LogIn className="h-3.5 w-3.5 mr-1" /> Sign In
+                <Button size="sm" className="h-7 text-xs bg-[hsl(var(--flag-saffron))] hover:bg-[hsl(28,100%,44%)] text-white border-0 rounded-sm px-3">
+                  <LogIn className="h-3 w-3 mr-1" /> Sign In
                 </Button>
               </Link>
             )}
-          </nav>
-
-          <button
-            className="md:hidden p-2"
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          >
-            {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-          </button>
+            <button
+              className="md:hidden p-1.5 text-white"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            >
+              {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            </button>
+          </div>
         </div>
       </div>
 
       {mobileMenuOpen && (
-        <div className="md:hidden border-t border-border bg-background p-4 animate-fade-in">
-          <nav className="flex flex-col gap-1">
+        <div className="md:hidden border-b border-border bg-white dark:bg-card shadow-lg animate-fade-in">
+          <nav className="flex flex-col">
             {navLinks.map(link => (
               <Link
                 key={link.to}
                 to={link.to}
-                className={`px-3 py-2.5 text-sm font-medium rounded-lg transition-colors ${
+                className={`px-4 py-3 text-sm font-medium border-b border-border/50 transition-colors ${
                   location.pathname === link.to
-                    ? 'text-primary bg-primary/10'
-                    : 'text-muted-foreground hover:text-foreground hover:bg-secondary'
+                    ? 'text-primary bg-primary/5'
+                    : 'text-foreground hover:bg-secondary/40'
                 }`}
                 onClick={() => setMobileMenuOpen(false)}
               >
                 {link.label}
               </Link>
             ))}
-            <div className="border-t border-border mt-2 pt-2">
+            <div className="p-3">
               {user ? (
-                <div className="space-y-2 px-3 py-2">
-                  <div className="flex items-center gap-3">
-                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs font-bold shrink-0">
-                      {user.user_metadata?.avatar_url ? (
-                        <img src={user.user_metadata.avatar_url} alt="Avatar" className="h-8 w-8 rounded-full object-cover" />
-                      ) : (
-                        user.email?.substring(0, 2).toUpperCase()
-                      )}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-foreground truncate">{user.user_metadata?.full_name || 'User'}</p>
-                      <p className="text-xs text-muted-foreground truncate">{user.email}</p>
-                    </div>
-                  </div>
-                  <Button size="sm" variant="outline" className="w-full" onClick={() => { signOut(); setMobileMenuOpen(false); }}>
-                    <LogOut className="h-3.5 w-3.5 mr-1" /> Sign Out
-                  </Button>
-                </div>
+                <Button size="sm" variant="outline" className="w-full rounded-sm" onClick={() => { signOut(); setMobileMenuOpen(false); }}>
+                  <LogOut className="h-3.5 w-3.5 mr-1" /> Sign Out
+                </Button>
               ) : (
                 <Link to="/auth" onClick={() => setMobileMenuOpen(false)}>
-                  <Button size="sm" className="w-full">
+                  <Button size="sm" className="w-full rounded-sm bg-[hsl(var(--flag-saffron))] text-white border-0">
                     <LogIn className="h-3.5 w-3.5 mr-1" /> Sign In
                   </Button>
                 </Link>

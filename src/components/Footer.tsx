@@ -1,59 +1,93 @@
 import { BISLogo } from '@/components/BISLogo';
+import ashokaChakra from '@/assets/ashoka-chakra.png';
+import { ExternalLink } from 'lucide-react';
+
+const footerLinks = {
+  'About': [
+    { label: 'About BIS', href: 'https://www.bis.gov.in/about-bis/' },
+    { label: 'Vision & Mission', href: 'https://www.bis.gov.in/about-bis/vision-mission/' },
+    { label: 'Organization', href: 'https://www.bis.gov.in/about-bis/organization/' },
+    { label: 'Contact Us', href: 'https://www.bis.gov.in/contact-us/' },
+  ],
+  'Services': [
+    { label: 'Product Certification', href: 'https://www.bis.gov.in/product-certification/' },
+    { label: 'Hallmarking', href: 'https://www.bis.gov.in/hallmarking/' },
+    { label: 'Standards', href: 'https://www.bis.gov.in/standardization/' },
+    { label: 'Manak Online', href: 'https://manakonline.bis.gov.in' },
+  ],
+  'Consumer': [
+    { label: 'Consumer Affairs', href: 'https://www.bis.gov.in/consumer-affairs/' },
+    { label: 'Lodge Complaint', href: 'https://www.bis.gov.in/consumer-affairs/lodge-complaint/' },
+    { label: 'BIS Care App', href: 'https://www.bis.gov.in/bis-care-app/' },
+    { label: 'Verify Certificate', href: '#verify' },
+  ],
+};
 
 export function Footer() {
   return (
-    <footer className="border-t border-border bg-card py-8 sm:py-12">
-      <div className="container px-4">
-        <div className="flex flex-col items-center gap-6 text-center md:text-left md:flex-row md:justify-between">
-          <div className="flex items-center gap-2">
-            <div className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-lg bg-white/95 ring-1 ring-border/40 shadow-sm">
-              <BISLogo className="h-5 w-5 sm:h-6 sm:w-6" />
+    <footer className="bg-[hsl(var(--flag-navy))] text-white/80">
+      <div className="max-w-7xl mx-auto px-4 py-10">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+          <div className="md:col-span-1">
+            <div className="flex items-center gap-3 mb-4">
+              <img src={ashokaChakra} alt="Emblem" className="h-10 w-10 invert brightness-200 opacity-90" />
+              <div>
+                <p className="text-white font-bold text-sm leading-tight">Bureau of Indian Standards</p>
+                <p className="text-white/50 text-[10px]">भारतीय मानक ब्यूरो</p>
+              </div>
             </div>
-            <span className="text-lg sm:text-xl font-bold text-foreground" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
-              BIS<span className="text-primary"> AI</span>
-            </span>
+            <p className="text-xs text-white/50 leading-relaxed mb-4">
+              Ministry of Consumer Affairs, Food &amp; Public Distribution, Government of India.
+            </p>
+            <div className="flex items-center gap-2">
+              <div className="flex h-8 w-8 items-center justify-center rounded bg-white/10 border border-white/10">
+                <BISLogo className="h-5 w-5" />
+              </div>
+              <span className="text-sm font-bold text-white">BIS AI Portal</span>
+            </div>
           </div>
-
-          <p className="text-xs sm:text-sm text-muted-foreground max-w-xs sm:max-w-none">
-            Empowering consumers with product safety information.
-            Aligned with Bureau of Indian Standards initiatives.
-          </p>
-
-          <div className="flex items-center gap-4 sm:gap-6">
-            <a href="#" className="text-xs sm:text-sm text-muted-foreground hover:text-foreground transition-colors">
-              Privacy
-            </a>
-            <a href="#" className="text-xs sm:text-sm text-muted-foreground hover:text-foreground transition-colors">
-              Terms
-            </a>
-            <a href="#" className="text-xs sm:text-sm text-muted-foreground hover:text-foreground transition-colors">
-              Contact
-            </a>
-          </div>
+          {Object.entries(footerLinks).map(([section, links]) => (
+            <div key={section}>
+              <h3 className="text-white font-semibold text-xs uppercase tracking-widest mb-3 pb-2 border-b border-white/10">
+                {section}
+              </h3>
+              <ul className="space-y-2">
+                {links.map(link => (
+                  <li key={link.label}>
+                    <a
+                      href={link.href}
+                      target={link.href.startsWith('http') ? '_blank' : undefined}
+                      rel={link.href.startsWith('http') ? 'noreferrer' : undefined}
+                      className="text-xs text-white/60 hover:text-white transition-colors flex items-center gap-1"
+                    >
+                      {link.href.startsWith('http') && <ExternalLink className="h-2.5 w-2.5 shrink-0" />}
+                      {link.label}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
         </div>
-
-        <div className="mt-6 sm:mt-8 pt-6 sm:pt-8 border-t border-border text-center">
-          <p className="text-[10px] sm:text-xs text-muted-foreground">
-            Developed by{" "}
-            <a
-              href="https://m4milaad.github.io/"
-              target="_blank"
-              rel="noreferrer"
-              className="font-semibold text-foreground hover:text-primary transition-colors"
-            >
-              Milad Ajaz Bhat
-            </a>{" "}
-            and{" "}
-            <a
-              href="https://nimrawani.vercel.app/"
-              target="_blank"
-              rel="noreferrer"
-              className="font-semibold text-foreground hover:text-primary transition-colors"
-            >
-              Nimra Wani
-            </a>
-            . This is a <strong>demonstration project</strong>.
+      </div>
+      <div className="tricolor-strip w-full" />
+      <div className="bg-black/30 px-4 py-3">
+        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2 text-[10px] text-white/40">
+          <p>© 2026 Bureau of Indian Standards, Government of India. All Rights Reserved.</p>
+          <p>
+            Developed by{' '}
+            <a href="https://m4milaad.github.io/" target="_blank" rel="noreferrer" className="text-white/60 hover:text-white transition-colors font-medium">Milad Ajaz Bhat</a>
+            {' '}&amp;{' '}
+            <a href="https://nimrawani.vercel.app/" target="_blank" rel="noreferrer" className="text-white/60 hover:text-white transition-colors font-medium">Nimra Wani</a>
+            {' '}— Demonstration Project
           </p>
+          <div className="flex items-center gap-3">
+            <a href="#" className="hover:text-white/70 transition-colors">Privacy Policy</a>
+            <span>|</span>
+            <a href="#" className="hover:text-white/70 transition-colors">Terms of Use</a>
+            <span>|</span>
+            <a href="#" className="hover:text-white/70 transition-colors">Accessibility</a>
+          </div>
         </div>
       </div>
     </footer>
