@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { ComposableMap, Geographies, Geography, Marker } from 'react-simple-maps';
 import {
   AlertTriangle, Shield, MessageSquare, BookOpen,
   MapPin, Database, TrendingUp, Info, Layers
@@ -20,9 +21,8 @@ export interface CityRiskData {
   precautions: string[];
   howToIdentify: string[];
   saferAlternatives: string[];
-  // SVG coordinates on the India map viewBox
-  cx: number;
-  cy: number;
+  // Geographic coordinates [longitude, latitude]
+  coords: [number, number];
 }
 
 export const cityRiskData: CityRiskData[] = [
@@ -34,7 +34,7 @@ export const cityRiskData: CityRiskData[] = [
     precautions: ['Check BIS certification mark on packaging', 'Verify manufacturer license number on BIS portal', 'Avoid unusually cheap products from street vendors', 'Buy from authorised brand stores or certified e-commerce'],
     howToIdentify: ['Missing BIS/ISI logo on product or packaging', 'Poor quality packaging with spelling errors', 'No certification number or fake-looking hologram', 'Unusually light weight compared to genuine product'],
     saferAlternatives: ['Buy from BIS-certified retailers listed on bis.gov.in', 'Check BIS Care App for certified brands', 'Purchase from authorised brand service centres'],
-    cx: 248, cy: 134,
+    coords: [77.1025, 28.7041],
   },
   {
     id: 'mumbai', city: 'Mumbai', state: 'Maharashtra', risk: 'high',
@@ -44,7 +44,7 @@ export const cityRiskData: CityRiskData[] = [
     precautions: ['Check ISI mark IS:694 on wires', 'Buy cables from authorised electrical dealers', 'Verify BIS licence number on cable reel', 'Avoid loose market wire purchases'],
     howToIdentify: ['No ISI mark on cable sheath', 'Conductor thinner than specified gauge', 'Insulation cracks easily when bent', 'No manufacturer details printed on cable'],
     saferAlternatives: ['Polycab, Havells, Finolex — all BIS certified', 'Buy from licensed electrical wholesale dealers', 'Check BIS Care App for certified cable brands'],
-    cx: 185, cy: 242,
+    coords: [72.8777, 19.076],
   },
   {
     id: 'kolkata', city: 'Kolkata', state: 'West Bengal', risk: 'high',
@@ -54,7 +54,7 @@ export const cityRiskData: CityRiskData[] = [
     precautions: ['Verify HUID number on BIS Care App before buying', 'Buy only from BIS-licensed hallmarking centres', 'Check for 6-digit HUID on each piece', 'Demand hallmark certificate from jeweller'],
     howToIdentify: ['No HUID number stamped on jewellery', 'Hallmark looks blurry or poorly stamped', 'Jeweller refuses to show BIS licence', 'Price significantly below market rate'],
     saferAlternatives: ['Buy from BIS-licensed hallmarking centres only', 'Verify jeweller on BIS portal', 'Use BIS Care App to scan HUID'],
-    cx: 362, cy: 192,
+    coords: [88.3639, 22.5726],
   },
   {
     id: 'lucknow', city: 'Lucknow', state: 'Uttar Pradesh', risk: 'high',
@@ -64,7 +64,7 @@ export const cityRiskData: CityRiskData[] = [
     precautions: ['Check ISI mark IS:14543 on water bottles', 'Verify seal integrity before purchase', 'Check manufacturer address on label', 'Report to FSSAI if suspicious'],
     howToIdentify: ['Blurry or missing ISI mark on bottle', 'Loose or re-sealed cap', 'No batch number or manufacturing date', 'Unusual taste or smell'],
     saferAlternatives: ['Bisleri, Kinley, Aquafina — all BIS certified', 'Check BIS Care App for certified water brands', 'Buy from authorised distributors only'],
-    cx: 295, cy: 158,
+    coords: [80.9462, 26.8467],
   },
   {
     id: 'patna', city: 'Patna', state: 'Bihar', risk: 'high',
@@ -74,7 +74,7 @@ export const cityRiskData: CityRiskData[] = [
     precautions: ['Use authorised PDS outlets only', 'Report fuel adulteration to district authorities', 'Check for government seal on kerosene cans', 'Avoid purchasing from unauthorised vendors'],
     howToIdentify: ['Unusual colour or smell in fuel', 'No government seal or marking', 'Sold from unlicensed shops', 'Price significantly below official rate'],
     saferAlternatives: ['Use authorised PDS fair price shops', 'Report adulteration to district supply officer', 'Contact BIS helpline 1800-11-4000'],
-    cx: 348, cy: 194,
+    coords: [85.1376, 25.5941],
   },
   {
     id: 'hyderabad', city: 'Hyderabad', state: 'Telangana', risk: 'medium',
@@ -84,7 +84,7 @@ export const cityRiskData: CityRiskData[] = [
     precautions: ['Check BIS certification IS:9873 on toys', 'Avoid toys with sharp edges or small parts for children under 3', 'Verify age-appropriate labelling', 'Buy from authorised toy retailers'],
     howToIdentify: ['No BIS/ISI mark on toy packaging', 'Sharp edges or loose small parts', 'Strong chemical smell from toy', 'No manufacturer contact details'],
     saferAlternatives: ['Buy from BIS-certified toy brands', 'Check BIS Care App for certified toys', 'Purchase from authorised toy stores'],
-    cx: 268, cy: 272,
+    coords: [78.4867, 17.385],
   },
   {
     id: 'jaipur', city: 'Jaipur', state: 'Rajasthan', risk: 'medium',
@@ -94,7 +94,7 @@ export const cityRiskData: CityRiskData[] = [
     precautions: ['Check IS:269 mark on cement bags', 'Verify manufacturer details on packaging', 'Avoid unbranded construction materials', 'Buy from authorised dealers only'],
     howToIdentify: ['No ISI mark on cement bag', 'Unusual colour or texture of cement', 'No manufacturer address or batch number', 'Bag weight less than stated'],
     saferAlternatives: ['ACC, Ultratech, Ambuja — all BIS certified', 'Buy from authorised building material dealers', 'Verify brand on BIS portal'],
-    cx: 200, cy: 162,
+    coords: [75.7873, 26.9124],
   },
   {
     id: 'ahmedabad', city: 'Ahmedabad', state: 'Gujarat', risk: 'medium',
@@ -104,7 +104,7 @@ export const cityRiskData: CityRiskData[] = [
     precautions: ['Buy auto parts from authorised dealers only', 'Check BIS certification for safety-critical parts', 'Verify part number matches vehicle manual', 'Avoid roadside spare parts shops'],
     howToIdentify: ['No BIS mark on safety-critical parts', 'Poor finish quality or incorrect dimensions', 'No manufacturer warranty card', 'Significantly cheaper than market price'],
     saferAlternatives: ['Buy from authorised service centres', 'Use OEM parts with BIS certification', 'Check BIS Care App for certified auto parts'],
-    cx: 162, cy: 208,
+    coords: [72.5714, 23.0225],
   },
   {
     id: 'chandigarh', city: 'Chandigarh', state: 'Punjab', risk: 'medium',
@@ -114,7 +114,7 @@ export const cityRiskData: CityRiskData[] = [
     precautions: ['Buy tractor parts from authorised dealers', 'Verify BIS mark on safety equipment', 'Check manufacturer warranty', 'Avoid unbranded agri equipment'],
     howToIdentify: ['No BIS/ISI mark on equipment', 'Poor weld quality or finish', 'No manufacturer details or warranty', 'Unusually low price'],
     saferAlternatives: ['Buy from authorised tractor dealers', 'Check BIS portal for certified agri equipment', 'Use government-approved agri input dealers'],
-    cx: 222, cy: 96,
+    coords: [76.7794, 30.7333],
   },
   {
     id: 'srinagar', city: 'Srinagar', state: 'J&K', risk: 'low',
@@ -124,7 +124,7 @@ export const cityRiskData: CityRiskData[] = [
     precautions: ['Check Woolmark certification on woollen products', 'Buy from government-certified emporiums', 'Verify GI tag on authentic Kashmiri products', 'Demand certificate of authenticity'],
     howToIdentify: ['No Woolmark or GI tag', 'Synthetic feel despite claiming to be wool', 'No manufacturer details', 'Sold at unusually low price'],
     saferAlternatives: ['Buy from J&K government emporiums', 'Check GI-certified sellers', 'Purchase from Craft Development Institute outlets'],
-    cx: 218, cy: 52,
+    coords: [74.7973, 34.0837],
   },
   {
     id: 'bangalore', city: 'Bengaluru', state: 'Karnataka', risk: 'medium',
@@ -134,7 +134,7 @@ export const cityRiskData: CityRiskData[] = [
     precautions: ['Verify FSSAI and BIS marks on infant food', 'Check manufacturing date and batch number', 'Buy from authorised medical stores', 'Consult paediatrician before switching brands'],
     howToIdentify: ['No FSSAI licence number on packaging', 'Blurry or missing batch number', 'Unusual taste or smell', 'Packaging quality poor'],
     saferAlternatives: ['Buy from authorised medical stores only', 'Check FSSAI portal for certified brands', 'Consult paediatrician for recommendations'],
-    cx: 228, cy: 302,
+    coords: [77.5946, 12.9716],
   },
   {
     id: 'chennai', city: 'Chennai', state: 'Tamil Nadu', risk: 'medium',
@@ -144,7 +144,7 @@ export const cityRiskData: CityRiskData[] = [
     precautions: ['Check BIS registration number on LED packaging', 'Verify wattage and lumen output claims', 'Buy from authorised electrical dealers', 'Avoid very cheap LED bulbs from street vendors'],
     howToIdentify: ['No BIS registration number on packaging', 'Actual brightness much lower than claimed', 'Flickers or fails within days', 'No manufacturer warranty'],
     saferAlternatives: ['Philips, Syska, Havells — all BIS certified', 'Check BIS Care App for certified LED brands', 'Buy from authorised electrical retailers'],
-    cx: 248, cy: 352,
+    coords: [80.2707, 13.0827],
   },
 ];
 
@@ -154,40 +154,24 @@ const riskConfig: Record<RiskLevel, { fill: string; stroke: string; glow: string
   low:    { fill: '#16a34a', stroke: '#14532d', glow: 'rgba(22,163,74,0.35)',  badge: 'bg-green-600 text-white',  label: 'Low Risk',    emoji: '🟢' },
 };
 
-// Simplified India outline path
-const INDIA_OUTLINE = `M 200 30 L 240 25 L 270 45 L 260 70 L 230 80 L 260 70 L 275 90 L 295 100 L 320 135 L 340 155 L 380 165 L 420 145 L 460 115 L 470 140 L 445 150 L 430 162 L 420 162 L 422 178 L 415 185 L 418 202 L 402 200 L 400 185 L 375 215 L 365 265 L 355 290 L 310 340 L 290 355 L 260 370 L 240 385 L 220 375 L 210 375 L 195 360 L 205 320 L 200 285 L 175 280 L 155 260 L 150 240 L 120 230 L 110 205 L 120 180 L 145 155 L 155 130 L 170 110 L 200 70 Z`;
+const INDIA_TOPOJSON = '/india-states.json';
 
-// State fill paths for heatmap mode
-const stateFills: Array<{ d: string; stateId: string }> = [
-  { stateId: 'DL', d: 'M 240 130 L 255 128 L 258 142 L 243 144 Z' },
-  { stateId: 'MH', d: 'M 185 195 L 215 175 L 210 210 L 225 235 L 220 265 L 200 285 L 175 280 L 155 260 L 150 240 L 175 225 Z' },
-  { stateId: 'UP', d: 'M 250 145 L 265 130 L 290 125 L 320 135 L 340 155 L 330 180 L 300 190 L 270 185 L 250 170 L 240 155 Z' },
-  { stateId: 'WB', d: 'M 360 170 L 380 165 L 385 190 L 375 215 L 355 220 L 345 200 Z' },
-  { stateId: 'BR', d: 'M 330 180 L 360 170 L 380 185 L 375 210 L 350 220 L 325 210 Z' },
-  { stateId: 'RJ', d: 'M 170 110 L 210 110 L 205 125 L 220 140 L 215 175 L 185 195 L 155 185 L 145 155 L 155 130 Z' },
-  { stateId: 'GJ', d: 'M 145 155 L 185 195 L 175 225 L 150 240 L 120 230 L 110 205 L 120 180 Z' },
-  { stateId: 'MP', d: 'M 215 175 L 250 170 L 270 185 L 300 190 L 310 220 L 308 245 L 280 255 L 250 250 L 225 235 L 210 210 Z' },
-  { stateId: 'TN', d: 'M 230 330 L 250 320 L 265 345 L 260 370 L 240 385 L 220 375 L 215 355 Z' },
-  { stateId: 'KA', d: 'M 200 285 L 220 265 L 250 250 L 265 290 L 255 300 L 250 320 L 230 330 L 205 320 L 195 300 Z' },
-  { stateId: 'TS', d: 'M 250 250 L 280 255 L 265 290 L 250 300 L 235 285 L 240 265 Z' },
-  { stateId: 'PB', d: 'M 200 70 L 230 80 L 235 105 L 210 110 L 195 90 Z' },
-  { stateId: 'HR', d: 'M 210 110 L 235 105 L 265 130 L 250 145 L 220 140 L 205 125 Z' },
-  { stateId: 'JH', d: 'M 325 210 L 350 220 L 355 245 L 330 255 L 308 245 L 310 220 Z' },
-  { stateId: 'OR', d: 'M 330 255 L 355 245 L 365 265 L 355 290 L 330 295 L 310 275 Z' },
-  { stateId: 'AP', d: 'M 265 290 L 280 310 L 305 315 L 310 340 L 290 355 L 265 345 L 250 320 L 255 300 Z' },
-  { stateId: 'KL', d: 'M 205 320 L 230 330 L 225 360 L 210 375 L 195 360 L 198 335 Z' },
-  { stateId: 'AS', d: 'M 380 150 L 420 145 L 430 162 L 395 165 L 375 162 Z' },
-  { stateId: 'HP', d: 'M 230 80 L 260 70 L 275 90 L 255 110 L 235 105 Z' },
-  { stateId: 'UK', d: 'M 255 110 L 275 90 L 295 100 L 290 125 L 265 130 Z' },
-  { stateId: 'CG', d: 'M 308 245 L 330 255 L 310 275 L 295 285 L 280 270 L 280 255 Z' },
-  { stateId: 'GA', d: 'M 175 280 L 195 278 L 198 295 L 178 296 Z' },
-];
-
-// Map state abbreviation to city risk for heatmap
-const stateToCity: Record<string, string> = {
-  DL: 'delhi', MH: 'mumbai', UP: 'lucknow', WB: 'kolkata', BR: 'patna',
-  RJ: 'jaipur', GJ: 'ahmedabad', TS: 'hyderabad', KA: 'bangalore', TN: 'chennai',
-  PB: 'chandigarh', HR: 'chandigarh',
+// Map state name to city risk for heatmap
+const stateNameToCity: Record<string, string> = {
+  Delhi: 'delhi',
+  Maharashtra: 'mumbai',
+  'West Bengal': 'kolkata',
+  'Uttar Pradesh': 'lucknow',
+  Bihar: 'patna',
+  Telangana: 'hyderabad',
+  Rajasthan: 'jaipur',
+  Gujarat: 'ahmedabad',
+  Chandigarh: 'chandigarh',
+  Punjab: 'chandigarh',
+  Haryana: 'chandigarh',
+  'Jammu and Kashmir': 'srinagar',
+  Karnataka: 'bangalore',
+  'Tamil Nadu': 'chennai',
 };
 
 function RightPanel({ city, onAskAI, onViewStandards }: {
@@ -230,23 +214,21 @@ function RightPanel({ city, onAskAI, onViewStandards }: {
   }
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col">
       {/* Header */}
-      <div className={`px-4 py-3 border-b border-border ${city.risk === 'high' ? 'bg-red-50 dark:bg-red-950/20' : city.risk === 'medium' ? 'bg-amber-50 dark:bg-amber-950/20' : 'bg-green-50 dark:bg-green-950/20'}`}>
-        <div className="flex items-center justify-between mb-1">
-          <div className="flex items-center gap-2">
-            <MapPin className="h-4 w-4 text-foreground" />
-            <span className="font-bold text-foreground text-sm">{city.city}</span>
-            <span className="text-xs text-muted-foreground">{city.state}</span>
+      <div className="px-5 pt-4">
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <p className="text-base font-semibold text-foreground">{city.city}, {city.state}</p>
+            <p className="text-xs text-muted-foreground">{cfg!.label} • {city.reportCount} reports</p>
           </div>
-          <Badge className={`${cfg!.badge} text-[10px] rounded-sm px-2`}>{cfg!.emoji} {cfg!.label}</Badge>
+          <Badge className={`${cfg!.badge} text-[10px] rounded-md px-2.5`}>{cfg!.emoji} {cfg!.label}</Badge>
         </div>
-        <p className="text-[11px] text-muted-foreground">{city.reportCount} counterfeit reports on record</p>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      <div className="p-5 space-y-4">
         {/* Fake products */}
-        <div>
+        <div className="rounded-lg border border-border bg-white/80 dark:bg-card/80 p-4">
           <p className="text-[10px] font-bold text-foreground uppercase tracking-widest mb-2 flex items-center gap-1">
             <AlertTriangle className="h-3 w-3 text-red-500" /> Common Fake Products
           </p>
@@ -262,7 +244,7 @@ function RightPanel({ city, onAskAI, onViewStandards }: {
         </div>
 
         {/* Precautions */}
-        <div>
+        <div className="rounded-lg border border-border bg-white/80 dark:bg-card/80 p-4">
           <p className="text-[10px] font-bold text-foreground uppercase tracking-widest mb-2 flex items-center gap-1">
             <Shield className="h-3 w-3 text-primary" /> Precautionary Measures
           </p>
@@ -276,7 +258,7 @@ function RightPanel({ city, onAskAI, onViewStandards }: {
         </div>
 
         {/* How to identify */}
-        <div>
+        <div className="rounded-lg border border-border bg-white/80 dark:bg-card/80 p-4">
           <p className="text-[10px] font-bold text-foreground uppercase tracking-widest mb-2 flex items-center gap-1">
             <Info className="h-3 w-3 text-amber-500" /> How to Identify Fake
           </p>
@@ -290,7 +272,7 @@ function RightPanel({ city, onAskAI, onViewStandards }: {
         </div>
 
         {/* Safer alternatives */}
-        <div>
+        <div className="rounded-lg border border-border bg-white/80 dark:bg-card/80 p-4">
           <p className="text-[10px] font-bold text-foreground uppercase tracking-widest mb-2 flex items-center gap-1">
             <TrendingUp className="h-3 w-3 text-green-600" /> Safer Alternatives
           </p>
@@ -305,10 +287,10 @@ function RightPanel({ city, onAskAI, onViewStandards }: {
       </div>
 
       {/* Action buttons */}
-      <div className="p-4 border-t border-border space-y-2">
+      <div className="px-5 pb-5 pt-2 space-y-2">
         <Button
           size="sm"
-          className="w-full rounded-sm text-xs bg-primary hover:bg-primary/90 gap-2"
+          className="w-full rounded-md text-xs bg-primary hover:bg-primary/90 gap-2"
           onClick={() => onAskAI(city)}
         >
           <MessageSquare className="h-3.5 w-3.5" />
@@ -317,7 +299,7 @@ function RightPanel({ city, onAskAI, onViewStandards }: {
         <Button
           size="sm"
           variant="outline"
-          className="w-full rounded-sm text-xs gap-2"
+          className="w-full rounded-md text-xs gap-2"
           onClick={() => onViewStandards(city)}
         >
           <BookOpen className="h-3.5 w-3.5" />
@@ -349,7 +331,7 @@ export function IndiaRiskMap({ standalone = false }: { standalone?: boolean }) {
   const totalReports = cityRiskData.reduce((s, c) => s + c.reportCount, 0);
 
   return (
-    <section id="riskmap" className={`${standalone ? 'py-8' : 'py-12'} bg-secondary/30 border-t border-border`}>
+    <section id="riskmap" className={`${standalone ? 'py-8' : 'py-12'} bg-secondary/30 border-t border-border overflow-x-hidden`}>
       <div className="max-w-7xl mx-auto px-4">
         {/* Section header */}
         <div className="mb-6">
@@ -391,87 +373,113 @@ export function IndiaRiskMap({ standalone = false }: { standalone?: boolean }) {
         </div>
 
         {/* Two-column layout */}
-        <div className="grid lg:grid-cols-5 gap-0 border border-border rounded-sm overflow-hidden shadow-card bg-white dark:bg-card">
+        <div className="grid lg:grid-cols-[2fr_1fr] gap-6 border border-border rounded-xl overflow-hidden bg-slate-50/60 dark:bg-card/60">
           {/* Left: Map */}
-          <div className="lg:col-span-3 border-b lg:border-b-0 lg:border-r border-border">
-            <div className="px-4 py-3 border-b border-border flex items-center gap-2 bg-secondary/30">
-              <TrendingUp className="h-4 w-4 text-primary" />
-              <span className="text-sm font-semibold text-foreground">Interactive India Map</span>
-              <span className="text-xs text-muted-foreground ml-auto hidden sm:block">Click a marker for details</span>
-            </div>
-            <div className="relative p-3">
-              <svg viewBox="90 20 410 390" className="w-full h-auto max-h-[500px]">
-                {/* Sea background */}
-                <rect x="90" y="20" width="410" height="390" fill="#dbeafe" rx="3" />
-
-                {/* Heatmap state fills */}
-                {heatmapMode && stateFills.map(({ d, stateId }) => {
-                  const cityId = stateToCity[stateId];
-                  const city = cityRiskData.find(c => c.id === cityId);
-                  const risk = city?.risk || 'low';
-                  const alpha = risk === 'high' ? 0.55 : risk === 'medium' ? 0.35 : 0.18;
-                  const color = risk === 'high' ? `rgba(220,38,38,${alpha})` : risk === 'medium' ? `rgba(217,119,6,${alpha})` : `rgba(22,163,74,${alpha})`;
-                  return <path key={stateId} d={d} fill={color} stroke="none" />;
-                })}
-
-                {/* India outline */}
-                <path d={INDIA_OUTLINE} fill={heatmapMode ? 'none' : '#f0f9ff'} stroke="#94a3b8" strokeWidth="1" fillRule="evenodd" />
-
-                {/* City markers */}
-                {cityRiskData.map(city => {
-                  const cfg = riskConfig[city.risk];
-                  const isHov = hovered === city.id;
-                  const isSel = selected?.id === city.id;
-                  const r = isSel ? 9 : isHov ? 8 : 6;
-                  return (
-                    <g key={city.id}
-                      style={{ cursor: 'pointer' }}
-                      onMouseEnter={() => setHovered(city.id)}
-                      onMouseLeave={() => setHovered(null)}
-                      onClick={() => setSelected(isSel ? null : city)}
-                    >
-                      {/* Glow ring */}
-                      {(isSel || isHov) && (
-                        <circle cx={city.cx} cy={city.cy} r={r + 5} fill={cfg.glow} />
-                      )}
-                      {/* Pulse ring for high risk */}
-                      {city.risk === 'high' && !isSel && (
-                        <circle cx={city.cx} cy={city.cy} r={r + 3} fill="none" stroke={cfg.fill} strokeWidth="1" opacity="0.4" />
-                      )}
-                      {/* Main dot */}
-                      <circle cx={city.cx} cy={city.cy} r={r} fill={cfg.fill} stroke="white" strokeWidth="1.5" />
-                      {/* City label */}
-                      <text
-                        x={city.cx}
-                        y={city.cy + r + 8}
-                        textAnchor="middle"
-                        fontSize="6.5"
-                        fill="#1e293b"
-                        fontWeight="600"
-                        style={{ pointerEvents: 'none', userSelect: 'none' }}
-                      >
-                        {city.city}
-                      </text>
-                    </g>
-                  );
-                })}
-              </svg>
-
-              {/* Legend */}
-              <div className="flex items-center gap-4 mt-2 px-1">
+          <div className="min-w-0 border-b lg:border-b-0 lg:border-r border-border bg-white/70 dark:bg-card/70">
+            <div className="px-5 py-4 border-b border-border flex items-center gap-4">
+              <div className="flex items-center gap-2">
+                <TrendingUp className="h-4 w-4 text-primary" />
+                <span className="text-sm font-semibold text-foreground">Interactive India Map</span>
+              </div>
+              <div className="ml-auto flex items-center gap-3">
                 {(['high', 'medium', 'low'] as RiskLevel[]).map(r => (
                   <div key={r} className="flex items-center gap-1.5">
-                    <div className="h-3 w-3 rounded-full" style={{ background: riskConfig[r].fill }} />
+                    <div className="h-2.5 w-2.5 rounded-full" style={{ background: riskConfig[r].fill }} />
                     <span className="text-[10px] text-muted-foreground">{riskConfig[r].label}</span>
                   </div>
                 ))}
               </div>
             </div>
+            <div className="relative p-4">
+              <div className="w-full aspect-square max-h-[720px]">
+                <ComposableMap
+                  projection="geoMercator"
+                  width={720}
+                  height={720}
+                  projectionConfig={{ center: [82.5, 22.5], scale: 1000 }}
+                  style={{ width: '100%', height: '100%' }}
+                >
+                  {/* Sea background */}
+                  <rect x={0} y={0} width={720} height={720} fill="#dbeafe" rx={10} />
+
+                  <Geographies geography={INDIA_TOPOJSON}>
+                    {({ geographies }) =>
+                      geographies.map(geo => {
+                        const stateName = geo.properties?.name as string | undefined;
+                        const cityId = stateName ? stateNameToCity[stateName] : undefined;
+                        const city = cityId ? cityRiskData.find(c => c.id === cityId) : null;
+                        const risk = city?.risk ?? 'low';
+                        const alpha = risk === 'high' ? 0.55 : risk === 'medium' ? 0.35 : 0.18;
+                        const fill = heatmapMode && city
+                          ? (risk === 'high'
+                            ? `rgba(220,38,38,${alpha})`
+                            : risk === 'medium'
+                              ? `rgba(217,119,6,${alpha})`
+                              : `rgba(22,163,74,${alpha})`)
+                          : '#f0f9ff';
+
+                        return (
+                          <Geography
+                            key={geo.rsmKey}
+                            geography={geo}
+                            fill={fill}
+                            stroke="#94a3b8"
+                            strokeWidth={0.6}
+                            style={{
+                              default: { outline: 'none' },
+                              hover: { outline: 'none', fill: heatmapMode ? fill : '#e2f2ff' },
+                              pressed: { outline: 'none' },
+                            }}
+                          />
+                        );
+                      })
+                    }
+                  </Geographies>
+
+                  {!heatmapMode && cityRiskData.map(city => {
+                    const cfg = riskConfig[city.risk];
+                    const isHov = hovered === city.id;
+                    const isSel = selected?.id === city.id;
+                    const base = city.risk === 'high' ? 8 : city.risk === 'medium' ? 6 : 5;
+                    const r = isSel ? base + 2 : isHov ? base + 1 : base;
+                    return (
+                      <Marker
+                        key={city.id}
+                        coordinates={city.coords}
+                        style={{ cursor: 'pointer' }}
+                        onMouseEnter={() => setHovered(city.id)}
+                        onMouseLeave={() => setHovered(null)}
+                        onClick={() => setSelected(isSel ? null : city)}
+                      >
+                        {(isSel || isHov) && (
+                          <circle r={r + 5} fill={cfg.glow} />
+                        )}
+                        {city.risk === 'high' && !isSel && (
+                          <circle r={r + 3} fill="none" stroke={cfg.fill} strokeWidth="1" opacity="0.4" />
+                        )}
+                        <circle r={r} fill={cfg.fill} stroke="white" strokeWidth="1.5" />
+                        <text
+                          y={r + 8}
+                          textAnchor="middle"
+                          fontSize="6.5"
+                          fill="#1e293b"
+                          fontWeight="600"
+                          style={{ pointerEvents: 'none', userSelect: 'none' }}
+                        >
+                          {city.city}
+                        </text>
+                      </Marker>
+                    );
+                  })}
+                </ComposableMap>
+              </div>
+
+            </div>
           </div>
 
           {/* Right: Info panel */}
-          <div className="lg:col-span-2">
-            <div className="px-4 py-3 border-b border-border bg-secondary/30 flex items-center gap-2">
+          <div className="min-w-[320px] bg-white/70 dark:bg-card/70">
+            <div className="px-5 py-4 border-b border-border flex items-center gap-2">
               <Info className="h-4 w-4 text-primary" />
               <span className="text-sm font-semibold text-foreground">
                 {selected ? `${selected.city} — Risk Details` : 'Area Details'}
