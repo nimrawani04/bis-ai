@@ -201,120 +201,128 @@ export default function BISChat() {
     <div className="min-h-screen bg-background">
       <BISHeader />
       <main className="py-6 px-4">
-        <div className="max-w-5xl mx-auto space-y-6">
+        <div className="max-w-6xl mx-auto">
           <div className="text-sm text-muted-foreground">Home &gt; Ask BIS AI</div>
 
-          <section className="space-y-3">
-            <div className="text-[13px] text-muted-foreground uppercase tracking-[1px]">Digital Knowledge Service</div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-foreground">BIS AI Knowledge Assistant</h1>
-            <p className="text-sm text-muted-foreground">Government of India – Bureau of Indian Standards</p>
-            <p className="text-sm text-muted-foreground max-w-3xl">
-              Ask questions about BIS standards, certification procedures, product safety, and regulatory policies.
-            </p>
-          </section>
-
-          <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-2">
-            <Input
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              placeholder="Ask about BIS standards or certification procedures"
-              className="h-12 rounded-[4px]"
-              disabled={isLoading}
-            />
-            <Button type="submit" disabled={isLoading || !input.trim()} className="h-12 rounded-[4px] px-5 gap-2 shadow-none">
-              {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-              Ask
-            </Button>
-          </form>
-
-          <div className="text-xs text-muted-foreground">
-            Official AI-powered knowledge service for BIS standards and certification procedures.
-          </div>
-
-          <section className="border-t border-border pt-4">
-            <h2 className="text-sm font-semibold text-foreground mb-2">Suggested Questions</h2>
-            <ul className="list-disc list-inside text-sm text-muted-foreground space-y-1">
-              {exampleQuestions.map((q) => (
-                <li key={q}>
-                  <button
-                    type="button"
-                    onClick={() => sendMessage(q)}
-                    className="text-left text-sm text-primary hover:text-primary/80"
-                  >
-                    {q}
-                  </button>
-                </li>
-              ))}
-            </ul>
-          </section>
-
-          <section className="border-t border-border pt-4">
-            <h2 className="text-sm font-semibold text-foreground mb-2">Knowledge Topics</h2>
-            <div className="flex flex-wrap gap-2">
-              {knowledgeTopics.map((topic) => (
-                <span key={topic} className="text-xs text-foreground border border-border rounded-[4px] px-2.5 py-1 bg-white">
-                  {topic}
-                </span>
-              ))}
-            </div>
-          </section>
-
-          <section className="border-t border-border pt-4" ref={scrollRef}>
-            <h2 className="text-sm font-semibold text-foreground mb-2">Answer</h2>
-            <p className="text-xs text-muted-foreground">
-              Answer generated from BIS knowledge repository with source references.
-            </p>
-
-            {messages.length === 0 && (
-              <div className="mt-3 border border-border bg-white rounded-[2px] p-4 text-sm text-muted-foreground">
-                Enter a question above to view the official BIS knowledge response here.
+          <div className="grid md:grid-cols-[260px_1fr] gap-6 mt-4">
+            <aside className="border border-border bg-white rounded-[2px] p-4 space-y-5">
+              <div>
+                <p className="text-[11px] uppercase tracking-[1px] text-muted-foreground mb-2">Knowledge Topics</p>
+                <ul className="space-y-1">
+                  {knowledgeTopics.map((topic) => (
+                    <li key={topic}>
+                      <button
+                        type="button"
+                        onClick={() => setInput(topic)}
+                        className="text-left text-sm text-foreground hover:text-primary"
+                      >
+                        {topic}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
               </div>
-            )}
+              <div>
+                <p className="text-[11px] uppercase tracking-[1px] text-muted-foreground mb-2">Suggested Questions</p>
+                <ul className="space-y-1">
+                  {exampleQuestions.map((q) => (
+                    <li key={q}>
+                      <button
+                        type="button"
+                        onClick={() => sendMessage(q)}
+                        className="text-left text-sm text-primary hover:text-primary/80"
+                      >
+                        {q}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <div>
+                <p className="text-[11px] uppercase tracking-[1px] text-muted-foreground mb-2">Recent Questions</p>
+                <p className="text-xs text-muted-foreground">No recent questions yet.</p>
+              </div>
+            </aside>
 
-            {messages.map((msg, i) => {
-              if (msg.role === 'user') {
-                return (
-                  <div key={i} className="mt-4 border border-border bg-white rounded-[2px] p-4">
-                    <p className="text-[11px] uppercase tracking-[1px] text-muted-foreground">Question</p>
-                    <p className="text-sm text-foreground mt-1">{msg.content}</p>
+            <section className="space-y-4">
+              <div className="border border-border bg-white rounded-[2px] p-4 space-y-2">
+                <div className="text-[11px] uppercase tracking-[1px] text-muted-foreground">Digital Knowledge Service</div>
+                <h1 className="text-2xl sm:text-3xl font-bold text-foreground">BIS AI Knowledge Assistant</h1>
+                <p className="text-sm text-muted-foreground">Government of India ? Bureau of Indian Standards</p>
+                <p className="text-sm text-muted-foreground max-w-3xl">
+                  AI-powered knowledge service for BIS standards, certification requirements, and regulatory policies.
+                </p>
+                <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-2 pt-2">
+                  <Input
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                    placeholder="Ask a question about BIS standards or certification procedures"
+                    className="h-12 rounded-[4px]"
+                    disabled={isLoading}
+                  />
+                  <Button type="submit" disabled={isLoading || !input.trim()} className="h-12 rounded-[4px] px-5 gap-2 shadow-none">
+                    {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                    Ask
+                  </Button>
+                </form>
+              </div>
+
+              <div className="border border-border bg-white rounded-[2px] p-4" ref={scrollRef}>
+                <p className="text-[11px] uppercase tracking-[1px] text-muted-foreground">AI Response</p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Answer generated from BIS knowledge repository with source references.
+                </p>
+
+                {messages.length === 0 && (
+                  <div className="mt-3 border border-border bg-white rounded-[2px] p-4 text-sm text-muted-foreground">
+                    Enter a question above to view the official BIS knowledge response here.
                   </div>
-                );
-              }
+                )}
 
-              const { body, sources } = parseSources(msg.content);
+                {messages.map((msg, i) => {
+                  if (msg.role === 'user') {
+                    return (
+                      <div key={i} className="mt-4 border border-border bg-white rounded-[2px] p-4">
+                        <p className="text-[11px] uppercase tracking-[1px] text-muted-foreground">Question</p>
+                        <p className="text-sm text-foreground mt-1">{msg.content}</p>
+                      </div>
+                    );
+                  }
 
-              return (
-                <div key={i} className="mt-3 border border-border bg-white rounded-[2px] p-4">
-                  <p className="text-[11px] uppercase tracking-[1px] text-muted-foreground">Answer</p>
-                  <div className="prose prose-sm max-w-none dark:prose-invert prose-headings:text-foreground prose-p:text-muted-foreground prose-strong:text-foreground prose-li:text-muted-foreground mt-2">
-                    <ReactMarkdown remarkPlugins={[remarkGfm]}>{body}</ReactMarkdown>
-                  </div>
-                  {sources.length > 0 && (
-                    <div className="mt-3 border-t border-border pt-2">
-                      <p className="text-xs font-semibold text-foreground mb-1 flex items-center gap-1">
-                        <ExternalLink className="h-3 w-3" /> Source References
-                      </p>
-                      <ul className="list-disc list-inside text-xs text-muted-foreground space-y-1">
-                        {sources.map((src) => (
-                          <li key={src}>
-                            <a href={src} target="_blank" rel="noreferrer" className="text-primary hover:underline">
-                              {src}
-                            </a>
-                          </li>
-                        ))}
-                      </ul>
+                  const { body, sources } = parseSources(msg.content);
+
+                  return (
+                    <div key={i} className="mt-3 border border-border bg-white rounded-[2px] p-4">
+                      <p className="text-[11px] uppercase tracking-[1px] text-muted-foreground">Answer</p>
+                      <div className="prose prose-sm max-w-none dark:prose-invert prose-headings:text-foreground prose-p:text-muted-foreground prose-strong:text-foreground prose-li:text-muted-foreground mt-2">
+                        <ReactMarkdown remarkPlugins={[remarkGfm]}>{body}</ReactMarkdown>
+                      </div>
+                      {sources.length > 0 && (
+                        <div className="mt-3 border-t border-border pt-2">
+                          <p className="text-xs font-semibold text-foreground mb-1 flex items-center gap-1">
+                            <ExternalLink className="h-3 w-3" /> Sources
+                          </p>
+                          <ul className="list-disc list-inside text-xs text-muted-foreground space-y-1">
+                            {sources.map((src) => (
+                              <li key={src}>
+                                <a href={src} target="_blank" rel="noreferrer" className="text-primary hover:underline">
+                                  {src}
+                                </a>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
                     </div>
-                  )}
-                </div>
-              );
-            })}
-          </section>
+                  );
+                })}
+              </div>
 
-          <section className="border-t border-border pt-4">
-            <div className="border border-border bg-[#f9fafb] rounded-[2px] p-4 text-xs text-muted-foreground">
-              <span className="font-semibold text-foreground">Note:</span> Responses are generated using BIS publications and regulatory documents. Users should refer to official BIS notifications for final verification.
-            </div>
-          </section>
+              <div className="border border-border bg-[#f9fafb] rounded-[2px] p-4 text-xs text-muted-foreground">
+                <span className="font-semibold text-foreground">Note:</span> Responses are generated using BIS publications and regulatory documents. Users should verify information through official BIS documentation.
+              </div>
+            </section>
+          </div>
         </div>
       </main>
     </div>
