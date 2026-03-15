@@ -1,11 +1,22 @@
+import { useState } from 'react';
 import { BISHeader } from '@/components/BISHeader';
 import { Footer } from '@/components/Footer';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Search } from 'lucide-react';
 
 export default function BISHome() {
+  const navigate = useNavigate();
+  const [query, setQuery] = useState('');
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    const q = query.trim();
+    if (!q) return;
+    navigate(`/chat?q=${encodeURIComponent(q)}`);
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <BISHeader />
@@ -30,18 +41,20 @@ export default function BISHome() {
             <p className="text-sm sm:text-base text-muted-foreground max-w-3xl">
               Official AI-powered knowledge service for BIS standards, certification requirements, and regulatory policies.
             </p>
-            <div className="flex flex-col sm:flex-row gap-2">
+            <form onSubmit={handleSearch} className="flex flex-col sm:flex-row gap-2">
               <div className="flex-1">
                 <Input
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
                   placeholder="Search BIS standards or ask about certification requirements"
                   className="h-10 rounded-[4px]"
                 />
               </div>
-              <Button className="h-10 rounded-[4px] px-5 gap-2 shadow-none">
+              <Button type="submit" className="h-10 rounded-[4px] px-5 gap-2 shadow-none">
                 <Search className="h-4 w-4" />
                 Search BIS Knowledge Base
               </Button>
-            </div>
+            </form>
             <div className="text-xs text-muted-foreground">
               Verified BIS Knowledge Repository • Source citations from BIS publications
             </div>
