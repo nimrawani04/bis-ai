@@ -24,11 +24,12 @@ function TricolorStrip() {
 
 function GovBanner() {
   return (
-    <div className="w-full bg-white border-b border-border/50 py-2 px-4 hidden sm:flex items-center gap-4">
+    <div className="w-full bg-white border-b border-border/50 py-2 px-4 flex items-center gap-4">
       <img src={ashokaChakra} alt="Government of India Emblem" className="h-9 w-9 object-contain shrink-0" />
       <div className="border-l border-border pl-3">
         <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-widest">Government of India</p>
         <p className="text-xs font-bold text-primary leading-tight">Bureau of Indian Standards — भारतीय मानक ब्यूरो</p>
+        <p className="text-[11px] text-muted-foreground">Official Digital Knowledge Services Portal</p>
       </div>
     </div>
   );
@@ -107,7 +108,7 @@ export function BISHeader() {
       <TricolorStrip />
       <GovBanner />
       <div className="border-b border-border/50 bg-primary">
-        <div className="container flex h-10 items-center justify-between">
+        <div className="container flex h-[60px] items-center justify-between">
           <Link to="/" className="flex items-center gap-2 shrink-0">
             <div className="flex h-7 w-7 items-center justify-center rounded bg-white/10 border border-white/20">
               <BISLogo className="h-4 w-4" />
@@ -120,9 +121,9 @@ export function BISHeader() {
               <Link
                 key={link.to}
                 to={link.to}
-                className={`px-4 h-10 flex items-center text-xs font-medium border-r border-white/10 transition-colors ${
+                className={`px-4 h-[60px] flex items-center text-xs font-medium border-r border-white/10 transition-colors ${
                   location.pathname === link.to
-                    ? 'text-white bg-white/15'
+                    ? 'text-white bg-white/10 border-b-2 border-white'
                     : 'text-white/80 hover:text-white hover:bg-white/10'
                 }`}
               >
@@ -144,7 +145,7 @@ export function BISHeader() {
               <UserAvatarDropdown user={user} signOut={signOut} />
             ) : (
               <Link to="/auth">
-                <Button size="sm" className="h-7 text-xs bg-[hsl(var(--flag-saffron))] hover:bg-[hsl(28,100%,44%)] text-white border-0 rounded-sm px-3">
+                <Button size="sm" className="h-8 text-xs bg-[hsl(var(--flag-saffron))] hover:bg-[hsl(28,100%,44%)] text-white border-0 rounded-md px-3 shadow-none">
                   <LogIn className="h-3 w-3 mr-1" /> Sign In
                 </Button>
               </Link>
@@ -178,12 +179,12 @@ export function BISHeader() {
             ))}
             <div className="p-3">
               {user ? (
-                <Button size="sm" variant="outline" className="w-full rounded-sm" onClick={() => { signOut(); setMobileMenuOpen(false); }}>
+                <Button size="sm" variant="outline" className="w-full rounded-md" onClick={() => { signOut(); setMobileMenuOpen(false); }}>
                   <LogOut className="h-3.5 w-3.5 mr-1" /> Sign Out
                 </Button>
               ) : (
                 <Link to="/auth" onClick={() => setMobileMenuOpen(false)}>
-                  <Button size="sm" className="w-full rounded-sm bg-[hsl(var(--flag-saffron))] text-white border-0">
+                  <Button size="sm" className="w-full rounded-md bg-[hsl(var(--flag-saffron))] text-white border-0 shadow-none">
                     <LogIn className="h-3.5 w-3.5 mr-1" /> Sign In
                   </Button>
                 </Link>

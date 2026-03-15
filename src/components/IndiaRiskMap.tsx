@@ -490,14 +490,16 @@ export function IndiaRiskMap({ standalone = false }: { standalone?: boolean }) {
         </div>
 
         {/* Data source — impresses judges */}
-        <div className="mt-4 flex flex-wrap items-start gap-4 px-1">
-          <div className="flex items-center gap-2">
-            <Database className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-            <span className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wide">Data Sources:</span>
+        <div className="mt-4 px-1">
+          <div className="flex flex-wrap items-center gap-3 border border-border bg-white rounded-[4px] px-3 py-2">
+            <div className="flex items-center gap-2">
+              <Database className="h-3.5 w-3.5 text-primary shrink-0" />
+              <span className="text-[10px] text-foreground/70 font-semibold uppercase tracking-wide">Data Sources:</span>
+            </div>
+            {['Consumer Complaints (BIS Portal)', 'Market Inspections (BIS Enforcement)', 'BIS Enforcement Reports 2023–24', 'FSSAI Surveillance Data', 'State Consumer Forums'].map(src => (
+              <span key={src} className="text-[10px] text-foreground/70 bg-transparent px-2 py-0.5 rounded-[4px] border border-border">{src}</span>
+            ))}
           </div>
-          {['Consumer Complaints (BIS Portal)', 'Market Inspections (BIS Enforcement)', 'BIS Enforcement Reports 2023–24', 'FSSAI Surveillance Data', 'State Consumer Forums'].map(src => (
-            <span key={src} className="text-[10px] text-muted-foreground bg-secondary/60 px-2 py-0.5 rounded-sm border border-border">{src}</span>
-          ))}
         </div>
       </div>
     </section>

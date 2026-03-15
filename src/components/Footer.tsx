@@ -36,8 +36,11 @@ export function Footer() {
                 <p className="text-white/50 text-[10px]">भारतीय मानक ब्यूरो</p>
               </div>
             </div>
-            <p className="text-xs text-white/50 leading-relaxed mb-4">
+            <p className="text-xs text-white/50 leading-relaxed mb-2">
               Ministry of Consumer Affairs, Food &amp; Public Distribution, Government of India.
+            </p>
+            <p className="text-xs text-white/50 leading-relaxed mb-4">
+              Manak Bhawan, 9 Bahadur Shah Zafar Marg, New Delhi 110002 • Helpline: 1800-11-4000
             </p>
             <div className="flex items-center gap-2">
               <div className="flex h-8 w-8 items-center justify-center rounded bg-white/10 border border-white/10">

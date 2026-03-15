@@ -1,116 +1,118 @@
 import { BISHeader } from '@/components/BISHeader';
 import { Footer } from '@/components/Footer';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
 import { Link } from 'react-router-dom';
-import { MessageSquare, BookOpen, Search, Sparkles } from 'lucide-react';
-import { BISLogo } from '@/components/BISLogo';
-
-const features = [
-  {
-    icon: MessageSquare,
-    title: 'AI Assistant',
-    description: 'Find answers instantly about BIS standards, certification, and policies.',
-    link: '/chat',
-    linkLabel: 'Ask BIS AI',
-  },
-  {
-    icon: BookOpen,
-    title: 'Certification Guide',
-    description: 'Learn how to apply for BIS certification step by step.',
-    link: '/certification',
-    linkLabel: 'View Guide',
-  },
-  {
-    icon: Search,
-    title: 'Standards Explorer',
-    description: 'Discover BIS standards for products across categories.',
-    link: '/standards',
-    linkLabel: 'Explore Standards',
-  },
-];
+import { Search } from 'lucide-react';
 
 export default function BISHome() {
   return (
     <div className="min-h-screen bg-background">
       <BISHeader />
       <main>
-        {/* Hero */}
-        <section className="relative py-20 md:py-32 px-4 bg-gradient-to-b from-primary/5 to-background">
-          <div className="max-w-4xl mx-auto text-center">
-            <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-4 py-1.5 rounded-full text-sm font-medium mb-6">
-              <Sparkles className="h-4 w-4" />
-              AI-Powered BIS Knowledge Base
-            </div>
-            <h1 className="text-4xl md:text-6xl font-bold text-foreground mb-4" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
-              BIS <span className="text-primary">AI</span>
-            </h1>
-            <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto mb-10">
-              Ask anything about BIS standards, certification and policies. Get instant, accurate answers with source citations.
-            </p>
-            <div className="flex flex-wrap gap-4 justify-center">
-              <Link to="/chat">
-                <Button size="xl" className="gap-2">
-                  <MessageSquare className="h-5 w-5" />
-                  Ask BIS AI
-                </Button>
-              </Link>
-              <Link to="/standards">
-                <Button size="xl" variant="outline" className="gap-2">
-                  <Search className="h-5 w-5" />
-                  Explore Standards
-                </Button>
-              </Link>
-              <Link to="/certification">
-                <Button size="xl" variant="secondary" className="gap-2">
-                  <BookOpen className="h-5 w-5" />
-                  Certification Guide
-                </Button>
-              </Link>
-            </div>
-          </div>
-        </section>
+        <div className="max-w-7xl mx-auto px-4 py-3 text-xs text-muted-foreground">
+          Home &gt; BIS AI
+        </div>
 
-        {/* Features */}
-        <section className="py-16 px-4">
-          <div className="max-w-5xl mx-auto">
-            <div className="text-center mb-12">
-              <h2 className="text-3xl font-bold text-foreground mb-3">Platform Features</h2>
-              <p className="text-muted-foreground text-lg">Everything you need to understand BIS standards and certification</p>
+        <section className="px-4 py-6 bg-background">
+          <div className="max-w-5xl mx-auto space-y-3">
+            <div className="text-[11px] text-muted-foreground uppercase tracking-[1px]">
+              <div>Government of India</div>
+              <div>Bureau of Indian Standards</div>
+              <div>Digital Knowledge Services</div>
             </div>
-            <div className="grid md:grid-cols-3 gap-6">
-              {features.map((f) => (
-                <Card key={f.title} className="group hover:shadow-lg transition-shadow border-2 border-transparent hover:border-primary/20">
-                  <CardContent className="p-6 flex flex-col items-start gap-4">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                      <f.icon className="h-6 w-6" />
-                    </div>
-                    <div>
-                      <h3 className="text-lg font-semibold text-foreground mb-1">{f.title}</h3>
-                      <p className="text-muted-foreground text-sm">{f.description}</p>
-                    </div>
-                    <Link to={f.link}>
-                      <Button variant="ghost" size="sm" className="mt-auto gap-1.5">
-                        {f.linkLabel} →
-                      </Button>
-                    </Link>
-                  </CardContent>
-                </Card>
+            <h1 className="text-2xl sm:text-3xl font-bold text-foreground">
+              BIS AI — Official Knowledge Assistant
+            </h1>
+            <div className="text-[11px] text-muted-foreground">
+              Last updated: 15 March 2026
+            </div>
+            <p className="text-sm sm:text-base text-muted-foreground max-w-3xl">
+              Official AI-powered knowledge service for BIS standards, certification requirements, and regulatory policies.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-2">
+              <div className="flex-1">
+                <Input
+                  placeholder="Search BIS standards or ask about certification requirements"
+                  className="h-10 rounded-[4px]"
+                />
+              </div>
+              <Button className="h-10 rounded-[4px] px-5 gap-2 shadow-none">
+                <Search className="h-4 w-4" />
+                Search BIS Knowledge Base
+              </Button>
+            </div>
+            <div className="text-xs text-muted-foreground">
+              Verified BIS Knowledge Repository • Source citations from BIS publications
+            </div>
+            <div className="text-xs text-muted-foreground">
+              This service provides AI-assisted responses based on BIS publications. Always verify certification information through official BIS documentation.
+            </div>
+            <div className="text-xs text-muted-foreground">
+              Popular Searches:
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {[
+                'Helmet certification requirements',
+                'BIS mark verification',
+                'Electric heater safety standards',
+                'Pressure cooker certification',
+              ].map((label) => (
+                <button
+                  key={label}
+                  className="text-xs text-foreground border border-border bg-white rounded-[4px] px-2.5 py-1 hover:border-primary/40 transition-colors"
+                >
+                  {label}
+                </button>
               ))}
             </div>
           </div>
         </section>
 
-        {/* Trust */}
-        <section className="py-16 px-4 bg-secondary/30">
-          <div className="max-w-3xl mx-auto text-center">
-            <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-white/95 ring-1 ring-border/40 shadow-sm">
-              <BISLogo className="h-8 w-8" />
-            </div>
-            <h2 className="text-2xl font-bold text-foreground mb-3">Powered by BIS Knowledge</h2>
-            <p className="text-muted-foreground">
-              Our AI assistant is trained on official BIS website content from bis.gov.in. Every answer includes source citations so you can verify the information directly.
+        <section className="px-4 py-6">
+          <div className="max-w-5xl mx-auto">
+            <div className="section-divider" />
+            <h2 className="text-lg font-semibold text-foreground mb-2">BIS Digital Services</h2>
+            <p className="text-xs text-muted-foreground mb-4">
+              Official digital services for BIS standards, certification and consumer safety.
             </p>
+            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              {[
+                { title: 'Ask BIS AI', desc: 'Get AI-powered answers from BIS standards and policies.', link: '/chat', icon: '💬' },
+                { title: 'Standards Explorer', desc: 'Search and browse BIS standards by product category.', link: '/standards', icon: '📄' },
+                { title: 'Certification Guide', desc: 'Understand product certification procedures and requirements.', link: '/certification', icon: '📘' },
+                { title: 'Consumer Safety', desc: 'Check counterfeit risk and safety alerts across regions.', link: '/risk-map', icon: '🛡' },
+              ].map((item) => (
+                <Link key={item.title} to={item.link} className="block">
+                  <div className="border border-border bg-white rounded-[4px] p-4 h-full hover:border-primary/40 transition-colors">
+                    <p className="text-sm font-semibold text-foreground flex items-center gap-2">
+                      <span className="text-primary">{item.icon}</span>
+                      {item.title}
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-1 leading-relaxed">{item.desc}</p>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section className="px-4 py-6 bg-background">
+          <div className="max-w-5xl mx-auto">
+            <div className="border border-border border-l-4 border-l-primary bg-white rounded-[4px] p-5">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-sm font-semibold text-foreground">⚠ Consumer Safety Alerts</h3>
+                  <p className="text-[11px] text-muted-foreground">Recent market surveillance updates</p>
+                </div>
+                <span className="text-[11px] text-muted-foreground">Updated: 15 March 2026</span>
+              </div>
+              <ul className="mt-3 space-y-2 text-xs text-muted-foreground list-disc list-inside">
+                <li>Fake electrical products reported in Delhi markets.</li>
+                <li>Counterfeit pressure cookers detected in Lucknow.</li>
+                <li>Non-certified heaters flagged in Mumbai.</li>
+              </ul>
+            </div>
           </div>
         </section>
       </main>
