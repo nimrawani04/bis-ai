@@ -12,6 +12,7 @@ import { BISLogo } from '@/components/BISLogo';
 const navLinks = [
   { to: '/', label: 'Home' },
   { to: '/chat', label: 'Ask BIS' },
+  { to: '/risk-map', label: '🗺 Risk Map' },
   { to: '/certification', label: 'Certification Guide' },
   { to: '/standards', label: 'Standards Explorer' },
   { to: '/about', label: 'About BIS' },
