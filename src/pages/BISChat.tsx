@@ -1,12 +1,14 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { BISHeader } from '@/components/BISHeader';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { Send, Loader2, ExternalLink } from 'lucide-react';
+import { Send, Loader2, ExternalLink, Mic, MicOff, Globe, Upload, ImageIcon } from 'lucide-react';
 import { toast } from '@/components/ui/sonner';
 import { useSearchParams } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
+import { languageLabels, type SupportedLanguage } from '@/data/offlineKnowledgeMultilingual';
 
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/rag-search`;
 
@@ -88,7 +90,17 @@ export default function BISChat() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [selectedLang, setSelectedLang] = useState<SupportedLanguage>(() => {
+    return (localStorage.getItem('bis-chat-lang') as SupportedLanguage) || 'en';
+  });
+  const [isListening, setIsListening] = useState(false);
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [lastAnalysis, setLastAnalysis] = useState<any>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const initialQueryHandled = useRef(false);
 
   useEffect(() => {
@@ -113,6 +125,16 @@ export default function BISChat() {
         return;
       }
 
+      const payloadMessages = updatedMessages.map((m, i) => {
+        if (m.role !== 'user') return m;
+        if (selectedLang === 'en') return m;
+        if (i !== updatedMessages.length - 1) return m;
+        return {
+          ...m,
+          content: `${m.content}\n\nPlease respond in ${languageLabels[selectedLang]}.`,
+        };
+      });
+
       const resp = await fetch(CHAT_URL, {
         method: 'POST',
         headers: {
@@ -120,7 +142,7 @@ export default function BISChat() {
           Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
         },
         body: JSON.stringify({
-          messages: updatedMessages.map(m => ({ role: m.role, content: m.content })),
+          messages: payloadMessages.map(m => ({ role: m.role, content: m.content })),
         }),
       });
 
@@ -197,6 +219,125 @@ export default function BISChat() {
     sendMessage(input);
   };
 
+  const handleLangChange = (lang: SupportedLanguage) => {
+    setSelectedLang(lang);
+    localStorage.setItem('bis-chat-lang', lang);
+  };
+
+  const handleVoiceInput = () => {
+    const SpeechRecognition =
+      (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SpeechRecognition) return;
+
+    const recognition = new SpeechRecognition();
+    const langMap: Record<string, string> = {
+      en: 'en-IN',
+      hi: 'hi-IN',
+      ur: 'ur-PK',
+      ta: 'ta-IN',
+      te: 'te-IN',
+      bn: 'bn-IN',
+      kn: 'kn-IN',
+      ml: 'ml-IN',
+      ks: 'ks-IN',
+    };
+    recognition.lang = langMap[selectedLang] || 'en-IN';
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+
+    recognition.onstart = () => setIsListening(true);
+    recognition.onend = () => setIsListening(false);
+    recognition.onerror = () => setIsListening(false);
+
+    recognition.onresult = (event: any) => {
+      const transcript = event.results[0][0].transcript;
+      setInput(transcript);
+      sendMessage(transcript);
+    };
+
+    recognition.start();
+  };
+
+  const hasVoice =
+    typeof window !== 'undefined' &&
+    ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window);
+
+  const handleFileSelect = useCallback((file: File) => {
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please upload an image file (JPG, PNG)');
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('File size must be under 5MB');
+      return;
+    }
+    setUploadedFile(file);
+    setLastAnalysis(null);
+    const reader = new FileReader();
+    reader.onload = (e) => setImagePreview(e.target?.result as string);
+    reader.readAsDataURL(file);
+  }, []);
+
+  const clearUpload = () => {
+    setUploadedFile(null);
+    setImagePreview(null);
+    setLastAnalysis(null);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
+  const handleUploadAndAsk = async () => {
+    if (!uploadedFile || isUploading || isAnalyzing) return;
+
+    setIsUploading(true);
+    try {
+      const fileName = `${Date.now()}-${uploadedFile.name}`;
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('product-images')
+        .upload(fileName, uploadedFile);
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('product-images')
+        .getPublicUrl(uploadData.path);
+
+      setIsUploading(false);
+      setIsAnalyzing(true);
+
+      const { data: analysisData, error: analysisError } = await supabase.functions
+        .invoke('analyze-product-image', {
+          body: { imageUrl: publicUrl },
+        });
+
+      if (analysisError) throw analysisError;
+
+      const analysis = analysisData.analysis;
+      setLastAnalysis(analysis);
+
+      const promptParts = [
+        'I uploaded a product photo for BIS safety guidance.',
+        analysis?.productName ? `Product: ${analysis.productName}` : null,
+        analysis?.brand ? `Brand: ${analysis.brand}` : null,
+        analysis?.category ? `Category: ${analysis.category}` : null,
+        analysis?.riskLevel ? `Risk level: ${analysis.riskLevel}` : null,
+        analysis?.summary ? `Summary: ${analysis.summary}` : null,
+        analysis?.certificationMarks?.length ? `Certification marks: ${analysis.certificationMarks.join(', ')}` : null,
+        analysis?.safetyObservations?.length ? `Safety observations: ${analysis.safetyObservations.join('; ')}` : null,
+        analysis?.recommendation ? `Recommendation: ${analysis.recommendation}` : null,
+        'Please tell me which BIS/ISI certifications to check, how to verify them, and any red flags.',
+      ].filter(Boolean);
+
+      sendMessage(promptParts.join('\n'));
+      toast.success('Image analyzed. Asking BIS AI...');
+    } catch (error: any) {
+      console.error('Upload/analysis error:', error);
+      toast.error(error.message || 'Failed to analyze image');
+    } finally {
+      setIsUploading(false);
+      setIsAnalyzing(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <BISHeader />
@@ -252,19 +393,107 @@ export default function BISChat() {
                 <p className="text-sm text-muted-foreground max-w-3xl">
                   AI-powered knowledge service for BIS standards, certification requirements, and regulatory policies.
                 </p>
+
+                <div className="flex items-center gap-2 flex-wrap pt-2">
+                  <Globe className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-xs text-muted-foreground">Language:</span>
+                  {(Object.keys(languageLabels) as SupportedLanguage[]).map((lang) => (
+                    <Button
+                      key={lang}
+                      variant={selectedLang === lang ? 'default' : 'outline'}
+                      size="sm"
+                      className="text-xs px-2 py-1 h-7"
+                      onClick={() => handleLangChange(lang)}
+                    >
+                      {languageLabels[lang]}
+                    </Button>
+                  ))}
+                </div>
+
                 <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-2 pt-2">
-                  <Input
-                    value={input}
-                    onChange={(e) => setInput(e.target.value)}
-                    placeholder="Ask a question about BIS standards or certification procedures"
-                    className="h-12 rounded-[4px]"
-                    disabled={isLoading}
-                  />
+                  <div className="flex-1 flex gap-2">
+                    <Input
+                      value={input}
+                      onChange={(e) => setInput(e.target.value)}
+                      placeholder="Ask a question about BIS standards or certification procedures"
+                      className="h-12 rounded-[4px]"
+                      disabled={isLoading}
+                    />
+                    {hasVoice && (
+                      <Button
+                        type="button"
+                        variant={isListening ? 'destructive' : 'outline'}
+                        onClick={handleVoiceInput}
+                        className="h-12 w-12 p-0"
+                        aria-label="Voice input"
+                      >
+                        {isListening ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
+                      </Button>
+                    )}
+                  </div>
                   <Button type="submit" disabled={isLoading || !input.trim()} className="h-12 rounded-[4px] px-5 gap-2 shadow-none">
                     {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
                     Ask
                   </Button>
                 </form>
+
+                <div className="mt-4 border border-border rounded-[4px] p-3 bg-[#f9fafb]">
+                  <div className="flex items-center gap-2 mb-2">
+                    <ImageIcon className="h-4 w-4 text-primary" />
+                    <p className="text-xs font-semibold text-foreground">Scan Product (Upload Photo)</p>
+                  </div>
+                  <div className="flex flex-col sm:flex-row gap-3 items-center">
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp"
+                      className="hidden"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) handleFileSelect(file);
+                      }}
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="gap-2 w-full sm:w-auto"
+                      onClick={() => fileInputRef.current?.click()}
+                    >
+                      <Upload className="h-4 w-4" />
+                      Choose Photo
+                    </Button>
+                    <div className="text-xs text-muted-foreground flex-1 truncate">
+                      {uploadedFile ? uploadedFile.name : 'JPG/PNG/WebP, max 5MB'}
+                    </div>
+                    <Button
+                      type="button"
+                      className="w-full sm:w-auto gap-2"
+                      onClick={handleUploadAndAsk}
+                      disabled={!uploadedFile || isUploading || isAnalyzing}
+                    >
+                      {isUploading || isAnalyzing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                      {isUploading ? 'Uploading...' : isAnalyzing ? 'Analyzing...' : 'Analyze & Ask'}
+                    </Button>
+                    {uploadedFile && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        className="text-xs"
+                        onClick={clearUpload}
+                      >
+                        Clear
+                      </Button>
+                    )}
+                  </div>
+                  {imagePreview && (
+                    <div className="mt-3 flex items-center gap-3">
+                      <img src={imagePreview} alt="Uploaded product" className="h-16 w-16 object-contain rounded border bg-white" />
+                      <div className="text-xs text-muted-foreground">
+                        {lastAnalysis?.summary ? lastAnalysis.summary : 'Photo ready for analysis.'}
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
 
               <div className="border border-border bg-white rounded-[2px] p-4" ref={scrollRef}>
