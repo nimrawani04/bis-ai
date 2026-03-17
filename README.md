@@ -6,40 +6,25 @@
 
 ---
 
-## 📋 Table of Contents
 
-- [Overview](#overview)
-- [Architecture](#architecture)
-- [Tech Stack & Pipeline](#tech-stack--pipeline)
-- [Features](#features)
-- [Project Structure](#project-structure)
-- [Setup & Installation](#setup--installation)
-- [Environment Variables](#environment-variables)
-- [Deployment](#deployment)
+## 🚀 Overview  
+
+**BIS AI** is an intelligent assistant that helps users access and understand information from the Bureau of Indian Standards (BIS).
+
+It uses a **Retrieval-Augmented Generation (RAG)** pipeline to fetch verified content from BIS sources and generate **accurate, source-backed answers**.
+
+**Goal:** Make product safety, certification, and standards easy to understand for everyone, including users in low-connectivity rural areas.
 
 ---
 
-## Overview
+## 🧠 Features  
 
-BIS AI Smart Assistant is an AI-powered chatbot that helps users quickly find information from the Bureau of Indian Standards website.
-
-The system uses a Retrieval-Augmented Generation (RAG) pipeline to crawl and index BIS website content such as certification schemes, standards, laboratories, consumer programs, and publications. When a user asks a question, the chatbot retrieves the most relevant information and generates a clear answer with source citations from the BIS website.
-
-Key Features
-
-AI Chatbot Assistant to answer BIS-related queries
-
-Source-cited answers based on official BIS website content
-
-Multi-turn conversation support for follow-up questions
-
-Multilingual support for accessibility across India
-
-Offline information access for users in low-connectivity rural areas
-
-Goal
-
-To make BIS information easier to access, understand, and navigate, improving awareness of standards, certification processes, and consumer safety.
+- 🤖 AI chatbot for BIS queries  
+- 📸 Product image scanner (ISI/BIS detection)  
+- 📴 Offline-first PWA  
+- 🌐 Multilingual support (9 languages)  
+- ⚡ Low bandwidth & simple mode  
+- 📊 Safety alerts, product comparison, reports  
 
 ---
 
@@ -83,110 +68,6 @@ To make BIS information easier to access, understand, and navigate, improving aw
 
 ---
 
-## Tech Stack & Pipeline
-
-### Frontend Pipeline
-
-| Layer           | Technology                          |
-|-----------------|-------------------------------------|
-| **Build Tool**  | Vite 5 (ESBuild + Rollup)           |
-| **Framework**   | React 18 with SWC compiler          |
-| **Language**    | TypeScript 5                        |
-| **Styling**     | Tailwind CSS 3 + shadcn/ui          |
-| **Routing**     | React Router DOM v6                 |
-| **State**       | TanStack React Query v5             |
-| **Animations**  | Framer Motion                       |
-| **Forms**       | React Hook Form + Zod validation    |
-| **Charts**      | Recharts                            |
-| **Markdown**    | react-markdown + remark-gfm         |
-| **PDF**         | jsPDF                               |
-| **PWA**         | vite-plugin-pwa (Workbox)           |
-
-### Backend Pipeline
-
-| Layer               | Technology                        |
-|---------------------|-----------------------------------|
-| **Platform**        | Supabase                          |
-| **Database**        | PostgreSQL with Row-Level Security|
-| **Edge Functions**  | Deno (TypeScript)                 |
-| **AI Model**        | Google Gemini 1.5 Flash           |
-| **Auth**            | Supabase Auth + OAuth             |
-| **File Storage**    | Supabase Storage                  |
-
-### RAG Pipeline (Retrieval-Augmented Generation)
-
-The system uses a RAG pipeline to answer questions accurately using content from the Bureau of Indian Standards website.
-
-First, the platform crawls and collects information from BIS website pages such as certification schemes, standards, laboratories, and consumer programs.
-
-Next, the content is split into smaller sections (chunks) and converted into embeddings, which are numerical representations that capture the meaning of the text.
-
-These embeddings are stored in a vector database, allowing the system to perform semantic search.
-
-When a user asks a question, the system:
-
-converts the question into an embedding
-
-retrieves the most relevant content from the database
-
-sends that content to an AI model.
-
-The AI then generates an answer using only the retrieved information, ensuring the response is accurate and grounded in BIS website data, while also providing source citations.
-
-This process allows the chatbot to provide reliable, context-aware answers instead of simple keyword search results
-
-#### Hybrid Search with RRF Fusion
-
-The system uses a sophisticated hybrid retrieval approach:
-
-- **Full-Text Search (FTS)**: PostgreSQL's built-in text search for exact keyword matching
-- **Semantic Search**: pgvector with cosine similarity for conceptual matching
-- **RRF Fusion**: Combines both rankings using `score = 1/(k + rank_position)` formula
-- **Benefits**: Better recall (semantic) + better precision (FTS) = optimal results
-- **Fallback**: Gracefully falls back to FTS-only if embedding generation fails
-
-
----
-
-## Features
-
-### 🤖 AI-Powered Safety Assistant
-- Real-time streaming AI responses via Gemini 2.5 Flash
-- Product safety guides with certification checks
-- Quick-search prompts for common products
-
-### 📸 Product Image Scanner
-- Upload product photos for AI vision analysis
-- Detects ISI/BIS marks, brand, certification numbers
-- Risk level assessment (low/medium/high)
-
-### 📴 Offline-First (PWA)
-- Full Progressive Web App with service worker caching
-- Offline knowledge base with BIS standards and safety info
-- Voice input search (Web Speech API) when offline
-- Automatic online/offline detection with UI switching
-
-### 🌐 Multilingual Support (9 Languages)
-- English, Hindi, Urdu, Tamil, Telugu, Bengali, Kannada, Malayalam, Kashmiri
-- Offline-available translations for all safety content
-
-### ⚡ Low Bandwidth Mode
-- Auto-detects 2G/slow-2G connections
-- Disables animations, heavy graphics, backdrop filters
-- Text-focused minimal UI for slow devices
-- Manual toggle via ⚡ icon in header
-
-### 📊 Additional Features
-- Product comparison tool
-- Community trust scores & reviews
-- Safety alerts dashboard
-- Market risk map
-- Household safety scanner
-- Report counterfeit products
-- BIS certification guide
-- Standards explorer
-
----
 
 ## Project Structure
 
@@ -258,84 +139,31 @@ npm run dev
 # App runs at http://localhost:8080
 ```
 
-### Available Scripts
+## 🔍 How It Works  
 
-| Command          | Description                        |
-|------------------|------------------------------------|
-| `npm run dev`    | Start dev server (port 8080)       |
-| `npm run build`  | Production build                   |
-| `npm run preview`| Preview production build           |
-| `npm run lint`   | Run ESLint                         |
-| `npm run test`   | Run tests (Vitest)                 |
-| `npm run test:watch` | Run tests in watch mode        |
-
----
-
-## Environment Variables
-
-The following environment variables are required:
-
-### Frontend (.env.local)
-| Variable                          | Description              |
-|-----------------------------------|--------------------------|
-| `VITE_SUPABASE_URL`              | Backend API URL          |
-| `VITE_SUPABASE_PUBLISHABLE_KEY`  | Public API key           |
-| `VITE_SUPABASE_PROJECT_ID`       | Project identifier       |
-
-### Backend (Supabase Edge Functions)
-Set these in Supabase Dashboard → Project Settings → Edge Functions → Secrets:
-
-| Variable                | Description                                      | Get it from                          |
-|-------------------------|--------------------------------------------------|--------------------------------------|
-| `GEMINI_API_KEY`        | Google Gemini API key for AI responses           | https://aistudio.google.com/apikey   |
-| `FIRECRAWL_API_KEY`     | Firecrawl API key for crawling BIS website       | https://firecrawl.dev                |
-
-### Setting up Firecrawl
-
-1. **Get Firecrawl API Key:**
-   - Visit https://firecrawl.dev
-   - Sign up for a free account
-   - Copy your API key from the dashboard
-
-2. **Add to Supabase:**
-   - Go to https://supabase.com/dashboard/project/YOUR_PROJECT_ID/settings/functions
-   - Click "Add new secret"
-   - Name: `FIRECRAWL_API_KEY`
-   - Value: Your Firecrawl API key
-   - Click "Save"
-
-3. **Crawl BIS Website:**
-   - Navigate to `/admin-crawl` in your app
-   - Click "Start Crawl & Ingest"
-   - This will scrape 50+ BIS pages and populate the knowledge base
-   - Takes ~5-10 minutes depending on rate limits
-
-4. **What gets crawled:**
-   - BIS certification schemes (ISI Mark, Hallmarking, CRS, FMCS)
-   - Product standards across all categories
-   - Consumer affairs and complaint procedures
-   - Laboratory services and testing
-   - About BIS organization and structure
+1. Crawl BIS website data  
+2. Convert content into embeddings  
+3. Store in vector database  
+4. On user query:
+   - Retrieve relevant data  
+   - Generate AI response  
+   - Provide source citations  
 
 ---
 
-## Deployment
+## 🛠️ Tech Stack  
 
-### Manual Deployment
-1. Set up a Supabase project at [supabase.com](https://supabase.com)
-2. Configure environment variables in your deployment platform
-3. Deploy edge functions using Supabase CLI
-4. Build and deploy the frontend
-2. Click **Share → Publish**
-3. Optionally connect a custom domain via **Settings → Domains**
+**Frontend:**  
+React • TypeScript • Tailwind • React Query • Framer Motion  
 
-### PWA Installation
-Once published, users can install the app on mobile/desktop:
-- **Android**: "Add to Home Screen" prompt
-- **iOS**: Safari → Share → "Add to Home Screen"
-- **Desktop**: Chrome address bar install icon
+**Backend:**  
+Supabase • PostgreSQL • Deno  
+
+**AI & Data:**  
+Gemini API • pgvector • Firecrawl  
 
 ---
+
 
 ## License
 - MIT
